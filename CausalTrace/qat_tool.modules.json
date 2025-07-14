@@ -1,0 +1,37 @@
+{
+  "entrypoint_resolver": {
+    "description": "Resolves natural language prompts, CLI commands, or function names to relevant nodes in the AST graph. Ensures that trace starts from a meaningful and contextually correct entrypoint.",
+    "inputs": ["prompt", "edge_graph"],
+    "outputs": ["entrypoint_node"],
+    "order": 1,
+    "type": "resolution"
+  },
+  "causal_chain_tracer": {
+    "description": "Traverses the edge graph starting from the resolved entrypoint to simulate a causal path through the codebase. Identifies inputs, transitions, and triggered components.",
+    "inputs": ["entrypoint_node", "edge_graph"],
+    "outputs": ["causal_sequence"],
+    "order": 2,
+    "type": "static_flow_analysis"
+  },
+  "architecture_contextualizer": {
+    "description": "Annotates each node or function in the causal chain with its architectural purpose using `.purpose.md` metadata, enabling reasoning about intent and systemic roles.",
+    "inputs": ["causal_sequence", "purpose_files"],
+    "outputs": ["annotated_trace"],
+    "order": 3,
+    "type": "semantic_enrichment"
+  },
+  "trace_output_formatter": {
+    "description": "Formats the annotated trace into a natural-language causal narrative and a structured LLM-readable chain-of-thought format. Ensures output consistency for downstream use.",
+    "inputs": ["annotated_trace"],
+    "outputs": ["nl_trace_report", "structured_thought_chain"],
+    "order": 4,
+    "type": "nl_generation"
+  },
+  "intent_reconciler": {
+    "description": "Analyzes the user’s prompt for implied goals such as debugging, design change, or architectural reasoning. Modifies or annotates the trace to reflect those goals.",
+    "inputs": ["prompt", "annotated_trace"],
+    "outputs": ["goal_aligned_trace"],
+    "order": 5,
+    "type": "intent_alignment"
+  }
+}

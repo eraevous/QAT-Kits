@@ -1,0 +1,9 @@
+{
+  "step": "CausalTraceNarrator",
+  "description": "Simulates a natural-language execution trace from a user prompt or CLI command using a static edge graph and module purpose annotations.",
+  "requires": ["prompt", "edge_graph", "purpose_files"],
+  "optional": [],
+  "provides": ["nl_trace_report", "structured_thought_chain"],
+  "session_keys": ["goal_aligned_trace", "entrypoint_node"],
+  "output_format": "modular_report"
+}

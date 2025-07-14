@@ -1,0 +1,28 @@
+{
+  "tools": {
+    "CausalTraceNarrator": {
+      "instructions": [
+        "CausalTraceNarrator.instructions.md"
+      ],
+      "actions": [
+        "simulate_causal_flow",
+        "narrate_trace",
+        "reconcile_intent",
+        "contextualize_architecture"
+      ],
+      "precedents": [
+        "SymbolicWalker",
+        "TraceExplainer",
+        "CodeCausalityMapper"
+      ],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": false,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true,
+        "pipeline_node": true
+      }
+    }
+  },
+  "shared": {}
+}

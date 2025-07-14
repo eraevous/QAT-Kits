@@ -1,0 +1,37 @@
+{
+  "nodes": [
+    {
+      "id": "CausalTraceNarrator",
+      "label": "CausalTraceNarrator",
+      "type": "reasoning_tool",
+      "entry": true,
+      "description": "Simulates execution flow in natural language from code structure and prompt."
+    }
+  ],
+  "edges": [
+    {
+      "from": "DesignIntentAnalyzer",
+      "to": "CausalTraceNarrator",
+      "type": "context_flow",
+      "description": "Passes architectural or design reasoning to guide trace narration."
+    },
+    {
+      "from": "CausalTraceNarrator",
+      "to": "TestSynthesizer",
+      "type": "data_flow",
+      "description": "Structured causal trace output supports automatic test hypothesis generation."
+    },
+    {
+      "from": "CausalTraceNarrator",
+      "to": "ReflectiveAgent",
+      "type": "feedback_loop",
+      "description": "Allows the LLM to reflect on whether reasoning aligned with architecture and prompt."
+    }
+  ],
+  "meta": {
+    "graph_type": "pipeline_dag",
+    "version": "0.3",
+    "last_updated": "2025-07-14",
+    "authors": ["ToolSmith-QAT", "Zach Rhodes", "Toolbox Program GPT"]
+  }
+}

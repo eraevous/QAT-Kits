@@ -1,0 +1,47 @@
+{
+  "tools": {
+    "CausalTraceNarrator": {
+      "invocation": [
+        "Trace what happens when I run [command]",
+        "Explain the code path starting from [function]",
+        "Narrate flow for this architecture bug",
+        "Run CausalTraceNarrator",
+        "Simulate causal path in this repo"
+      ],
+      "tags": [
+        "code-flow",
+        "architecture-analysis",
+        "causal-reasoning",
+        "nl-tracing",
+        "debug-trace"
+      ],
+      "authors": [
+        "ToolSmith-QAT", "Zach Rhodes", "Toolbox Program GPT"
+      ],
+      "audiences": [
+        "software engineers",
+        "AI code agents",
+        "toolchain developers",
+        "debugging assistants"
+      ],
+      "caveats": [
+        "Causal reasoning is inferred, not executed — no runtime behavior",
+        "Traces may be inaccurate if input edge graph is sparse or ambiguous",
+        "Architecture purpose must be defined in `.purpose.md` for contextualization"
+      ],
+      "thread_types": [
+        "debugging",
+        "architecture-design",
+        "test-generation",
+        "chain-of-thought"
+      ]
+    }
+  },
+  "meta": {
+    "default_mode": "reasoning",
+    "version": "0.2",
+    "last_updated": "2025-07-14",
+    "authors": ["ToolSmith-QAT", "Zach Rhodes", "Toolbox Program GPT"],
+    "error_handling": "If tool is not found, offer suggestions based on user intent and show available tools with invocation phrases."
+  }
+}

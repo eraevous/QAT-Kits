@@ -1,0 +1,54 @@
+{
+  "tool_name": "CausalTraceNarrator",
+  "description": "Simulates and narrates codebase execution in natural language using AST relationships and design intent.",
+  "backend": ["chatgpt"],
+  "version": "0.1",
+  "entrypoint": "inline",
+  "authors": ["ToolSmith-QAT", "Zach Rhodes", "Toolbox Program GPT"],
+  "inputs": ["prompt", "edge_graph", "purpose_files"],
+  "outputs": ["nl_trace_report", "structured_thought_chain"],
+  "usage_modes": ["analyze", "generate", "reflect"],
+  "scaffold": {
+    "goals": [
+      "Simulate causal code execution from entrypoints",
+      "Enrich traces with architectural purpose and prompt alignment"
+    ],
+    "prompts": [
+      "If I invoke `command X`, what happens?",
+      "What part of the code does Y when I change Z?",
+      "Explain what leads to this line being hit in a trace"
+    ]
+  },
+  "reflex_paths": ["clarify_input_if_missing", "fallback_to_static_analysis"],
+  "mcp_contract": {
+    "contract_name": "CausalTraceNarrator_v1",
+    "inputs": {
+      "prompt": "Natural-language entrypoint or debug/design intent",
+      "edge_graph": "Edgelist or dependency map (e.g., AST edges)",
+      "purpose_files": "Associated module descriptions like `.purpose.md`"
+    },
+    "outputs": {
+      "nl_trace_report": "Natural-language narrative of causal flow",
+      "structured_thought_chain": "LLM-parsable chain-of-thought trace structure"
+    },
+    "preconditions": ["Valid graph and at least one entrypoint must be present"],
+    "fallback_rules": ["If prompt vague, guess intent from known tool patterns"],
+    "safety_constraints": ["Never fabricate code behavior not supported by structure"],
+    "verified_by": ["ToolSmith-QAT"]
+  },
+  "flags": {
+    "requires_input": true,
+    "self_applicable": false,
+    "invocable_by_other_tools": true,
+    "pipeline_node": true
+  },
+  "modules": [
+    "entrypoint_resolver",
+    "causal_chain_tracer",
+    "architecture_contextualizer",
+    "trace_output_formatter",
+    "intent_reconciler"
+  ],
+  "invokeable_tools": [],
+  "output_type": ["modular_report"]
+}
