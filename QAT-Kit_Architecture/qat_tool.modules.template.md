@@ -1,149 +1,118 @@
-# 📦 QAT Tool Modules Specification
+# 🧩 QAT Tool Modules Template (Markdown)
 
-@template-version: 2.1.0
+@template-version: 2.1
+@format-type: template
+@ai-role: modules.subroutine\_graph
 @field-mode: strict+inferred
-@ai-role: subroutine-logic
-@used-by: \[tool.name.here]
-@ai-generated: true
-@human-reviewed: false
+@ai-hint: Generate in blocks. Treat each module as independently invocable.
 
 ---
 
 ## 🧠 Module Graph Overview
 
-> This file defines all internal logic blocks used by a single QAT tool. Modules should represent named, ordered subroutines with clean IO separation.
-> Each module is composable, optionally reusable, and contributes to the full transformation path of the tool.
+> *Explain what these modules represent in your tool.*
+> This is a named list of logic units that form the execution graph of your tool.
+> Each should be composable, idempotent (if possible), and have well-scoped IO.
 
 ---
 
 ### 📄 Module Index
 
-| ID                  | Type         | Description                                | Order |
-| ------------------- | ------------ | ------------------------------------------ | ----- |
-| `embed_normalizer`  | `transform`  | Normalize input embeddings to shared scale | 1     |
-| `topic_cluster`     | `analyze`    | Cluster semantically similar vectors       | 2     |
-| `segment_retriever` | `dispatch`   | Pull context-relevant file slices          | 3     |
-| `response_composer` | `synthesize` | Generate readable summary from findings    | 4     |
+> Use the table below to list modules in sequence order.
+
+| ID (module\_id) | Type       | Description            | Order |
+| --------------- | ---------- | ---------------------- | ----- |
+| `{{module_id}}` | `{{type}}` | {{1-sentence purpose}} | #     |
 
 ---
 
 ## 🔧 Module Definitions
 
-### 🧩 `embed_normalizer`
+> Copy this structure per module.
 
-* **Type**: `transform`
-* **Description**: Converts raw embedding vectors to a normalized format. Standardizes length, scale, and type to enable cluster analysis.
+### 🧩 `{{module_id}}`
+
+* **Type**: `transform` | `analyze` | `dispatch` | `filter` | `synthesize` | `fork` | `visualize`
+* **Description**: *Sentence about the module's role in the pipeline.*
 * **Inputs**:
 
-  * `embeddings`: `List[List[float]]` — Raw vector data
+  * `{{input_name}}`: `{{Type}}` — {{purpose}}
 * **Outputs**:
 
-  * `normalized_embeddings`: `List[List[float]]`
-* **Order**: `1`
+  * `{{output_name}}`: `{{Type}}` — {{purpose}}
+* **Order**: `#` *(Integer - defines execution position)*
 * **Optional Notes**:
 
-  * Uses `qat_struct.embedding_set` schema
-  * Triggers warning if `nan` values exceed threshold
-
----
-
-### 🧩 `topic_cluster`
-
-* **Type**: `analyze`
-* **Description**: Groups normalized embeddings into conceptual clusters based on cosine similarity and topic inference.
-* **Inputs**:
-
-  * `normalized_embeddings`: `List[List[float]]`
-* **Outputs**:
-
-  * `cluster_map`: `Dict[str, List[int]]`
-* **Order**: `2`
-* **Heuristics**:
-
-  * `min_cluster_size`: 5
-  * `max_topic_overlap`: 0.3
-
----
-
-### 🧩 `segment_retriever`
-
-* **Type**: `dispatch`
-* **Description**: Retrieves segments from source files that align with clustered topics or high-similarity points.
-* **Inputs**:
-
-  * `cluster_map`: `Dict[str, List[int]]`
-  * `fileset`: `List[FileBlob]`
-* **Outputs**:
-
-  * `context_segments`: `List[SegmentSummary]`
-* **Order**: `3`
-* **Fallback Logic**:
-
-  * If cluster map is empty, use embedding proximity alone
-
----
-
-### 🧩 `response_composer`
-
-* **Type**: `synthesize`
-* **Description**: Generates a human-readable Markdown summary or JSON block from matched segments.
-* **Inputs**:
-
-  * `context_segments`: `List[SegmentSummary]`
-* **Outputs**:
-
-  * `summary`: `str`
-  * `rationale_map`: `Dict[str, str]`
-* **Order**: `4`
-* **Codex Tip**:
-
-  * Avoid LLM hallucination by quoting sources when available
-  * May emit `DriftSignal` if summary coverage is low
+  * Heuristics: *{min\_size, tolerance, etc.}*
+  * Flags: *e.g., `skip_if_empty`, `emits_drift_signal`*
 
 ---
 
 ## 🪞 Module Reflex Flags (Optional)
 
-> Flags used by Codex/Fork Agents to trigger secondary logic, auto-reflection, or debug paths.
-
-| Module              | Reflex Trigger           | Action                           |
-| ------------------- | ------------------------ | -------------------------------- |
-| `topic_cluster`     | `cluster_drift_detected` | Emit `DriftSignal` → audit queue |
-| `response_composer` | `summary_conflict`       | Fork to `intent.rewrite.path`    |
+| Module ID       | Reflex Trigger | Action Taken                          |
+| --------------- | -------------- | ------------------------------------- |
+| `{{module_id}}` | `{{event}}`    | `{{emit DriftSignal / fork / retry}}` |
 
 ---
 
 ## 🧱 Schema Reference
 
-> All inputs/outputs should resolve to entries in `qat_struct.md`, where applicable.
-> Types like `FileBlob`, `SegmentSummary`, `DriftSignal` must have known structures for Codex compatibility.
+> List all IO types that must exist in `qat_struct.md`.
+> These must be semantically stable types for Codex/ToolSmith reuse.
+
+* `{{CustomType}}`: used in `inputs[]` of `{{module_id}}`
+* `SegmentSummary`, `DriftSignal`, etc.
 
 ---
 
-## 🧩 Assembly Logic (Optional)
+## 🧩 Assembly Graph (Optional)
 
 ```mermaid
 graph TD;
-  A[embed_normalizer] --> B[topic_cluster]
-  B --> C[segment_retriever]
-  C --> D[response_composer]
+  A[{{module_1}}] --> B[{{module_2}}]
+  B --> C[{{module_3}}]
 ```
 
 ---
 
-## 📌 Design Notes
+## 🧠 Design Hints for ToolSmith
 
-* Modules should be idempotent where possible.
-* Use clear naming: `verb_object` or concept nouns.
-* Allow module invocation from chat context (e.g., “run topic\_cluster manually”).
-* Avoid chaining into unrelated toolsets unless explicitly defined in `qat_toolkit`.
+| Principle             | Practice                                                                 |
+| --------------------- | ------------------------------------------------------------------------ |
+| Single Responsibility | Keep module functions tightly scoped (avoid multi-action blocks)         |
+| Clear Naming          | Prefer `verb_object` like `generate_summary`, `fetch_segments`           |
+| Order Matters         | Sequence should match logical execution → `normalize → cluster → output` |
+| Self-contained        | Modules should be invocable in isolation for testing                     |
 
 ---
 
-## ✅ Module Integrity Checklist
+## ✅ Module Checklist
 
-* [x] All modules have unique IDs
-* [x] All IO types are defined
-* [x] Order is consistent with pipeline path
-* [x] Reflex triggers mapped
-* [x] Fallback paths provided for noncritical modules
+* [ ] All modules have unique `module_id`
+* [ ] All inputs/outputs are typed (or reference `qat_struct`)
+* [ ] Modules are ordered logically
+* [ ] Reflex triggers noted if applicable
+* [ ] Mermaid graph added if flow is complex
+
+---
+
+## 📌 Template Notes
+
+> This file may be generated or extended by ToolSmith agents.
+> All fields marked `{{...}}` must be filled, but generation may use `@inferred` values for most defaults.
+> Runtime agents may evaluate IO fidelity based on declared types and coordinate with upstream tools.
+
+## 🔗 Related
+
+- Instructions: <toolkit_instructions.name>
+- Pipelines: <pipeline.name>
+- Related Tools: <tool.name.other>, <retriever.selector>, etc.
+
+## 📚 Maintenance Metadata
+
+``` yaml
+created: 2025-07-13
+last_updated: 2025-07-13
+tags: [inference, summarization, modular, Codex-safe]
+```
