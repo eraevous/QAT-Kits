@@ -1,0 +1,98 @@
+{
+  "tool_name": "InterviewCommander",
+  "description": "Synthesizes job data, resume framing, and user context to generate cheat sheets, questions, story frameworks, and strategic prep for interviews.",
+  "backend": "chatgpt",
+  "entrypoint": "inline",
+  "author": "ToolSmith-QAT",
+  "version": "0.1",
+  "inputs": [
+    "job_summary",
+    "resume_edits",
+    "cover_letter",
+    "user_notes",
+    "interviewer_name"
+  ],
+  "outputs": [
+    "cheat_sheet",
+    "talking_points",
+    "likely_questions",
+    "cultural_fit_flags",
+    "strategic_suggestions"
+  ],
+  "usage_modes": [
+    "prepare",
+    "cheat_sheet",
+    "confidence_builder",
+    "mock_questions"
+  ],
+  "scaffold": {
+    "goals": [
+      "Reinforce user strengths and relevance to job",
+      "Flag potential pitfalls or red flag culture signals",
+      "Suggest confident ways to frame soft skills or concerns",
+      "Prepare questions the user can ask and answer well",
+      "Enable reflection or simulation in high-stakes settings"
+    ],
+    "prompts": [
+      "Give me a cheat sheet for this interview",
+      "What questions might they ask me?",
+      "How can I highlight the right stories?",
+      "What should I watch out for culturally?",
+      "Can you help me frame this resume gap well?"
+    ]
+  },
+  "reflex_paths": [
+    "fallback_to_general_prep_if_inputs_missing",
+    "call_MetaDistill_if_user_notes_vague",
+    "simulate_mock_answers_if_requested"
+  ],
+  "mcp_contract": {
+    "contract_name": "InterviewCommander_v1",
+    "inputs": {
+      "job_summary": "object",
+      "resume_edits": "array",
+      "cover_letter": "string",
+      "user_notes": "string (optional)",
+      "interviewer_name": "string (optional)"
+    },
+    "outputs": {
+      "cheat_sheet": "string",
+      "talking_points": "array",
+      "likely_questions": "array",
+      "cultural_fit_flags": "array",
+      "strategic_suggestions": "array"
+    },
+    "preconditions": [
+      "job_summary must include recruiter_signals or priorities",
+      "resume_edits or user_notes should be provided"
+    ],
+    "fallback_rules": [
+      "If interviewer name unavailable → use general role prep",
+      "If cover_letter missing → fallback to resume context"
+    ],
+    "safety_constraints": [
+      "Avoid stereotyping or personality judgments",
+      "Always flag when inputs are speculative"
+    ],
+    "verified_by": ["ToolSmith v0.2-beta"]
+  },
+  "flags": {
+    "requires_input": true,
+    "self_applicable": false,
+    "visible_to_user": true,
+    "invocable_by_other_tools": true
+  },
+  "modules": [
+    "cheat_sheet_generator",
+    "mock_question_engine",
+    "culture_flag_detector",
+    "confidence_coach"
+  ],
+  "invokeable_tools": ["ResumeTailor", "MetaDistill", "StressTest"],
+  "output": [
+    "cheat_sheet",
+    "basic_report",
+    "modular_report",
+    "summary"
+  ]
+}

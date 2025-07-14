@@ -1,0 +1,57 @@
+{
+  "tools": {
+    "ToolSmith-QAT": {
+      "invocation": [
+        "Design a new tool",
+        "Use ToolSmith-QAT to generate a .tool file",
+        "Start a tool definition scaffold",
+        "I want to build a new reasoning tool",
+        "Run ToolSmith to update the pipeline"
+      ],
+      "tags": [
+        "meta",
+        "tool_design",
+        "agent",
+        "pipeline",
+        "framework",
+        "scaffold"
+      ],
+      "authors": [
+        "ToolSmith-QAT",
+        "Zach Rhodes",
+        "Toolbox Program GPT"
+      ],
+      "audiences": [
+        "developer",
+        "toolmaker",
+        "meta-agent",
+        "workflow architect",
+        "researcher",
+        "instructor"
+      ],
+      "caveats": [
+        "ToolSmith-QAT assumes a valid QAT-Kit environment with templates available or inferred.",
+        "Not a content generation tool — produces tool *definitions*, not execution results.",
+        "Requires reflective understanding of cognitive workflows to be used effectively.",
+        "Output files may require review or editing before pipeline integration."
+      ],
+      "thread_types": [
+        "designer",
+        "author",
+        "reflector",
+        "meta"
+      ]
+    }
+  },
+  "meta": {
+    "default_mode": "reflective-authoring",
+    "version": "0.2",
+    "last_updated": "2025-07-12",
+    "authors": [
+      "ToolSmith-QAT",
+      "Zach Rhodes",
+      "Toolbox Program GPT"
+    ],
+    "error_handling": "If tool is not found, offer suggestions based on user intent and show available tools with invocation phrases."
+  }
+}

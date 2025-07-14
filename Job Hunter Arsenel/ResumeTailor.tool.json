@@ -1,0 +1,96 @@
+{
+  "tool_name": "ResumeTailor",
+  "description": "Compares resume and profile to job insights, identifies alignment and gaps, suggests edits, and drafts optional cover letters based on user input.",
+  "backend": "chatgpt",
+  "entrypoint": "inline",
+  "author": "ToolSmith-QAT",
+  "version": "0.1",
+  "inputs": [
+    "resume_text",
+    "linkedin_url",
+    "job_analysis",
+    "user_responses"
+  ],
+  "outputs": [
+    "resume_edits",
+    "gap_analysis",
+    "viability_score",
+    "cover_letter_draft"
+  ],
+  "usage_modes": [
+    "analyze_match",
+    "edit_resume",
+    "draft_letter",
+    "generate_questions"
+  ],
+  "scaffold": {
+    "goals": [
+      "Identify strong matches between resume and job",
+      "Highlight severe and moderate alignment gaps",
+      "Suggest edits to improve match or strategic reframing",
+      "Generate cover letter that combines personal voice with recruiter logic"
+    ],
+    "prompts": [
+      "Compare me to this job — where do I match?",
+      "What do I need to fix or highlight in my resume?",
+      "How do I phrase things if I'm not totally sure about the company?",
+      "Help me write a cover letter even if I don’t know what to say."
+    ]
+  },
+  "reflex_paths": [
+    "ask_user_to_refine_interest_level",
+    "fallback_to_generic_letter_structure",
+    "highlight_risks_if_match_score_low"
+  ],
+  "mcp_contract": {
+    "contract_name": "ResumeTailor_v1",
+    "inputs": {
+      "resume_text": "string",
+      "linkedin_url": "string (optional)",
+      "job_analysis": "object",
+      "user_responses": "object"
+    },
+    "outputs": {
+      "resume_edits": "array",
+      "gap_analysis": {
+        "critical_gaps": "array",
+        "moderate_gaps": "array",
+        "side-step_tactics": "array"
+      },
+      "viability_score": "integer (0–100)",
+      "cover_letter_draft": "string"
+    },
+    "preconditions": [
+      "resume_text must be present",
+      "job_analysis must include recruiter_signals"
+    ],
+    "fallback_rules": [
+      "If user_responses missing → ask follow-up Qs (interest, voice, etc.)",
+      "If LinkedIn unavailable → fallback to resume only"
+    ],
+    "safety_constraints": [
+      "Avoid exaggeration or false claims in edits or drafts",
+      "Flag when data is insufficient to generate strong recommendations"
+    ],
+    "verified_by": ["ToolSmith v0.2-beta", "MetaDistill"]
+  },
+  "flags": {
+    "requires_input": true,
+    "self_applicable": true,
+    "visible_to_user": true,
+    "invocable_by_other_tools": true
+  },
+  "modules": [
+    "gap_mapper",
+    "edit_suggester",
+    "cover_letter_generator",
+    "user_prompting"
+  ],
+  "invokeable_tools": ["JobIntelParser", "MetaDistill", "StressTest"],
+  "output": [
+    "basic_report",
+    "resume_edits",
+    "modular_report",
+    "cover_letter"
+  ]
+}

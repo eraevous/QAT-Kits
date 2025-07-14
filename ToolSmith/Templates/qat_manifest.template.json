@@ -1,0 +1,25 @@
+{
+  "tools": {
+    "YourTool": {
+      "instructions": [
+        "YourTool.md"
+      ],
+      "actions": [
+        "things_the_tool_can_do",
+        "another_action"
+      ],
+      "precedents": [
+        "precedent_1",
+        "precedent_2"
+      ],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": false,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true,
+        "pipeline_node": true
+      }
+    }
+  },
+  "shared": {}
+}

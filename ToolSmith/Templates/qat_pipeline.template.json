@@ -1,0 +1,9 @@
+{
+  "step": "YourTool",
+  "description": "What this step accomplishes in the pipeline.",
+  "requires": ["input_1"],
+  "optional": ["input_2"],
+  "provides": ["output_1", "output_2"],
+  "session_keys": ["cached_summary"],
+  "output_format": "basic_report"
+}

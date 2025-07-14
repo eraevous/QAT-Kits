@@ -1,0 +1,34 @@
+{
+  "tool_name": "YourToolName",
+  "description": "One-sentence capability summary.",
+  "backend": ["chatgpt", "other-backend"],
+  "version": "0.1",
+  "entrypoint": "inline",
+  "authors": ["ToolSmith-QAT", "Zach Rhodes", "Toolbox Program GPT"],
+  "inputs": ["input_1", "input_2"],
+  "outputs": ["output_1", "output_2"],
+  "usage_modes": ["analyze", "generate", "score"],
+  "scaffold": {
+    "goals": ["clear goal 1", "goal 2"],
+    "prompts": ["example user prompt", "another one"]
+  },
+  "reflex_paths": ["fallback_behavior", "clarify_input_if_confused"],
+  "mcp_contract": {
+    "contract_name": "YourTool_v1",
+    "inputs": {},
+    "outputs": {},
+    "preconditions": [],
+    "fallback_rules": [],
+    "safety_constraints": [],
+    "verified_by": ["ToolSmith-QAT"]
+  },
+  "flags": {
+    "requires_input": true,
+    "self_applicable": false,
+    "invocable_by_other_tools": true,
+    "pipeline_node": true
+  },
+  "modules": [],
+  "invokeable_tools": [],
+  "output_type": ["basic_report"]
+}

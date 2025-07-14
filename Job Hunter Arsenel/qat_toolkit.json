@@ -1,0 +1,83 @@
+{
+  "tools": [
+    {
+      "name": "JobIntelParser",
+      "description": "Analyzes job descriptions and company info to identify alignment, BS, hidden expectations, and recruiter signals. Outputs user-specific strategic guidance.",
+      "invocation": [
+        "Paste a job description and company — analyze for red flags and fit",
+        "Run JobIntelParser to evaluate a job and hiring context",
+        "What's this company *really* looking for in this role?"
+      ],
+      "tags": ["career", "resume", "job-fit", "alignment", "research", "recruiter-signal", "context"],
+      "author": "ToolSmith-QAT",
+      "audiences": ["job_seeker", "career_switcher", "student", "freelancer", "mentor"],
+      "caveats": [
+        "Predictions are heuristic and may not reflect internal hiring criteria",
+        "Signal inference is speculative — use human judgment when making decisions",
+        "Company summaries are generated and may miss nuance or updates"
+      ],
+      "thread_types": ["candidate", "analyst", "researcher"]
+    },
+    {
+      "name": "ResumeTailor",
+      "description": "Compares your resume to a job description, identifies gaps, suggests edits, and optionally generates a tailored cover letter with personalized prompting.",
+      "invocation": [
+        "Run ResumeTailor on this job + resume",
+        "Tailor my resume and suggest a cover letter",
+        "What gaps do I have vs. this role?"
+      ],
+      "tags": ["career", "resume", "editing", "cover_letter", "alignment", "fit", "narrative"],
+      "author": "ToolSmith-QAT",
+      "audiences": ["job_seeker", "freelancer", "student", "coach", "resume_writer"],
+      "caveats": [
+        "Suggestions are algorithmic — always apply personal judgment",
+        "Generated cover letters may sound generic if not refined with user input",
+        "Resume edits may prioritize alignment over authenticity — review carefully"
+      ],
+      "thread_types": ["editor", "writer", "applicant"]
+    },
+    {
+      "name": "InterviewCommander",
+      "description": "Prepares you for interviews with strategic prompts, cheat sheets, culture notes, mock questions, and confidence boosters based on the job and company.",
+      "invocation": [
+        "Prepare me for this interview",
+        "Run InterviewCommander on this job + resume",
+        "Give me a cheat sheet and talking points"
+      ],
+      "tags": ["career", "interview", "preparation", "coaching", "cheat_sheet", "talking_points"],
+      "author": "ToolSmith-QAT",
+      "audiences": ["job_seeker", "interviewer", "student", "coach", "career_changer"],
+      "caveats": [
+        "Mock questions are based on typical patterns — not guaranteed",
+        "Confidence coaching does not replace real rehearsal or feedback",
+        "Cultural assumptions may miss important team-specific nuance"
+      ],
+      "thread_types": ["coach", "commander", "strategist"]
+    },
+    {
+      "name": "ReflectiveJobNote",
+      "description": "Acts as an interview note-taker and post-mortem coach. Captures insights, asks reflective questions, and suggests updates to your tools and materials.",
+      "invocation": [
+        "Take notes during this interview",
+        "Run a post-mortem on this interview",
+        "Reflect on how I did and suggest improvements"
+      ],
+      "tags": ["reflection", "career", "coaching", "note_taking", "evaluation", "pipeline_feedback"],
+      "author": "ToolSmith-QAT",
+      "audiences": ["job_seeker", "coach", "mentor", "tool_designer", "career_switcher"],
+      "caveats": [
+        "Post-interview reflections depend on user honesty and accuracy",
+        "Tool feedback is based on experience, not formal QA",
+        "Emotional framing should be interpreted supportively, not diagnostically"
+      ],
+      "thread_types": ["reflector", "journalist", "toolsmith"]
+    }
+  ],
+  "meta": {
+    "default_mode": "dialectical",
+    "version": "0.2",
+    "last_updated": "2025-07-12",
+    "author": "ToolSmith-QAT",
+    "error_handling": "If tool is not found, offer suggestions based on user intent and show available tools with invocation phrases."
+  }
+}

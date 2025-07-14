@@ -1,0 +1,25 @@
+{
+  "tools": {
+    "ToolSmith_QAT": {
+      "instructions": [
+        "ToolSmith_QAT.md"
+      ],
+      "actions": [
+        "Generate Tool",
+        "Create Bundle",
+        "Update Tool"
+      ],
+      "precedents": [
+        null
+      ],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": true,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true,
+        "pipeline_node": false
+      }
+    }
+  },
+  "shared": {}
+}

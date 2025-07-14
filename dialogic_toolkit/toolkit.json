@@ -1,0 +1,152 @@
+{
+  "tools": [
+    {
+      "name": "StressTest",
+      "description": "Dialectical lens for testing assumptions and clarifying risks.",
+      "invocation": ["Run a full StressTest", "Run StressTest modules: {[modules]}", "Run a StressTest comparison"], 
+      "tags": ["dialectic", "reflection", "bias-check", "grounding", "alignment", "meta"],
+      "author": "Zach Rhodes",
+      "audiences": ["general", "personal", "writer", "commentary", "social media"],
+      "caveats": [
+        "Avoid using on sensitive topics without proper context", 
+        "Avoid using on topics with high emotional stakes without proper framing", 
+        "Do not apply to topics that require deep expertise without consulting a subject matter expert",
+        "Use with caution on topics that may trigger strong emotional responses",
+        "Use with caution in interpersonal contexts where relationships are at stake"],
+      "thread_types": ["thinker", "worker", "commander"]
+    },
+    {
+      "name": "MetaDistill",
+      "description": "Tool for distilling complex topics into clear, actionable insights",
+      "invocation": ["Run a full MetaDistill", "Run MetaDistill modules: {[modules]}", "Run a MetaDistill comparison"],
+      "tags": ["meta-analysis", "distillation", "clarity", "insight", "evaluation"],
+      "author": "Zach Rhodes",
+      "audiences": ["general", "personal", "writer", "commentary", "social media", "academic"],
+      "caveats": [
+        "MetaDistill is not a substitute for deep expertise in specialized fields",
+        "Use with caution on sensitive topics without proper context",
+        "May not capture nuanced arguments that require deep understanding"
+      ],
+      "thread_types": ["thinker", "editor"]
+    },
+    {
+      "name": "FrameShift",
+      "description": "AI-authorship detector and bullshit analyzer",
+      "invocation": ["Run a full FrameShift", "Run Frameshift modules: {[modules]}", "Run a Frameshift comparison"],
+      "tags": ["editorial", "authorship", "meta-analysis", "evaluation", "editing", "dialectic"],
+      "author": "Zach Rhodes",
+      "audiences": ["general", "personal", "writer", "commentary", "social media", "academic", "editor", "student"],
+      "caveats": [
+        "Avoid using on sensitive topics without proper context",
+        "FrameShift is not a substitute for human expertise in specialized fields",
+        "FrameShift may not capture nuanced arguments that require deep understanding",
+        "Frameshift may err on the side of caution, potentially miss-identifying both human and AI-generated content",
+        "Do not apply to high-risk situations that require deep expertise without also consulting a subject matter expert",
+        "Use with caution in contexts that may trigger strong emotional responses",
+        "Use with caution in interpersonal contexts where relationships are at stake"
+      ],
+      "thread_types": ["thinker", "worker"]
+    },
+    {
+      "name": "LegalEase",
+      "description": "Consumer-first tool for flagging risks, annoyances, and red flags in legal fine print like Terms of Service or EULAs",
+      "invocation": ["Run a full LegalEase review", "Highlight flags in legal text", "Summarize rights and risks"],
+      "tags": ["legal", "consumer", "risk-check", "compliance", "accessibility", "plain language"],
+      "author": "Zach Rhodes",
+      "audiences": ["general", "consumer", "advocate", "business", "policy"],
+      "caveats": [
+        "LegalEase is not legal advice — consult an attorney for high-stakes legal decisions",
+        "Use caution with domain-specific contracts (e.g. finance, IP, employment)",
+        "Use with skepticism on deeply technical clauses (e.g. encryption protocols)",
+        "Framing is human-centered; may miss strategic benefits to business operators"
+      ],
+      "thread_types": ["worker", "consumer", "watchdog"]
+    },
+    {
+      "name": "ThreadMap",
+      "description": "Tool for mapping structural and cognitive contours of a conversation — token boundaries, fades, purpose shifts, and breakdowns",
+      "invocation": ["Run a TokenMap", "Segment by topic and fade", "Analyze a long conversation thread"],
+      "tags": ["meta", "reflection", "cognitive analysis", "editing", "thread-mapping", "context management"],
+      "author": "Zach Rhodes",
+      "audiences": ["writer", "AI developer", "editor", "researcher", "conversation designer"],
+      "caveats": [
+          "Estimates of token fade are heuristic — always verify critical points manually",
+          "Module titles and function tags are interpretive — best used as a springboard, not gospel",
+          "TokenMap does not yet support audio or multimodal threads"
+      ],
+      "thread_types": ["thinker", "editor", "architect"]
+    },
+    {
+      "name": "TruthWeight",
+      "description": "Systematic evaluation of one or more positions according to clear, consistent, grounded, cross-domain criteria",
+      "invocation": ["Run a full TruthWeight", "Run TruthWeight modules: {[modules]}", "Run a TruthWeight comparison"],
+      "tags": ["editorial", "authorship", "meta-analysis", "evaluation", "editing", "dialectic", "edification"],
+      "author": "Zach Rhodes",
+      "audiences": ["general", "personal", "writer", "commentary", "social media", "academic", "editor", "student"],
+      "caveats": [
+          "TruthWeight does not to balance views artificially but to determine which position holds up better under historical, empirical, predictive, ethical, and evidentiary scrutiny.",
+          "TruthWeight is designed to compare ethical positions according to best-faith interpretation. TruthWeight does not evaluate positions in-practice, only in-theory.",
+          "TruthWeight does not consider bad-faith variants of positions, nor does it consider misaligned interpretations of positions.",
+          "Avoid using on sensitive topics without proper context", 
+          "TruthWeight is not a substitute for human expertise in specialized fields",
+          "TruthWeight may not capture nuanced arguments that require deep understanding",
+          "TruthWeight may err on the side of caution, potentially miss-identifying both human and AI-generated content",
+          "Do not apply to high-risk situations that require deep expertise without also consulting a subject matter expert",
+          "Use with caution in contexts that may trigger strong emotional responses",
+          "Use with caution in interpersonal contexts where relationships are at stake"
+      ]
+    },
+    {
+      "name": "Braided Explanations",
+      "description": "Multi-strand explanation engine using parallel modes (technical, poetic, skeptical, etc.) to support nonlinear thinkers",
+      "invocation": ["Run a Braided Explanation", "Explain via strands: {[strands]}", "Compare strand perspectives"],
+      "tags": ["education", "accessibility", "meta-cognition", "explanation", "neurodivergent", "dialectic"],
+      "author": "Zach Rhodes",
+      "audiences": ["personal", "educator", "writer", "developer", "neurodivergent", "researcher"],
+      "caveats": [
+        "Strands may contradict — that’s often intentional",
+        "Intended to support texture, not always linear clarity",
+        "Requires synthesis effort from user — not meant for rote answers"
+      ],
+      "thread_types": ["explainer", "learner", "reflector"]
+    },
+    {
+      "name": "SparkResearch",
+      "description": "Tool for distilling complex topics into clear, actionable insights",
+      "invocation": ["Run full SparkResearch on {SPARK_TITLE}. This will entail {YOUR_GIST}"],
+      "tags": ["meta-analysis", "distillation", "clarity", "research", "understanding", "insight", "evaluation"],
+      "author": "Zach Rhodes",
+      "audiences": ["general", "personal", "writer", "commentary", "social media", "academic", "researcher", "student", "educator"],
+      "caveats": [
+        "SparkResearch is not a substitute for deep expertise in specialized fields",
+        "SparkResearch may not capture nuanced arguments that require deep understanding",
+        "SparkResearch will prompt allocation of Deep Research resources if selected as part of invocation",
+        "SparkResearch is designed to provide a high-level overview and actionable insights, not exhaustive detail",
+        "Use with caution on sensitive topics without proper context",
+        "May not capture nuanced arguments that require deep understanding"
+      ],
+      "thread_types": ["thinker", "editor", "architect", "researcher", "reflector"]
+    },
+    {
+    "name": "ContextAnchor",
+      "description": "Captures, distills, and scaffolds memory from long-form, exploratory chat threads to preserve context and enable future reentry.",
+      "invocation": ["Run ContextAnchor on this thread", "Extract scaffold points from this conversation", "Generate layered memory summary for return-to-context"],
+      "tags": ["meta", "context", "memory", "scaffold", "thread_map", "reentry"],
+      "author": "ToolSmith-QAT",
+      "audiences": ["general", "personal", "writer", "commentary", "social media", "academic"],
+      "caveats": [
+        "ContextAnchor is not a substitute for deep expertise in specialized fields",
+        "Use with caution on sensitive topics without proper context",
+        "May not capture nuanced arguments that require deep understanding"
+      ],
+      "thread_types": ["thinker", "editor", "reflector", "architect"]
+      }
+  ],
+  "meta": {
+    "default_mode": "warm",
+    "version": "0.1",
+    "last_updated": "2025-06-29",
+    "author": "Zach",
+    "error_handling": "If tool is not found, return a polite clarification prompt with a list of tools and invocations, as well as suggested or inferred tools."
+  }
+}

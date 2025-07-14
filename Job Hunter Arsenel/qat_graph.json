@@ -1,0 +1,70 @@
+{
+  "nodes": [
+    {
+      "id": "JobIntelParser",
+      "label": "JobIntelParser",
+      "type": "analyzer",
+      "entry": true,
+      "description": "Ingests job description + company and outputs alignment insights, role decoding, and strategy prompts."
+    },
+    {
+      "id": "ResumeTailor",
+      "label": "ResumeTailor",
+      "type": "editor",
+      "entry": false,
+      "description": "Takes JobIntelParser output + resume/profile and produces edits, match score, and cover letter logic."
+    },
+    {
+      "id": "InterviewCommander",
+      "label": "InterviewCommander",
+      "type": "coach",
+      "entry": false,
+      "description": "Prepares user for interview with cheat sheets, mock Q&A, culture notes, and tailored prep strategy."
+    },
+    {
+      "id": "ReflectiveJobNote",
+      "label": "ReflectiveJobNote",
+      "type": "reflector",
+      "entry": false,
+      "description": "Runs during or after interview to take notes, collect reflections, and feed back into prior tools or the pipeline."
+    }
+  ],
+  "edges": [
+    {
+      "from": "JobIntelParser",
+      "to": "ResumeTailor",
+      "type": "data_flow",
+      "description": "Passes role insights and recruiter signal decoding to ResumeTailor for alignment scoring."
+    },
+    {
+      "from": "ResumeTailor",
+      "to": "InterviewCommander",
+      "type": "context_flow",
+      "description": "Feeds edited resume, match confidence, and self-positioning into InterviewCommander prep modules."
+    },
+    {
+      "from": "InterviewCommander",
+      "to": "ReflectiveJobNote",
+      "type": "handoff",
+      "description": "Starts ReflectiveJobNote with prep context, anticipated questions, and cultural assumptions."
+    },
+    {
+      "from": "ReflectiveJobNote",
+      "to": "ResumeTailor",
+      "type": "feedback_loop",
+      "description": "Suggests resume or positioning edits based on interview outcome."
+    },
+    {
+      "from": "ReflectiveJobNote",
+      "to": "JobIntelParser",
+      "type": "feedback_loop",
+      "description": "Flags job patterns or redirections for future parsing heuristics."
+    }
+  ],
+  "meta": {
+    "graph_type": "pipeline_dag",
+    "version": "0.2",
+    "last_updated": "2025-07-12",
+    "author": "ToolSmith-QAT"
+  }
+}

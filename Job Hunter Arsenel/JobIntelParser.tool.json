@@ -1,0 +1,98 @@
+{
+  "tool_name": "JobIntelParser",
+  "description": "Deconstructs job listings and company descriptions to extract likely role expectations, recruiter signals, and strategic insight for job seekers.",
+  "backend": "chatgpt",
+  "entrypoint": "inline",
+  "author": "ToolSmith-QAT",
+  "version": "0.1",
+  "inputs": [
+    "job_description",
+    "company_name",
+    "user_goals",
+    "resume_text"
+  ],
+  "outputs": [
+    "company_summary",
+    "job_decomposition",
+    "recruiter_signals",
+    "user_alignment_summary"
+  ],
+  "usage_modes": [
+    "evaluate",
+    "summarize_company",
+    "tailor_feedback"
+  ],
+  "scaffold": {
+    "goals": [
+      "Summarize company and highlight cultural indicators",
+      "Deconstruct job listing to reveal actual requirements",
+      "Surface recruiter/hiring manager/AI screening priorities",
+      "Provide tailored feedback if resume or goals are included"
+    ],
+    "prompts": [
+      "What is this job actually asking for?",
+      "What’s likely to matter most in this job?",
+      "Summarize the company’s public persona and mission",
+      "Tailor this to my background and goals (if provided)"
+    ]
+  },
+  "reflex_paths": [
+    "clarify_input_if_job_is_vague",
+    "fallback_to_title_only_summary",
+    "flag_exaggeration_or_mismatch"
+  ],
+  "mcp_contract": {
+    "contract_name": "JobIntelParser_v1",
+    "inputs": {
+      "job_description": "string",
+      "company_name": "string",
+      "user_goals": "string (optional)",
+      "resume_text": "string (optional)"
+    },
+    "outputs": {
+      "company_summary": "string",
+      "job_decomposition": {
+        "bs_detection": "array",
+        "likely_responsibilities": "array",
+        "hidden_requirements": "array"
+      },
+      "recruiter_signals": {
+        "what_matters_most": "array",
+        "screening_keywords": "array"
+      },
+      "user_alignment_summary": "string"
+    },
+    "preconditions": [
+      "job_description must not be empty",
+      "company_name should be provided or extractable from job text"
+    ],
+    "fallback_rules": [
+      "If company_name missing → extract from job description",
+      "If input is only a title → infer and flag limited confidence"
+    ],
+    "safety_constraints": [
+      "Must flag speculative assumptions",
+      "Cannot fabricate specific internal company info"
+    ],
+    "verified_by": ["ToolSmith v0.2-beta"]
+  },
+  "flags": {
+    "requires_input": true,
+    "self_applicable": false,
+    "visible_to_user": true,
+    "invocable_by_other_tools": true
+  },
+  "modules": [
+    "bs_detector",
+    "signal_inference",
+    "company_summarizer",
+    "alignment_feedback"
+  ],
+  "invokeable_tools": ["MetaDistill", "FrameShift"],
+  "output": [
+    "basic_report",
+    "summary",
+    "comparison_report",
+    "table"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "QAT Name",
+  "version": "0.3",
+  "tools_included": 4,
+  "graph": "qat_graph.json",
+  "toolkit": "qat_toolkit.json",
+  "pipeline": "qat_pipeline.json",
+  "instructions": "qat_instructions.md",
+  "meta": {
+    "authors": ["ToolSmith-QAT", " Zach Rhodes", "Toolbox Program GPT"],
+    "created": "2025-07-12",
+    "last_updated": "2025-07-14",
+    "type": "qat_bundle"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "module_1": {
+    "description": "One or two sentence module description and instructions.",
+    "inputs": [
+      "input_1",
+      "input_2"
+    ],
+    "outputs": ["output_1", "output_2"],
+    "order": 1,
+    "type": "module_type_1"
+  },
+  "module_2": {
+    "description": "One or two sentence module description and instructions.",
+    "inputs": ["input_1", "input_3"],
+    "outputs": ["output_3"],
+    "order": 2,
+    "type": "module_type_2"
+  }
+}

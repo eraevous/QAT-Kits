@@ -1,0 +1,215 @@
+{
+  "tools": {
+    "StressTest": {
+      "instructions": ["StressTest.md"],
+      "modules": [
+        "base"
+    ],
+      "appendix": null,
+      "heuristics": null,
+      "data": [],
+      "output": ["basic_report", "full_report", "modular_report", "comparison_report", "table"],
+      "actions": ["diagnose", "reframe", "tweak", "full", "compare"],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": true,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true
+    }
+    },
+    "TruthWeight": {
+      "instructions": ["TruthWeight.md"],
+      "modules": [
+        "base"
+    ],
+      "invokeable_tools": ["StressTest"],
+      "appendix": null,
+      "heuristics": null,
+      "data": [],
+      "output": ["basic_report", "scored_report", "modular_report", "full_report", "comparison_report", "table"],
+      "actions": [
+        "compare",
+        "steelman",
+        "evaluate",
+        "expand"
+      ],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": false,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true
+    }
+    },
+    "FrameShift": {
+      "instructions": ["FrameShift_Full.md"],
+      "appendix": null,
+      "heuristics": null,
+      "data": [],
+      "modules": [
+        "base"
+      ],
+      "invokeable_tools": ["TruthWeight", "StressTest"],
+      "output": ["basic_report", "scored_report", "modular_report", "full_report", "comparison_report"],
+      "actions": [
+        "detect_ai",
+        "rate_substance",
+        "simulate_reverse_prompt",
+        "analyze_style",
+        "comparison"
+      ],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": true,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true
+    }
+    },
+    "LegalEase": {
+      "instructions": ["LegalEase.md"],
+      "appendix": null,
+      "heuristics": null,
+      "data": [],
+      "modules": [
+        "base"
+      ],
+      "invokeable_tools": null,
+      "output": ["basic_report", "scored_report", "modular_report", "full_report", "comparison_report"],
+      "actions": [
+        "summarize",
+        "identify_risks",
+        "suggest_actions",
+        "comparison"
+      ],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": true,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true
+    }
+    },
+    "ThreadMap": {
+      "instructions": ["ThreadMap.md"],
+      "appendix": null,
+      "heuristics": null,
+      "data": [],
+      "modules": [
+        "base"
+      ],
+      "invokeable_tools": null,
+      "output": ["table", "basic_report", "bullet_list"],
+      "actions": [
+        "summarize",
+        "identify_topics",
+        "suggest_forks",
+        "comparison"
+      ],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": true,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true
+    }
+    },
+    "MetaDistill": {
+      "instructions": ["MetaDistill.md"],
+      "appendix": null,
+      "heuristics": null,
+      "data": [],
+      "modules": [
+        "base"
+      ],
+      "invokeable_tools": null,
+      "output": ["basic_report", "recommendations", "modular_report", "full_report", "comparison_report"],
+      "actions": [
+        "summarize",
+        "recommend",
+        "identify_risks",
+        "comparison"
+      ],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": true,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true
+    }
+    },
+    "BraidedExplanations": {
+      "instructions": ["BraidedExplanations_Full.md"],
+      "appendix": null,
+      "heuristics": null,
+      "data": [],
+      "modules": [
+        "base"
+      ],
+      "invokeable_tools": ["TruthWeight", "StressTest", "MetaDistill", "ThreadMap"],
+      "output": ["basic_report", "scored_report", "modular_report", "full_report", "comparison_report"],
+      "actions": [
+        "summarize",
+        "dive_deeper",
+        "generate_examples",
+        "generate_metaphors",
+        "check_knowledge",
+        "suggest_connections",
+        "comparison"
+      ],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": true,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true
+    }
+    },
+    "SparkResearch": {
+      "instructions": ["SparkResearch.md"],
+      "appendix": null,
+      "heuristics": null,
+      "data": [],
+      "modules": [
+        "base"
+      ],
+      "invokeable_tools": ["ThreadMap", "MetaDistill", "BraidedExplanations", "StressTest", "TruthWeight"],
+      "output": ["table", "basic_report", "bullet_list", "modular_report", "full_report", "comparison_report"],
+      "actions": [
+        "summarize",
+        "run_research",
+        "generate_questions",
+        "clarify_prompt",
+        "identify_topics",
+        "suggest_forks",
+        "comparison"
+      ],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": true,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true
+    }
+    },
+    "ContextAnchor": {
+      "instructions": ["ContextAnchor.md"],
+      "appendix": null,
+      "heuristics": null,
+      "data": [],
+      "modules": [
+        "base", "TokenMapAnalyzer", "ContextLayerer"
+      ],
+      "invokeable_tools": [
+        "ThreadMap", "MetaDistill"
+      ],
+      "output": ["thread_map", "layered_summary", "reentry_anchors","table", "hierarchical_report"],
+      "actions": [
+        "distill",
+        "context_return",
+        "scaffold"
+      ],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": true,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true
+    }
+    }
+},
+  "shared": {
+  }
+}

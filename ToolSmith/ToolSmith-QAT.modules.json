@@ -1,0 +1,97 @@
+{
+  "template_loader": {
+    "description": "Loads and parses QAT template files from disk or memory.",
+    "inputs": [
+      "qat_bundle.template.json",
+      "qat_graph.template.json",
+      "qat_manifest.template.json",
+      "qat_pipeline.template.json",
+      "qat_tool.instructions.template.md",
+      "qat_tool.template.json",
+      "qat_toolkit.template.json",
+      "qat_tool.modules.template.json"
+    ],
+    "outputs": ["parsed_template_list"],
+    "order": 1,
+    "type": "loader"
+  },
+  "tool_generator": {
+    "description": "Constructs a new tool definition from user prompt and qat_tool.template.json template logic.",
+    "inputs": ["tool_idea", "tool_name", "parsed_template_list"],
+    "outputs": ["{tool_name}.json"],
+    "order": 2,
+    "optional": false,
+    "type": "generator"
+  },
+  "instruction_writer": {
+    "description": "Creates the Markdown instruction file matching the tool definition from qat_tool.instructions.template.md.",
+    "inputs": ["tool_idea", "tool_name", "parsed_template_list"],
+    "outputs": ["{tool_name}.instructions.md.instructions.md"],
+    "order": 3,
+    "optional": false,
+    "type": "writer"
+  },
+  "module_writer": {
+    "description": "Generates modules JSON file from the tool definitions and their metadata.",
+    "inputs": ["tool_json", "parsed_template_list"],
+    "outputs": ["{tool_name}.modules.json"],
+    "order": 4,
+    "optional": true,
+    "type": "writer"
+  },
+  "tool_chain_connector": {
+    "description": "Links tool definitions into a directed graph structure based on their dependencies. This is based on qat_graph.template.json or existing qat_graph.json.",
+    "inputs": ["tool_json", "qat_graph", "parsed_template_list"],
+    "outputs": ["qat_graph.json"],
+    "optional": true,
+    "order": 5,
+    "type": "connector"
+  },
+  "toolkit_writer": {
+    "description": "Updates or generates the toolkit JSON file from the tool definitions and their metadata. This is based on qat_toolkit.template.json or existing qat_toolkit.json.",
+    "inputs": ["tool_json", "qat_toolkit", "parsed_template_list"],
+    "outputs": ["qat_toolkit.json"],
+    "optional": false,
+    "order": 6,
+    "type": "writer"
+  },
+ "manifest_writer": {
+    "description": "Generates or updates the QAT manifest file from the tool definitions and their metadata. This is based on qat_manifest.template.json or existing qat_manifest.json.",
+    "inputs": ["tool_json", "qat_manifest", "parsed_template_list"],
+    "outputs": ["qat_manifest.json"],
+    "optional": false,
+    "order": 7,
+    "type": "writer"
+  },
+  "pipeline_register": {
+    "description": "Creates or updates the pipeline step for the tool in qat_pipeline.json.",
+    "inputs": ["tool_json", "qat_pipeline", "parsed_template_list"],
+    "outputs": ["qat_pipeline.json"],
+    "optional": true,
+    "order": 8,
+    "type": "register"
+  },
+  "bundle_assembler": {
+    "description": "Assembles all components into a complete QAT bundle, including the manifest, toolkit, graph, and pipeline.",
+    "inputs": ["qat_manifest", "qat_toolkit", "qat_graph", "qat_pipeline", "parsed_template_list"],
+    "outputs": ["qat_bundle.json"],
+    "optional": true,
+    "order": 9,
+    "type": "assembler"
+  },
+  "qat_validator": {
+    "description": "Checks structural and semantic consistency across QAT-Kit files, including manifests, pipeline stages, graph edges, and tool contracts.",
+    "inputs": [
+      "qat_manifest.json",
+      "qat_toolkit.json",
+      "qat_pipeline.json",
+      "qat_graph.json",
+      "*.tool.json"
+    ],
+    "outputs": [
+      "validation_report"
+    ],
+    "order": 10,
+    "type": "validator"
+  }
+}

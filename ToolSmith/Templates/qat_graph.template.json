@@ -1,0 +1,25 @@
+{
+  "nodes": [
+    {
+        "id": "YourTool",
+        "label": "YourTool",
+        "type": "descriptive_tool_type",
+        "entry": true,
+        "description": "Short summary of role in graph."
+    }
+  ],
+  "edges": [
+    {
+    "from": "ToolA",
+    "to": "ToolB",
+    "type": "context_flow",
+    "description": "What flows from ToolA to ToolB"
+    }
+  ],
+  "meta": {
+    "graph_type": "pipeline_dag",
+    "version": "0.2",
+    "last_updated": "2025-07-12",
+    "authors": ["ToolSmith-QAT", " Zach Rhodes", "Toolbox Program GPT"]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "modular_report": {
+    "layout": ["summary", "highlight", "diagnosis", "recommendations"],
+    "format": "markdown",
+    "audience": "user and downstream tools",
+    "files": ["filename1.md", "filename2.html", "filename3.css"],
+    "version": "0.1",
+    "authors": ["ToolSmith-QAT", "Zach Rhodes", "Toolbox Program GPT"]
+  },
+  "feedback_card": {
+    "layout": ["timestamp", "observation", "suggestion", "tool_feedback"],
+    "format": "bulletpoints",
+    "audience": "ReflectiveTool or ToolSmith",
+    "files": ["filename3.pdf", "filename4.txt", "filename3.css"],
+    "version": "0.1",
+    "authors": ["ToolSmith-QAT", "Zach Rhodes", "Toolbox Program GPT"]
+  }
+}

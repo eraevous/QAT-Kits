@@ -1,0 +1,74 @@
+{
+  "pipeline": [
+    {
+      "step": "JobIntelParser",
+      "description": "Ingests the job description and company name. Performs company research, decodes role expectations, flags potential BS, and identifies recruiter vs. manager priorities.",
+      "requires": ["job_description", "company_name"],
+      "optional": ["user_goals", "resume_excerpt"],
+      "provides": [
+        "company_summary",
+        "recruiter_signals",
+        "decoded_expectations",
+        "red_flags"
+      ],
+      "output_format": "modular_report"
+    },
+    {
+      "step": "ResumeTailor",
+      "description": "Compares the user's resume or LinkedIn to the decoded job and company signals. Suggests tailored edits, highlights fit/gap, proposes narrative alignment, and drafts cover letter.",
+      "requires": [
+        "resume",
+        "decoded_expectations",
+        "recruiter_signals"
+      ],
+      "optional": ["user_answers"],
+      "provides": [
+        "tailored_resume_notes",
+        "gap_analysis",
+        "cover_letter_draft",
+        "position_match_score"
+      ],
+      "output_format": "full_report"
+    },
+    {
+      "step": "InterviewCommander",
+      "description": "Generates pre-interview prep kit: likely questions, framing tactics, confidence prompts, strategic 'cheat sheets', and company culture warnings.",
+      "requires": [
+        "tailored_resume_notes",
+        "position_match_score",
+        "company_summary"
+      ],
+      "provides": [
+        "mock_questions",
+        "cheat_sheet",
+        "cultural_notes",
+        "positioning_strategy"
+      ],
+      "output_format": "basic_report"
+    },
+    {
+      "step": "ReflectiveJobNote",
+      "description": "Provides live interview notetaking and post-mortem. Captures reactions, lessons learned, and improvement prompts. Suggests feedback updates for upstream tools.",
+      "requires": [
+        "interview_observations",
+        "preparation_context"
+      ],
+      "provides": [
+        "summary_notes",
+        "self_eval",
+        "suggested_improvements"
+      ],
+      "feeds_back_into": [
+        "ResumeTailor",
+        "JobIntelParser"
+      ],
+      "output_format": "feedback_card"
+    }
+  ],
+  "meta": {
+    "version": "0.2",
+    "created": "2025-07-12",
+    "author": "ToolSmith-QAT",
+    "notes": "This pipeline is intended for job-seeking support from discovery to reflection. Tools may be reused non-sequentially depending on user behavior or feedback triggers."
+  }
+}

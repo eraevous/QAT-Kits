@@ -1,0 +1,111 @@
+{
+  "tool_name": "ToolSmith-QAT",
+  "description": "A meta-tool generator for creating, evolving, and linking QAT tools, templates, pipelines, and instruction layers.",
+  "backend": "chatgpt",
+  "entrypoint": "inline",
+  "author": "ToolSmith-QAT",
+  "version": "0.4",
+  "inputs": [
+    "tool_idea",
+    "user_goal",
+    "template_spec",
+    "prior_toolchain_context"
+  ],
+  "outputs": [
+    "{tool_name}.json",
+    "{tool_name}.instructions.md",
+    "{tool_name}.modules.json",
+    "qat_graph.json update (Optional)",
+    "qat_toolkit.json update",
+    "qat_manifest.json update",
+    "qat_pipeline.json update (Optional)",
+    "qat_bundle.json update (Optional)"
+  ],
+  "usage_modes": [
+    "generate_tool",
+    "edit_existing",
+    "chain_tools",
+    "batch_create"
+  ],
+  "scaffold": {
+    "goals": [
+      "Translate user goals into executable .tool files",
+      "Auto-generate corresponding instruction markdown",
+      "Update pipeline, graph, and manifest structures for integration",
+      "Support recursive tool generation (meta-design)"
+    ],
+    "prompts": [
+      "Create a new tool that helps with [goal]",
+      "Chain this tool to another in the pipeline",
+      "What tools are missing from this bundle?",
+      "Evolve this tool by adding [capability/module]"
+    ]
+  },
+  "reflex_paths": [
+    "detect_missing_instructions",
+    "suggest_graph_edges",
+    "auto_version_if_conflict",
+    "fallback_to_template"
+  ],
+  "mcp_contract": {
+    "contract_name": "ToolSmith_QAT_v3",
+    "inputs": {
+      "tool_idea": "string",
+      "user_goal": "string",
+      "template_spec": "object (optional)",
+      "prior_toolchain_context": "object (optional)"
+    },
+    "outputs": {
+      "tool_json": "valid .tool.json",
+      "instructions_md": "markdown",
+      "graph_edges": "array of tool-to-tool edges",
+      "pipeline_step": "json object for qat_pipeline.json",
+      "toolkit_entry": "json object for qat_toolkit.json",
+      "manifest_entry": "json object for qat_manifest.json"
+    },
+    "preconditions": [
+      "tool_idea must be present",
+      "output files should not overwrite existing names unless versioned"
+    ],
+    "fallback_rules": [
+      "If template_spec missing → use tool.template.json",
+      "If goal vague → prompt user for clarification"
+    ],
+    "safety_constraints": [
+      "Must warn if tool_name conflict exists",
+      "Must produce valid JSON across all outputs"
+    ],
+    "verified_by": ["ToolSmith-QAT", "Zach Rhodes", "Toolbox Program GPT"]
+  },
+  "flags": {
+    "requires_input": true,
+    "self_applicable": true,
+    "visible_to_user": true,
+    "invocable_by_other_tools": true,
+    "pipeline_node": false,
+    "supports_feedback_loop": true
+  },
+  "modules": [
+    "template_loader",
+    "tool_generator",
+    "instruction_writer",
+    "module_writer",
+    "tool_chain_connector",
+    "toolkit_writer",
+    "manifest_writer",
+    "pipeline_register",
+    "bundle_assembler",
+    "qat_validator"
+  ],
+  "invokeable_tools": [
+    "MetaDistill",
+    "StressTest",
+    "ThreadMap",
+    "ContextAnchor",
+    "StressTest"
+  ],
+  "output_type": [
+    "qat_kit tool",
+    "qat_kit bundle"
+  ]
+}

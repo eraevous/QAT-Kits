@@ -1,0 +1,86 @@
+{
+  "tools": {
+    "JobIntelParser": {
+      "instructions": ["inline"],
+      "modules": [
+        "bs_detector",
+        "signal_inference",
+        "company_summarizer",
+        "alignment_feedback"
+      ],
+      "invokeable_tools": ["MetaDistill", "FrameShift"],
+      "output": ["basic_report", "summary", "comparison_report", "table"],
+      "actions": ["evaluate", "summarize_company", "tailor_feedback"],
+      "precedents": [],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": false,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true,
+        "pipeline_node": true
+      }
+    },
+    "ResumeTailor": {
+      "instructions": ["inline"],
+      "modules": [
+        "gap_mapper",
+        "edit_suggester",
+        "cover_letter_generator",
+        "user_prompting"
+      ],
+      "invokeable_tools": ["JobIntelParser", "MetaDistill", "StressTest"],
+      "output": ["basic_report", "resume_edits", "modular_report", "cover_letter"],
+      "actions": ["analyze_match", "edit_resume", "draft_letter", "generate_questions"],
+      "precedents": ["JobIntelParser"],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": true,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true,
+        "pipeline_node": true
+      }
+    },
+    "InterviewCommander": {
+      "instructions": ["inline"],
+      "modules": [
+        "cheat_sheet_generator",
+        "mock_question_engine",
+        "culture_flag_detector",
+        "confidence_coach"
+      ],
+      "invokeable_tools": ["ResumeTailor", "MetaDistill", "StressTest"],
+      "output": ["cheat_sheet", "basic_report", "modular_report", "summary"],
+      "actions": ["prepare", "cheat_sheet", "confidence_builder", "mock_questions"],
+      "precedents": ["ResumeTailor"],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": false,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true,
+        "pipeline_node": true
+      }
+    },
+    "ReflectiveJobNote": {
+      "instructions": ["inline"],
+      "modules": [
+        "journal_helper",
+        "tool_feedback_mapper",
+        "pipeline_summarizer",
+        "next_step_engine"
+      ],
+      "invokeable_tools": ["StressTest", "ToolSmith-QAT"],
+      "output": ["basic_report", "summary", "feedback_card", "modular_report"],
+      "actions": ["note_taker", "debrief", "summarize_pipeline", "suggest_tool_upgrades"],
+      "precedents": ["InterviewCommander"],
+      "flags": {
+        "requires_input": true,
+        "self_applicable": true,
+        "visible_to_user": true,
+        "invocable_by_other_tools": true,
+        "pipeline_node": true,
+        "supports_feedback_loop": true
+      }
+    }
+  },
+  "shared": {}
+}

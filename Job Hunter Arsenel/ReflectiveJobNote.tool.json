@@ -1,0 +1,101 @@
+{
+  "tool_name": "ReflectiveJobNote",
+  "description": "Acts as an interview companion, note-taker, and post-mortem assistant. It helps the user reflect, improve, and refine both personal performance and the surrounding tools.",
+  "backend": "chatgpt",
+  "entrypoint": "inline",
+  "author": "ToolSmith-QAT",
+  "version": "0.1",
+  "inputs": [
+    "interview_notes",
+    "tool_outputs",
+    "user_feedback",
+    "job_title",
+    "company_name"
+  ],
+  "outputs": [
+    "retrospective_summary",
+    "self_evaluation",
+    "tool_feedback_card",
+    "next_steps_suggestion"
+  ],
+  "usage_modes": [
+    "note_taker",
+    "debrief",
+    "summarize_pipeline",
+    "suggest_tool_upgrades"
+  ],
+  "scaffold": {
+    "goals": [
+      "Help the user reflect clearly on how the interview went",
+      "Capture insights and emotions that may influence follow-ups",
+      "Offer constructive suggestions for improvement",
+      "Provide feedback to the toolchain itself for better performance next time"
+    ],
+    "prompts": [
+      "Take notes on this interview in real-time",
+      "Help me reflect on how I did",
+      "What should I change for next time?",
+      "What did Tool 2 miss that could've helped?"
+    ]
+  },
+  "reflex_paths": [
+    "call_StressTest_on_self_eval",
+    "flag_when_tool_support_was_incomplete",
+    "loop_suggestions_to_ToolSmith_pipeline"
+  ],
+  "mcp_contract": {
+    "contract_name": "ReflectiveJobNote_v1",
+    "inputs": {
+      "interview_notes": "string",
+      "tool_outputs": "object",
+      "user_feedback": "string",
+      "job_title": "string",
+      "company_name": "string"
+    },
+    "outputs": {
+      "retrospective_summary": "string",
+      "self_evaluation": {
+        "confidence_level": "integer",
+        "emotional_state": "string",
+        "performance_notes": "array"
+      },
+      "tool_feedback_card": {
+        "tool_revisions": "array",
+        "pipeline_handoff_errors": "array",
+        "suggested_improvements": "array"
+      },
+      "next_steps_suggestion": "array"
+    },
+    "preconditions": [
+      "interview_notes or user_feedback must be present"
+    ],
+    "fallback_rules": [
+      "If interview_notes unavailable → prompt user with journaling Qs",
+      "If pipeline_trace missing → fallback to high-level evaluation only"
+    ],
+    "safety_constraints": [
+      "Do not attempt to judge emotions; reflect instead",
+      "Always frame feedback constructively"
+    ],
+    "verified_by": ["ToolSmith v0.2-beta", "StressTest"]
+  },
+  "flags": {
+    "requires_input": true,
+    "self_applicable": true,
+    "visible_to_user": true,
+    "invocable_by_other_tools": true
+  },
+  "modules": [
+    "journal_helper",
+    "tool_feedback_mapper",
+    "pipeline_summarizer",
+    "next_step_engine"
+  ],
+  "invokeable_tools": ["StressTest", "ToolSmith-QAT"],
+  "output": [
+    "basic_report",
+    "summary",
+    "feedback_card",
+    "modular_report"
+  ]
+}

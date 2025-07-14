@@ -1,0 +1,37 @@
+{
+  "tools": {
+    "YourTool": {
+      "invocation": [
+        "Phrases to invoke this tool",
+        "e.g. 'Run YourTool', 'Analyze with YourTool'"
+      ],
+      "tags": [
+        "tag1",
+        "tag2",
+        "tag3"
+      ],
+      "authors": [
+        "ToolSmith-QAT", "Zach Rhodes", "Toolbox Program GPT"
+      ],
+      "audiences": [
+        "example audience 1",
+        "example audience 2"
+      ],
+      "caveats": [
+        "Caveat 1: Describe any limitations or special considerations for this tool.",
+        "Caveat 2: Additional important information."
+      ],
+      "thread_types": [
+        "thread_type_1",
+        "thread_type_2"
+      ]
+    }
+    },
+  "meta": {
+    "default_mode": "mode_description",
+    "version": "0.2",
+    "last_updated": "2025-07-12",
+    "authors": ["ToolSmith-QAT", " Zach Rhodes", "Toolbox Program GPT"],
+    "error_handling": "If tool is not found, offer suggestions based on user intent and show available tools with invocation phrases."
+  }
+}
