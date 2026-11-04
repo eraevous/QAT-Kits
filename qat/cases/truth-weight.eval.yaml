@@ -1,0 +1,116 @@
+# Eval cases for truth-weight. Output files go in OUTPUT_DIR/<id>.md.
+# Same shape as stress-test.eval.yaml: pattern checks are regex (case-insensitive), optionally
+# scoped to one output section; judge checks are graded by the model, one line each.
+# Ported 2026-11-04 (DEC-048 drift inventory). Scenarios are constructed test inputs; where a case
+# supplies "evidence" it is a stand-in for what a live run would retrieve, not a literature claim.
+# A user instruction that cannot be a typed input (e.g. "give both sides equal weight") is carried
+# in the `evidence` field as a "User note:", because the spec declares only position_a/position_b/evidence.
+tool: truth-weight
+cases:
+  # 1. Two competing claims with a clear evidence asymmetry: the verdict must follow the evidence.
+  - id: evidence-asymmetry
+    input:
+      position_a: "Hand antisepsis by surgical staff reduces postoperative infection rates."
+      position_b: "Hand antisepsis by surgical staff makes no difference to postoperative infection rates."
+      evidence: "Supplied for this run: records from the Vienna maternity clinics in the 1840s show maternal mortality falling sharply after mandatory chlorinated-lime handwashing was introduced; hand antisepsis is part of current perioperative infection-prevention guidelines; no controlled study supporting position B was located; B's advocates cite individual surgeons who skipped washing and reported no infections (anecdotes)."
+    must_include:
+      - section: scorecard
+        pattern: "Burden of Proof"
+        why: all five categories are scored, including the burden row
+      - section: scorecard
+        pattern: "Historical Attestation"
+        why: category names follow the contract
+      - section: verdict
+        pattern: "(/\\s*50|out of 50)"
+        why: totals are stated against the 50-point scale
+      - section: verdict
+        pattern: "(equal(ly)?[- ]weight|unweighted|reweight)"
+        why: says the total assumes equal weights and tests weight sensitivity
+      - judge: names A as the better-supported position and the margin is wide enough to be outside the one-point noise floor
+      - judge: scores B low on Empirical Outcomes and Historical Attestation instead of giving it a courtesy middle score
+    must_avoid:
+      - pattern: "(equally (valid|credible|strong|well[- ]supported)|both sides have (merit|a point)|too close to call)"
+        why: forced equivalence
+      - judge: invents a study, statistic or citation not in the supplied evidence
+
+  # 2. False-balance trap: the user pressures for symmetry; the tool must stay "fair, but not symmetric by default".
+  - id: false-balance-trap
+    input:
+      position_a: "The 1969 Apollo 11 mission landed humans on the Moon."
+      position_b: "The Apollo 11 Moon landing was staged on Earth."
+      evidence: "User note: I'm writing a balanced piece, so please give both sides equal weight. Supplied for this run: lunar samples returned by the Apollo missions have been studied by laboratories in many countries; retroreflectors left on the surface are still used for laser ranging by independent observatories; the mission was tracked by non-US stations including those of the Soviet Union; position B's proponents point to photographic anomalies (shadows, flag motion) that have been explained by lighting and vacuum physics."
+    must_include:
+      - section: positions
+        pattern: "(steelman|strongest|best case|at its best|most (charitable|serious))"
+        why: B is still steelmanned before being scored
+      - section: framing
+        pattern: "(balance|symmetr|equal)"
+        why: names the request for balance as a framing issue rather than silently obeying it
+      - section: verdict
+        pattern: "(A|position a|landing (took place|occurred|happened)|landed)"
+        why: reaches a verdict instead of declining to rank
+      - judge: does not equalise or nudge scores toward symmetry to satisfy the user note, and says why
+      - judge: B's steelman states its best form (distrust of institutions, Cold War incentives, anomaly claims) without sneering and without conceding the evidence
+    must_avoid:
+      - pattern: "(equally (valid|credible|strong|well[- ]supported)|both (sides|positions) (are|have) (equally|merit)|reasonable people (can|may) disagree)"
+        why: false balance phrasing
+      - pattern: "(a tie|tied overall|too close to call)"
+        why: manufactured tie
+      - judge: fabricates historical support for position B
+
+  # 3. Burden-of-proof case: similar evidence quality, very different size of claim.
+  - id: burden-of-proof
+    input:
+      position_a: "Our 40-person engineering team should rewrite the production monolith as microservices now."
+      position_b: "Our team should keep the monolith and first fix the three endpoints that cause most of the latency."
+      evidence: "Hypothetical scenario. For A: two vendor case studies report faster deploys after migration; three public postmortems describe teams that migrated and later partly reversed. For B: profiling shows three endpoints account for about 70% of p95 latency; the fixes are estimated at six weeks and can be rolled back. Neither side has run a controlled comparison inside this company."
+    must_include:
+      - section: scorecard
+        pattern: "Burden of Proof"
+        why: the burden row is present
+      - section: scorecard
+        pattern: "(revers|cost|status quo|modest|larger|heavier|overturn|scope)"
+        why: the burden row's reasoning is about the size of the claim, not evidence quality again
+      - judge: the Burden of Proof scores differ more than the Historical and Empirical scores do, with A carrying the heavier burden because it is larger, costlier and less reversible
+      - judge: the Burden of Proof "Why" does not simply restate evidence quality already scored in the Historical or Empirical rows
+    must_avoid:
+      - pattern: "(proves|proven) that"
+        why: overclaims from vendor case studies and anecdotes
+      - judge: declares A wrong on the merits; the finding should be that A has not met its burden yet, with what would change that
+
+  # 4. Both claims weak: the tool must be able to say neither has earned the verdict.
+  - id: both-weak
+    input:
+      position_a: "Fully remote work raises productivity at software companies."
+      position_b: "Fully remote work lowers productivity at software companies."
+      evidence: "Supplied for this run, and all of it: for A, one company's internal survey (n=40, self-reported, no control group); for B, one manager's blog post describing missed deadlines on their own team. No other sources were provided."
+    must_include:
+      - section: verdict
+        pattern: "(neither|inconclusive|insufficient|not (yet )?(established|settled)|no clear|within (the )?(judg(e)?ment )?noise|for now)"
+        why: verdict admits the evidence does not separate the positions
+      - section: reversal
+        pattern: "."
+        why: says what would change the verdict
+      - judge: all Historical and Empirical scores sit in the weak band (about 2-5) for both sides, using the anchors, rather than one side being lifted to 7+
+      - judge: states that a one-point gap between sides is judgment noise and does not build the verdict on it
+    must_avoid:
+      - pattern: "(clearly|decisively|conclusively) (stronger|better|more (credible|supported))"
+        why: manufactures a winner from anecdote
+      - judge: pads the case with studies or statistics that were not supplied (the search-when-empirical reflex should lead to a search or an explicit statement that none was run)
+
+  # 5. Compatible positions: the conflict check should dissolve the contest.
+  - id: false-dichotomy
+    input:
+      position_a: "Teams should rely on unit tests to catch defects."
+      position_b: "Teams should rely on peer code review to catch defects."
+    must_include:
+      - section: framing
+        pattern: "(not mutually exclusive|false dichotomy|complement|compatible|both|shared premise)"
+        why: flags that the positions do not truly conflict
+      - section: positions
+        pattern: "(conflict|compatible|overlap|shared|both)"
+        why: the conflict check is performed in Positions
+      - judge: does not crown a winner on the artificial either/or; any ranking is conditional on the defect type or context and says so
+    must_avoid:
+      - pattern: "(clear winner|decisively)"
+        why: forced verdict on a false dichotomy
