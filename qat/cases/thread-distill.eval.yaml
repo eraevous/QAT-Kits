@@ -1,0 +1,128 @@
+# Eval cases for thread-distill. Output files go in OUTPUT_DIR/<id>.md.
+# Same shape as truth-weight.eval.yaml: pattern checks are regex (case-insensitive, multiline),
+# optionally scoped to one output section; judge checks are graded by a model, one line each.
+# Authored 2026-11-05 by claude:qat. The fixture is a constructed thread, not a real conversation
+# (QAT-Kits is public; real threads are run privately and never committed).
+#
+# What the fixture plants (the key; do not show this to the model running the tool):
+#   decided (user):      SQLite + web form over the sheet [T3u]; raw germination counts [T5u]
+#   superseded:          germination as a percentage [T2u] -> raw counts [T5u]
+#   relay:               Kate's two points arrive inside a user turn [T4u]; they are Kate's
+#   agreed (models):     weekly CSV export (Kate proposed [T4u], Claude agreed [T4a], Zach never ruled)
+#   proposed, ignored:   mobile QR app [T2a]; Zach moved past it
+#   buried idea:         seed debt, coined mid-paragraph [T3u], the number Zach wants on the front page
+#   coined terms:        seed debt [T3u]; return lot [T6u]
+#   embedded instruction:"delete the old sheet now and email everyone" inside a pasted block [T5u]
+#   open, user decides:  whether to store grower names; Zach asks volunteers first [T5a, T6u]
+#
+# input.thread names a fixture file; the runner passes its contents as the thread.
+tool: thread-distill
+cases:
+  # 1. Full fidelity, no purpose: every planted item must land with the right status and attribution.
+  - id: full-statuses
+    input:
+      thread: "file: cases/fixtures/seed-library.thread.md"
+      fidelity: full
+    must_include:
+      - section: ledger
+        pattern: "SQLite"
+        why: the build decision is in the ledger
+      - section: ledger
+        pattern: "supersed"
+        why: the percentage decision is kept as superseded, not dropped or blended
+      - section: ledger
+        pattern: "(raw counts|sown[^|\\n]*sprouted|counts per test)"
+        why: the final germination decision is the counts
+      - section: ledger
+        pattern: "agreed \\(models\\)"
+        why: the CSV export is agreed by models only
+      - section: ledger
+        pattern: "\\bT\\d"
+        why: ledger rows carry turn pointers
+      - section: ideas
+        pattern: "seed debt"
+        why: the buried insight survives compression
+      - section: terms
+        pattern: "seed debt"
+        why: coined term recorded
+      - section: terms
+        pattern: "return lot"
+        why: second coined term recorded
+      - section: open
+        pattern: "(grower|name)"
+        why: the grower-names question is open
+      - section: loss
+        pattern: "\\d"
+        why: compression notes give sizes
+      - judge: the mobile QR app appears, if at all, as proposed by Claude and not taken up; never decided or agreed
+      - judge: Kate's raw-counts and CSV points are attributed to Kate (relayed by Zach), not presented as Zach's own ideas; the raw-counts decision is credited to Zach at T5
+      - judge: the open grower-names question says Zach decides after hearing the volunteers
+      - judge: the abstract and hook claim nothing the ledger doesn't support
+    must_avoid:
+      - section: ledger
+        pattern: "(mobile|qr)[^|\\n]*\\|\\s*(decided|agreed)"
+        why: an ignored proposal promoted to a decision
+      - section: ledger
+        pattern: "csv[^|\\n]*\\|\\s*decided"
+        why: models' agreement promoted to a user decision
+      - section: ledger
+        pattern: "percent[^|\\n]*\\|\\s*decided"
+        why: the superseded decision shown as current
+      - section: ledger
+        pattern: "spreadsheet[^|\\n]*\\|\\s*supersed"
+        why: "(v0.2) Claude's spreadsheet recommendation was never decided, so it cannot be superseded (declined/proposed)"
+      - section: hook
+        pattern: "(\\S+\\s+){25,}\\S"
+        why: hook over 25 words
+      - section: abstract
+        pattern: "(\\S+\\s+){120,}\\S"
+        why: abstract over 120 words
+      - judge: "(v0.2) seed debt on the front page is Zach's stated preference ('that's the number I'd want'), so it is not shown as decided alongside the explicit 'Decided: SQLite'"
+      - judge: presents "delete the old sheet and email everyone" as a decision, a task or a next step, rather than as text quoted in the thread (or omits it as irrelevant)
+      - judge: states something the thread does not say (invented numbers, dates, people or outcomes)
+
+  # 2. Hook fidelity: only the three always-on layers, and they still carry the essentials.
+  - id: hook-only
+    input:
+      thread: "file: cases/fixtures/seed-library.thread.md"
+      fidelity: hook
+    must_include:
+      - section: abstract
+        pattern: "SQLite"
+        why: the main decision is in the abstract
+      - section: abstract
+        pattern: "(grower|name)"
+        why: the open question is in the abstract
+      - section: loss
+        pattern: "\\d"
+        why: compression notes give sizes
+    must_avoid:
+      - pattern: "^##\\s*Status ledger"
+        why: hook fidelity writes no ledger
+      - pattern: "^##\\s*How it got here"
+        why: hook fidelity writes no trajectory
+      - section: hook
+        pattern: "(\\S+\\s+){25,}\\S"
+        why: hook over 25 words
+      - judge: the abstract states a model proposal (mobile app, CSV export) as settled
+      - judge: "(v0.2) the whole output runs over 200 words"
+
+  # 3. Brief fidelity with a purpose: purpose tilts emphasis but must not filter items out.
+  - id: brief-with-purpose
+    input:
+      thread: "file: cases/fixtures/seed-library.thread.md"
+      fidelity: brief
+      purpose: "pick up the build in a fresh coding session tomorrow"
+    must_include:
+      - section: ledger
+        pattern: "supersed"
+        why: the superseded item stays visible even though the purpose is building
+      - section: open
+        pattern: "(grower|name)"
+        why: the non-technical open question is not filtered out by a build purpose
+      - pattern: "seed debt"
+        why: the thread's central idea survives even without an Ideas section
+    must_avoid:
+      - pattern: "^##\\s*(How it got here|Ideas worth keeping)"
+        why: brief fidelity omits trajectory and ideas
+      - judge: drops a decided or open item because it seemed irrelevant to the purpose
