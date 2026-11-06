@@ -1,0 +1,188 @@
+# effort-cost eval runs, 2026-11-06
+
+**Setup**
+- Fixtures: `cases/fixtures/lit-analysis.thread.md` and `cases/fixtures/recall.thread.md` (both constructed).
+- Cases: `cases/effort-cost.eval.yaml`.
+- Text under test: the ChatGPT paste block (`runtimes/chatgpt/effort-cost.paste.md`).
+
+**Each round**
+- A fresh subagent played ChatGPT.
+- It read only the paste block and the fixtures, so it was blind to the evals and the spec.
+- It is Claude, not ChatGPT, so a real ChatGPT run is still owed.
+
+**Grading**
+- Deterministic checks come from `qat.py eval`.
+- claude:qat wrote the tool and the rubric and graded the judge checks. Those grades are **self-graded and provisional** until an independent grader re-grades them.
+
+## Round 1: v0.1.0 (`effort-cost/v0.1/`)
+
+| Case | Deterministic | Judge (self-graded) | Lean given |
+|---|---|---|---|
+| lit-high | FAIL (3 sections written as prose, contract says bullets) | 5/5 | bump for this message only |
+| recall-pro | FAIL (same) | 3/3 | stay |
+| lit-unknown | FAIL (same) | 2/2 | bump for this message only |
+
+The cold user reported 9 ambiguities. The material ones:
+- Product names (Thinking, standard, High) did not map to the effort rows.
+- The "default" setting was undefined. The runner assumed "fast", which shrank the lit-unknown result.
+- "Floor" had two readings, a roughly 5× swing in the Pro case.
+- 9:40 pm fit no time band.
+- The ranges for the difference row were unspecified.
+- It was unclear whether the word limit counts the table.
+
+## Round 2: v0.2.0 (`effort-cost/v0.2/`)
+
+| Case | Deterministic | Judge (self-graded) | Lean given |
+|---|---|---|---|
+| lit-high | PASS | 5/5 | bump for this message only |
+| recall-pro | PASS | 3/3 | stay |
+| lit-unknown | PASS | 2/2 | bump for this message only |
+
+Worked example (lit-high), from the runner. Setting: standard → High, about 1,500 tokens, Chicago, 9:40 pm.
+
+- **Difference, next answer:**
+  - energy: about 14 Wh (4.5–38)
+  - carbon: about 6 g CO2e (2–17)
+  - water: about 41 mL (4.5–190)
+- **In everyday terms:**
+  - about 80 minutes of a 10 W LED bulb
+  - about 0.9 of a phone charge
+- **Next 5 answers at High:**
+  - energy: about 120 Wh (40–310)
+  - carbon: about 53 g
+
+## Open for v0.3 (from the round-2 cold user)
+
+1. **The floor rule overstates short reasoning answers.** A 150-token factual reply at medium is costed at the full 1,000-token figure. Reasoning on easy questions is shorter too.
+   - Candidate fix: a floor of half the table value for short answers.
+2. **Follow-up turns are assumed to be the same length as the next answer.** For the lit thread that likely overstates the 5-turn row.
+   - Candidate fix: follow-ups default to a paragraph unless the request says otherwise.
+3. **The carbon windows leave 3–4 pm unassigned.** Also, "US" should mean the user's local time zone.
+4. **"Answer quickly" conflicts with the required arithmetic.** Keep the check itself on the current setting, but drop "quickly".
+5. **The context add-on bands have no central value.** The runner used the midpoint.
+
+Missing evidence:
+- No real ChatGPT run yet, so it is unknown whether ChatGPT knows its own effort setting.
+- No independent grader yet.
+
+## Live run in ChatGPT: v0.2.0 (`effort-cost/chatgpt-live/`)
+
+**Setup**
+- Run by claude:qat at Zach's request (2026-11-06 11:16 CT).
+- Where: a Temporary chat in Zach's ChatGPT, used because the ordinary new-chat composer held another lane's unsent draft.
+- Composer setting: **Thinking, effort High**.
+- Messages, all from the lit-analysis fixture:
+  - turn 1, then turn 2 (with "don't do the full pass yet");
+  - then the paste block, with the real place and time ("Chicago, about 11:20 am") and **no setting stated**.
+- `reply.raw.txt` is the reply as copied from the page. `reply.md` is the same text with headings, bullets and the table restored to markdown, because copying from the page drops the markdown. `qat.py audit`: **OK** (all eight sections parse as their types).
+
+**Findings**
+1. **ChatGPT did not know its own effort setting.**
+   - It assumed Medium while running at High, so it costed an upgrade to the level it was already on.
+   - It did ask the user to check the composer, as the spec requires.
+   - v0.3: put a fill-in for the setting at the top of the paste block.
+2. **The check itself ran at High for 51 seconds.**
+   - "Answer quickly at your current setting" cannot lower the effort.
+   - By the tool's own table, the check costs about as much as one high-effort answer, roughly the size of the difference it reports.
+   - v0.3: tell the user to switch to the lightest setting before pasting the check.
+3. **The numbers matched the blind Claude run exactly** (next-answer difference 14 Wh, 4.5–38).
+   - The inlined tables make the arithmetic reproducible across models. Only judgement calls vary, such as the context add-on in the five-answer row.
+4. **The lean was "Bump … revert afterward".** That is "bump for this message only" in substance, but not in the fixed wording.
+5. **Location was handled honestly.** "Chicago is your location, not necessarily the computation location."
+6. **The midday carbon band was applied correctly** (0.30 g/Wh at 11:20 am).
+
+## Round 3: v0.3.0 (`effort-cost/v0.3/`), blind Claude run
+
+**What changed in v0.3**
+- An optional "if served near you" row: Illinois 0.23, California 0.18 g/Wh.
+- A fill-in for the current setting.
+- An instruction to run the check on the lightest setting.
+- The reasoning floor is halved.
+- Follow-ups default to a paragraph.
+- Time bands for the carbon factor are contiguous.
+- Fixed wording for the lean.
+
+**Results**
+
+| Case | Deterministic | Judge (self-graded) | Lean |
+|---|---|---|---|
+| lit-high (Chicago, 9:40 pm, standard → High) | PASS | 5/5 | bump for this message only |
+| recall-pro (no settings, Pro) | PASS | 3/3 | stay |
+| lit-unknown (nothing given) | PASS | 2/2 | bump for this message only |
+
+**lit-high, row by row**
+- Difference for the next answer: about 14 Wh, 6.1 g, 41 mL. Unchanged from v0.2, as expected.
+- Next 5 answers at High: about 53 Wh. That was 120 in v0.2; it fell because follow-ups now default to a paragraph.
+- Near-you scenario row (Illinois): about 5.2 g CO2e for the answer at High, against 10 g at the 9:40 pm default factor. The row is labelled as a scenario, with the water caveat.
+
+**Remaining ambiguities from the cold user (v0.4 candidates)**
+1. It is unclear whether the pasted block counts toward thread size. It did not change any result here.
+2. How the answer-length range combines with the low/central/high columns.
+3. Whether the near-you row keeps the time-of-day adjustment. The runner dropped it and used the state average.
+4. Heading names differ slightly between the list and the numbered items ("Ways to spend less" vs "… in this thread").
+5. On a one-line fact question, refusing to answer looks odd. Consider "you may answer it in one line, then do the check".
+
+**Still owed**
+- A live ChatGPT run of v0.3. The v0.2 live run is above.
+- An independent grader.
+
+
+## Round 4: v0.4.0 (`effort-cost/v0.4/`), blind Claude run
+
+v0.4 replaced the comparison with an absolute menu of every setting, added a "This check" section, tiered perspective, and a pocket card.
+
+**Results**
+- Deterministic checks: 3/3 PASS.
+- That is after fixing a false positive in the eval: the precision regex counted decimals ("0.069") instead of significant figures.
+- Judge checks: self-graded, all pass.
+
+**Leans**
+- lit-high: Thinking high for this message only, then Thinking standard.
+- recall-pro: Instant.
+
+## Live ChatGPT runs: v0.4.0 (`effort-cost/chatgpt-live-v0.4/`)
+
+**Setup**
+- Two Temporary chats in Zach's ChatGPT, with his approval (2026-11-06 11:42 CT).
+- His ChatGPT's Power slider has three positions: Instant, Medium and High (GPT-6; GPT-5.6 Sol is also offered).
+- Each check was sent on Instant, as the tool instructs.
+- Changing the slider in one chat also changed the default for new chats. It was restored to High afterwards and verified in a fresh chat.
+
+**Lit, Chicago 11:50 am, High → considering Medium**
+- The check took **9 s on Instant**, against 51 s at High in the v0.2 run.
+- All five settings were priced, with "now" and "considering" marked and the near-you column present.
+- It judged itself worth running because it ran on Instant: a 14 Wh gap against 0.24 Wh of cost.
+- Lean: Thinking Medium.
+- **Error:** the million-answers line said "37,000 household-days of water" instead of about 37.
+
+**Recall, Medium → considering Pro, place and time blank**
+- Lean: Instant.
+- It judged the check worth running only on cheaper settings.
+- **Error:** the million-answers line said "0.0012 car-years" instead of about 1.3. The water figure was also off by about 3×.
+- **New behavior:** with place and time left blank, it wrote "Estimated location: Chicago, Illinois; local time approximately 11:49 a.m. CT" from its own context, labelled as an estimate.
+
+**v0.5 changes in response**
+- Fixed multipliers for the million line.
+- Estimated place and time allowed, if labelled.
+- The Power slider mapped to rows.
+- The check's cost now uses the per-1,000-token figure, and the gap is the next-answer gap.
+- A one-line fact answer goes before the first heading.
+
+## Live ChatGPT runs: v0.5.0 and v0.6.0 (everything on Instant)
+
+**v0.5** (`chatgpt-live-v0.5/`)
+- Even with the conversion multipliers spelled out, Instant applied them *and* multiplied by a million, giving "710,000 household-years" where 0.71 is right.
+- It also misapplied the reasoning floors: Pro came out at 7.5 Wh, where the rules give about 22.
+- **Conclusion:** the lightest setting cannot be trusted with the arithmetic. The check has to run there to stay cheap, so the arithmetic must move out of the model.
+
+**v0.6** (`chatgpt-live-v0.6/`)
+- The paste block now carries lookup tables generated by `effort-cost.card.py`:
+  - per answer, by setting × length;
+  - next 5 answers;
+  - a million answers per setting pair.
+- On the same scenario, every table value, comparison and million-answers line was correct, copied from the tables.
+- Lean: Instant. It used place and time it estimated itself, and labelled them "estimated".
+- **Remaining slips (v0.7):**
+  - It dropped the low–high ranges.
+  - A few cells exceed two significant figures ("1.725", "21.96").
+  - It picked the paragraph line in Table C for a short reply. That happens to be numerically identical because of the reasoning floor.
