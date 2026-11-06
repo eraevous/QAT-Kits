@@ -35,7 +35,7 @@ Built by hand, before ToolSmith existed, so it is a baseline and not part of eit
 
 **Human interventions**
 - 1: the idea message.
-- No corrections from Zach yet.
+- 2: "incorporate local (optional) information" (11:17 CT).
 
 **ToolSmith run**
 - Followed in order: brief → build-or-reuse (build; no neighbor) → failure modes (9) → contract → reflexes (9, one per failure mode) → method with a sourced table → eval stub (3 cases) → runtime notes → design notes.
@@ -62,6 +62,16 @@ Built by hand, before ToolSmith existed, so it is a baseline and not part of eit
 - Fixed all of the above in the spec and in both runtime texts.
 - Bullets are now required under every heading except Estimate and Lean.
 - Second cold run: see `qat/eval-runs/2026-11-06/RESULTS.md`.
+
+**After the first PR (same day)**
+- Zach approved a real ChatGPT test.
+  - It ran on v0.2, and the audit passed.
+  - It found that ChatGPT can't see its own effort setting.
+  - It found that the check itself ran at High for 51 seconds.
+- Zach asked for optional local information (11:17 CT). That was intervention 2, a design change.
+- v0.3 added the local scenario row and the two live-test fixes.
+- Blind run on v0.3: 3/3 deterministic, 10/10 judge (self-graded).
+- Correction cycles: 2 (v0.1 → v0.2 → v0.3).
 
 **Infrastructure and process cost**
 - **Paste block missing heading names.** Caught before the first run (about 2 minutes).

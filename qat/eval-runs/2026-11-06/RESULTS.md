@@ -90,3 +90,38 @@ Missing evidence:
 4. **The lean was "Bump … revert afterward".** That is "bump for this message only" in substance, but not in the fixed wording.
 5. **Location was handled honestly.** "Chicago is your location, not necessarily the computation location."
 6. **The midday carbon band was applied correctly** (0.30 g/Wh at 11:20 am).
+
+## Round 3: v0.3.0 (`effort-cost/v0.3/`), blind Claude run
+
+**What changed in v0.3**
+- An optional "if served near you" row: Illinois 0.23, California 0.18 g/Wh.
+- A fill-in for the current setting.
+- An instruction to run the check on the lightest setting.
+- The reasoning floor is halved.
+- Follow-ups default to a paragraph.
+- Time bands for the carbon factor are contiguous.
+- Fixed wording for the lean.
+
+**Results**
+
+| Case | Deterministic | Judge (self-graded) | Lean |
+|---|---|---|---|
+| lit-high (Chicago, 9:40 pm, standard → High) | PASS | 5/5 | bump for this message only |
+| recall-pro (no settings, Pro) | PASS | 3/3 | stay |
+| lit-unknown (nothing given) | PASS | 2/2 | bump for this message only |
+
+**lit-high, row by row**
+- Difference for the next answer: about 14 Wh, 6.1 g, 41 mL. Unchanged from v0.2, as expected.
+- Next 5 answers at High: about 53 Wh. That was 120 in v0.2; it fell because follow-ups now default to a paragraph.
+- Near-you scenario row (Illinois): about 5.2 g CO2e for the answer at High, against 10 g at the 9:40 pm default factor. The row is labelled as a scenario, with the water caveat.
+
+**Remaining ambiguities from the cold user (v0.4 candidates)**
+1. It is unclear whether the pasted block counts toward thread size. It did not change any result here.
+2. How the answer-length range combines with the low/central/high columns.
+3. Whether the near-you row keeps the time-of-day adjustment. The runner dropped it and used the state average.
+4. Heading names differ slightly between the list and the numbered items ("Ways to spend less" vs "… in this thread").
+5. On a one-line fact question, refusing to answer looks odd. Consider "you may answer it in one line, then do the check".
+
+**Still owed**
+- A live ChatGPT run of v0.3. The v0.2 live run is above.
+- An independent grader.
