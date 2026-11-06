@@ -64,3 +64,29 @@ Worked example (lit-high), from the runner. Setting: standard → High, about 1,
 Missing evidence:
 - No real ChatGPT run yet, so it is unknown whether ChatGPT knows its own effort setting.
 - No independent grader yet.
+
+## Live run in ChatGPT: v0.2.0 (`effort-cost/chatgpt-live/`)
+
+**Setup**
+- Run by claude:qat at Zach's request (2026-11-06 11:16 CT).
+- Where: a Temporary chat in Zach's ChatGPT, used because the ordinary new-chat composer held another lane's unsent draft.
+- Composer setting: **Thinking, effort High**.
+- Messages, all from the lit-analysis fixture:
+  - turn 1, then turn 2 (with "don't do the full pass yet");
+  - then the paste block, with the real place and time ("Chicago, about 11:20 am") and **no setting stated**.
+- `reply.raw.txt` is the reply as copied from the page. `reply.md` is the same text with headings, bullets and the table restored to markdown, because copying from the page drops the markdown. `qat.py audit`: **OK** (all eight sections parse as their types).
+
+**Findings**
+1. **ChatGPT did not know its own effort setting.**
+   - It assumed Medium while running at High, so it costed an upgrade to the level it was already on.
+   - It did ask the user to check the composer, as the spec requires.
+   - v0.3: put a fill-in for the setting at the top of the paste block.
+2. **The check itself ran at High for 51 seconds.**
+   - "Answer quickly at your current setting" cannot lower the effort.
+   - By the tool's own table, the check costs about as much as one high-effort answer, roughly the size of the difference it reports.
+   - v0.3: tell the user to switch to the lightest setting before pasting the check.
+3. **The numbers matched the blind Claude run exactly** (next-answer difference 14 Wh, 4.5–38).
+   - The inlined tables make the arithmetic reproducible across models. Only judgement calls vary, such as the context add-on in the five-answer row.
+4. **The lean was "Bump … revert afterward".** That is "bump for this message only" in substance, but not in the fixed wording.
+5. **Location was handled honestly.** "Chicago is your location, not necessarily the computation location."
+6. **The midday carbon band was applied correctly** (0.30 g/Wh at 11:20 am).
