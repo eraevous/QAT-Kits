@@ -34,6 +34,18 @@ Kit-owned and ungoverned (no Telosmith records), per the Telosmith scope agreed 
   - Custom GPTs are being retired in favor of plugins (new creation ended late Oct 2026; retirement Dec 11, 2026 / Feb 11, 2027 by plan). So the `@` path is a plugin skill.
   - Whether an `@`-invoked plugin sees the whole thread is unverified.
 
+- **Absolute menu, not current-vs-proposed (v0.4).** Zach, 2026-11-06 11:42 CT: "if it's already at high, you can do what it would cost at high. If it's at low, you can also do what it would cost at high … including different model options."
+  - Every setting is priced for the request, and a named setting only marks a row.
+  - This also removes the dependence on the current setting, which ChatGPT cannot see.
+- **The check must cost less than what it informs (v0.4).** Zach: "evaluating should not cost more than the thing it's evaluating."
+  - The check states its own cost: about 0.24 Wh on Instant, about 9 Wh on Thinking high.
+  - It counts as worth running only at 10× or more. The live runs confirmed the arithmetic: a 14 Wh gap is worth checking on Instant, not on High.
+  - The pocket card answers the common case at zero cost.
+- **Perspective scales with size (v0.4).** Zach asked for household, car and computer comparisons when numbers get large.
+  - Anchors are tiered from Wh to GWh, g to t, and mL to Olympic pools, plus a "million answers like this" line.
+  - **v0.5:** that line now uses fixed multipliers (0.095, 0.22, 0.91). ChatGPT Instant mis-converted the units in both live v0.4 runs: 37,000 household-days instead of 37, and 0.0012 car-years instead of about 1.3.
+- **Estimated place and time are allowed (v0.5).** ChatGPT supplied an approximate location and time from its own context, even in a Temporary chat. They may be used if labelled "estimated".
+
 ## Distinctions that must survive revisions
 
 - Compute location ≠ user location.

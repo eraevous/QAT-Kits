@@ -1,6 +1,6 @@
 ---
 name: effort-cost
-version: 0.4.0
+version: 0.5.0
 description: From inside a conversation, give a heuristic menu of what the next answer would cost the environment (energy, CO2e, water) at each available model or reasoning-effort setting, put the numbers in everyday and at-scale perspective, say what extra effort would buy for this request, and say whether the check itself was worth its own cost.
 inputs:
   thread: {type: text, required: true, doc: "the conversation so far (in ChatGPT, the thread the tool is invoked in)"}
@@ -27,7 +27,7 @@ reflexes:
   perspective-scales-with-size: Pick anchors at the size of the number (minutes of a bulb for Wh; household days for kWh; household-years for MWh and GWh; car miles for grams and car-years for tonnes; sips, showers, household-days and pools for water).
   scale-honestly: Neither dismiss ("negligible") nor alarm. The per-answer share is small; the aggregate is where the impact is, and the million-answers line shows it.
   cost-next-to-value: The menu always sits next to what more effort would buy for this request.
-  answer-the-cost-question: Do not answer the thread's underlying question; a one-line factual question may get its one-line answer first, then the check.
+  answer-the-cost-question: Do not answer the thread's underlying question; a one-line factual question not yet answered may get its one-line answer before the first heading.
   dated-figures: Every coefficient comes from the tables below, with its source and date. Do not invent figures; say when the tables are stale.
   user-decides: The lean is a lean. No moralizing, no guilt.
 handoffs: []
@@ -53,7 +53,8 @@ Write every section as bullets except Cost by setting (the table) and Lean (one 
 - Expected answer length: of the answer to the user's underlying request, not of this check. A paragraph ≈ 300 tokens; a page ≈ 700; an essay ≈ 1,500 (1,000-2,000).
 - Thread size: words × 1.3 tokens, counting the pasted check. Say it is an estimate.
 - Next 5 answers: the next answer plus four follow-ups of a paragraph each, unless the request implies more. Add the context add-on (midpoint) to each answer once the thread passes 5k tokens.
-- Named settings: map product names to Table 1 rows. An instant or non-thinking mode → Instant; the lightest thinking effort → Thinking light; standard or default thinking → Thinking standard; extended or high → Thinking high; heavy, Pro, parallel or deep research → Pro.
+- Place and time: what the user gave; if blank and the runtime supplies an approximate location or time, use it, labelled "estimated" (seen in a live ChatGPT run, even in a Temporary chat).
+- Named settings: map product names to Table 1 rows. ChatGPT's Power slider (GPT-6, Nov 2026) has three positions: Instant → Instant, Medium → Thinking standard, High → Thinking high; other plans and models may add the light and Pro rows. An instant or non-thinking mode → Instant; the lightest thinking effort → Thinking light; standard or default thinking → Thinking standard; extended or high → Thinking high; heavy, Pro, parallel or deep research → Pro.
 
 ### module: menu
 **Table 1. Energy per answer**, Wh, for an answer of about 1,000 tokens with a short context. Scale by answer length (low, central and high columns all scale by the central length). For thinking and Pro rows, hidden reasoning tokens are spent even for short answers, so never go below half the table value.
@@ -83,7 +84,7 @@ Write every section as bullets except Cost by setting (the table) and Lean (one 
 **Ranges.** Low = energy low × the low factor; high = energy high × the high factor. Carbon uses one factor, so its range comes from energy only.
 
 ### module: check-cost
-- This check's own answer is about 600 tokens. At the setting it ran on, it costs that row's energy × 0.6, but at least half the table value for thinking and Pro rows. If the setting is unknown, give the Instant figure and the Thinking high figure.
+- This check's own answer is about 600 tokens. At the setting it ran on, it costs that setting's per-1,000-token energy × 0.6, but at least half the table value for thinking and Pro rows. The gap it informs is the next-answer gap between the settings being weighed. If the setting is unknown, give the Instant figure and the Thinking high figure.
 - The pasted check also stays in the thread (about 1,200 tokens), slightly raising the cost of later answers once the thread is long.
 - **Worth running** if the gap it informs is at least ten times its own cost. Otherwise say plainly that it was not worth running, and name the cheaper route: the pocket card, or running the check on Instant.
 
@@ -95,6 +96,6 @@ Write every section as bullets except Cost by setting (the table) and Lean (one 
 | medium | US household ≈ 29 kWh per day | 1 kg ≈ 2.5 car miles | shower ≈ 65 L (EPA WaterSense) · US household ≈ 1,100 L per day (EPA WaterSense, about 300 gal) |
 | large | US household ≈ 10,500 kWh per year (Epoch AI, citing the US average) · 1 GWh ≈ 95 household-years | typical car ≈ 4.6 t per year (EPA) | Olympic pool ≈ 2,500,000 L |
 
-**A million answers like this**: multiply the main gap by 1,000,000 (Wh → MWh, g → t, mL → kL) and translate with the large row. ChatGPT handles on the order of a billion messages a day, so a million is a small slice.
+**A million answers like this**: use these exact multipliers on the next-answer gap, because two live runs mis-converted units without them: household-years of electricity = gap Wh × 0.095 (1 MWh ÷ 10,500 kWh); car-years of CO2 = gap g × 0.22 (1 t ÷ 4.6 t); household-days of water = gap mL × 0.91 (1,000 L ÷ 1,100 L). ChatGPT handles on the order of a billion messages a day, so a million is a small slice.
 
 The tables are dated November 2026 from sources published 2025 (EIA 2024 data). Efficiency changes fast (Google reported a 33× energy drop per prompt in 12 months), so figures more than a year old are likely high.

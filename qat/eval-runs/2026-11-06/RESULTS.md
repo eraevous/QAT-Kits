@@ -125,3 +125,45 @@ Missing evidence:
 **Still owed**
 - A live ChatGPT run of v0.3. The v0.2 live run is above.
 - An independent grader.
+
+
+## Round 4: v0.4.0 (`effort-cost/v0.4/`), blind Claude run
+
+v0.4 replaced the comparison with an absolute menu of every setting, added a "This check" section, tiered perspective, and a pocket card.
+
+**Results**
+- Deterministic checks: 3/3 PASS.
+- That is after fixing a false positive in the eval: the precision regex counted decimals ("0.069") instead of significant figures.
+- Judge checks: self-graded, all pass.
+
+**Leans**
+- lit-high: Thinking high for this message only, then Thinking standard.
+- recall-pro: Instant.
+
+## Live ChatGPT runs: v0.4.0 (`effort-cost/chatgpt-live-v0.4/`)
+
+**Setup**
+- Two Temporary chats in Zach's ChatGPT, with his approval (2026-11-06 11:42 CT).
+- His ChatGPT's Power slider has three positions: Instant, Medium and High (GPT-6; GPT-5.6 Sol is also offered).
+- Each check was sent on Instant, as the tool instructs.
+- Changing the slider in one chat also changed the default for new chats. It was restored to High afterwards and verified in a fresh chat.
+
+**Lit, Chicago 11:50 am, High → considering Medium**
+- The check took **9 s on Instant**, against 51 s at High in the v0.2 run.
+- All five settings were priced, with "now" and "considering" marked and the near-you column present.
+- It judged itself worth running because it ran on Instant: a 14 Wh gap against 0.24 Wh of cost.
+- Lean: Thinking Medium.
+- **Error:** the million-answers line said "37,000 household-days of water" instead of about 37.
+
+**Recall, Medium → considering Pro, place and time blank**
+- Lean: Instant.
+- It judged the check worth running only on cheaper settings.
+- **Error:** the million-answers line said "0.0012 car-years" instead of about 1.3. The water figure was also off by about 3×.
+- **New behavior:** with place and time left blank, it wrote "Estimated location: Chicago, Illinois; local time approximately 11:49 a.m. CT" from its own context, labelled as an estimate.
+
+**v0.5 changes in response**
+- Fixed multipliers for the million line.
+- Estimated place and time allowed, if labelled.
+- The Power slider mapped to rows.
+- The check's cost now uses the per-1,000-token figure, and the gap is the next-answer gap.
+- A one-line fact answer goes before the first heading.

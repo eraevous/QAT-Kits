@@ -2,7 +2,7 @@
 name: effort-check
 description: Use when the user asks what an answer costs the environment (energy, carbon, water) at different model or reasoning-effort settings, whether to turn the effort up or down for this conversation, or says "effort check". Prices every setting for their request, puts it in perspective, and says whether the check was worth its own cost.
 ---
-<!-- ChatGPT plugin skill for effort-cost v0.4.0, hand-adapted from qat/tools/effort-cost.qat.md (creation study arm A).
+<!-- ChatGPT plugin skill for effort-cost v0.5.0, hand-adapted from qat/tools/effort-cost.qat.md (creation study arm A).
      Install: custom GPTs are being replaced by plugins whose instructions are skills (late 2026). Put this text in a
      plugin's skill; invoke it with @ (or + > More) or let ChatGPT pick it up when the description matches. Whether an
      @-invoked plugin sees the whole thread is unverified; if not, use the paste block. For ordinary threads the
@@ -10,7 +10,7 @@ description: Use when the user asks what an answer costs the environment (energy
 
 # Effort check
 
-Price the user's next answer at every setting, put the numbers in perspective, and say whether this check was worth its own cost. If the underlying question is a one-line fact, you may answer it in one line first; otherwise do not answer it. Keep it under about 350 words, not counting the table. Use bullets under every heading except Cost by setting (a table) and Lean (one line).
+Price the user's next answer at every setting, put the numbers in perspective, and say whether this check was worth its own cost. If the underlying question is a one-line fact not yet answered, you may answer it in one line before the first heading; otherwise do not answer it. Keep it under about 350 words, not counting the table. Use bullets under every heading except Cost by setting (a table) and Lean (one line).
 
 ## Before you start
 - You cannot see your own effort setting (confirmed in a live test). Never state it; use what the user said, or leave rows unmarked.
@@ -21,20 +21,22 @@ Price the user's next answer at every setting, put the numbers in perspective, a
 1. **Your request.**
    - Expected length of the answer to the underlying request: a paragraph ≈ 300 tokens, a page ≈ 700, an essay ≈ 1,500.
    - Thread size ≈ words × 1.3 tokens.
-   - The settings, place and time the user gave.
+   - The settings, place and time the user gave. If they left place or time blank and you have an approximate location or time from your own context, you may use it, labelled "estimated".
+   - ChatGPT's Power slider maps as Instant → Instant, Medium → Thinking standard, High → Thinking high.
 2. **Cost by setting.**
    - A table with columns Setting | Energy (Wh) | CO2e (g) | Water (mL) | Next 5 answers (Wh).
    - Every cell reads "central (low–high)".
    - One row per setting. Mark the rows the user named "now" or "considering".
    - If their region is in the near-you list, add a "CO2e near you (g)" column.
 3. **This check.**
-   - Its own answer is about 600 tokens, so it costs the row for the setting it ran on × 0.6, but at least half the table value for Thinking and Pro.
+   - Its own answer is about 600 tokens, so it costs the per-1,000-token figure for the setting it ran on × 0.6, but at least half the table value for Thinking and Pro.
+   - The gap it informs is the next-answer gap.
    - If you don't know that setting, give both the Instant and the Thinking high figures.
    - It was worth running only if the gap it informs is at least 10× its own cost. If not, say so and name the cheaper route.
 4. **In perspective.**
    - Take the main gap: between the settings the user named, or else between Instant and the heaviest setting that would help.
    - Pick anchors at its size.
-   - End with one line: "A million answers like this".
+   - End with one line: "A million answers like this". Use these exact multipliers on the next-answer gap: household-years of electricity = gap Wh × 0.095; car-years of CO2 = gap g × 0.22; household-days of water = gap mL × 0.91. (Two live runs got this wrong without them.)
 5. **What more effort buys here.**
    - Helps with: multi-step reasoning, argument, close reading of long passages, comparing sources, checking claims, math, code.
    - Helps little with: rephrasing, short recall, tone, idea lists, summaries of text already present.

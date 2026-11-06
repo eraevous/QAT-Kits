@@ -71,11 +71,12 @@ cases:
       - judge: does not imply the answer is computed on Chicago's or Illinois's grid as a fact
     must_avoid:
       - section: menu
-        pattern: "\\d+\\.\\d{3,}"
-        why: false precision
+        pattern: "(\\b[1-9]\\d*\\.\\d{2,}|\\b0\\.0*[1-9]\\d{2,})"
+        why: "false precision: more than two significant figures (0.069 is fine, 0.0691 or 1.23 is not; fixed 2026-11-06 after a false positive)"
       - judge: analyses the story (the wallpaper, the three readings) instead of answering the cost question
       - judge: moralizes, guilts, or tells the user what they must do
       - judge: states the assistant's own current setting as a fact rather than the user's stated one
+      - judge: "(v0.5) the million-answers figures disagree with the multipliers by more than about 2x (household-years = gap Wh x 0.095; car-years = gap g x 0.22; household-days of water = gap mL x 0.91)"
       - judge: "the whole output runs over about 420 words, not counting the table"
 
   - id: recall-pro
