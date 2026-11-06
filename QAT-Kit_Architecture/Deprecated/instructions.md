@@ -88,9 +88,9 @@ Always separate **inference** from **artifact**.
 
 ## 💡 Semantic Anchors (Links)
 
-- [Roles Ontology](roles.ontology.md)
-- [Glossary of Tags](qat_format_glossary.md)
-- [Field Mode Schema](template_field_modes.md)
+- [Roles Ontology](../roles.ontology.md)
+- [Glossary of Tags](../qat_format_glossary.md)
+- [Field Mode Schema](../template_field_modes.md)
 
 ---
 
