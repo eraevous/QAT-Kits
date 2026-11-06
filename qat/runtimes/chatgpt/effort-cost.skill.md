@@ -2,7 +2,7 @@
 name: effort-check
 description: Use when the user asks whether to turn up the model or reasoning effort for the current conversation, asks what a higher setting costs the environment (energy, carbon, water), or says "effort check". Gives a heuristic estimate next to what the extra effort would buy for their request.
 ---
-<!-- ChatGPT plugin skill for effort-cost v0.1.0, hand-adapted from qat/tools/effort-cost.qat.md (creation study arm A).
+<!-- ChatGPT plugin skill for effort-cost v0.2.0, hand-adapted from qat/tools/effort-cost.qat.md (creation study arm A).
      Install: as of late 2026 custom GPTs are being replaced by plugins whose instructions are skills. Put this text
      in a plugin's skill, then invoke it in any thread with @ (or from + > More), or let ChatGPT pick it up when the
      description matches. Whether the plugin sees the whole thread when @-mentioned is unverified; if it does not,
@@ -10,12 +10,12 @@ description: Use when the user asks whether to turn up the model or reasoning ef
 
 # Effort check
 
-The user is deciding whether to answer this conversation at a higher model or reasoning-effort setting. Give a quick, heuristic estimate of the environmental cost of doing so, next to what the extra effort would buy for their request. Do not answer their underlying question. Answer at the current setting and keep it under about 350 words.
+The user is deciding whether to answer this conversation at a higher model or reasoning-effort setting. Give a quick, heuristic estimate of the environmental cost of doing so, next to what the extra effort would buy for their request. Do not answer their underlying question. Answer at the current setting and keep it under about 350 words, not counting the table. Use bullets under every heading except Estimate (a table) and Lean (one line).
 
 ## Output, in this order, with these headings
 
-1. **Settings assumed.** Current and proposed setting. Use what the user said. You may not know your own model or effort setting, so if they did not say, ask them to read it from the composer, or assume the default and label it "assumed". Proposed defaults to one step up. Thread size ≈ words × 1.3 tokens. Expected answer length. Turns ahead (default 5).
-2. **Estimate.** A table with columns Energy (Wh) | CO2e (g) | Water (mL), each cell "central (low–high)". Rows: next answer now · next answer at proposed · difference · next N answers at proposed. Two significant figures at most.
+1. **Settings assumed.** Current and proposed setting. Use what the user said. You may not know your own model or effort setting, so if they did not say, ask them to read it from the composer, and meanwhile assume reasoning medium, labelled "assumed". Proposed defaults to one step up. Map names to rows: instant or non-thinking → fast; lightest thinking → minimal–low; standard thinking → medium; extended or high → high; heavy, Pro, parallel or deep research → Pro. Thread size ≈ words × 1.3 tokens. Expected length of the answer to the underlying request, not of this check. Turns ahead: 5, same length each.
+2. **Estimate.** A table with columns Energy (Wh) | CO2e (g) | Water (mL), each cell "central (low–high)". Rows: next answer now · next answer at proposed · difference (central minus central; label it approximate) · next N answers at proposed. Two significant figures at most.
 3. **In everyday terms.** Translate the difference with 2–3 anchors from the table below.
 4. **What the bump buys here.** Higher effort helps multi-step reasoning, argument, close reading of long passages, comparing sources, checking claims, math, code. It helps little with rephrasing, short recall, tone, idea lists, or summaries of text already present. Say which this request is.
 5. **Where and when.** The user's location is not where the answer is computed, so it barely matters. Time of day shifts carbon somewhat. Add one line on social costs not counted: water stress near datacenters, local grid strain, aggregate demand.
@@ -32,9 +32,9 @@ The user is deciding whether to answer this conversation at a higher model or re
 - Reasoning, high effort: 5 / 15 / 40
 - Pro, parallel or deep research: 15 / 45 / 150 (assumed ≈3× high)
 
-Scale by answer length. For reasoning settings, treat the value as a floor. When a long thread is reread without a cache, add 1–5 Wh (5–20k tokens), 5–20 Wh (20–60k) or 20–40 Wh (over 60k).
+Scale by answer length, but never below the table value for a reasoning setting (its hidden reasoning tokens are spent anyway). Once the thread passes 5k tokens, add per answer 1–5 Wh (5–20k tokens), 5–20 Wh (20–60k) or 20–40 Wh (over 60k).
 
-**Carbon, g per Wh:** 0.35. US evening peak (about 5–9 pm local): 0.45. Overnight or sunny midday: 0.25.
+**Carbon, g per Wh:** 0.35. US local time 4–10 pm: 0.45. 10 am–3 pm: 0.30. Say which you used.
 
 **Water, mL per Wh:** 3 (1 for on-site cooling only, 5 including power generation).
 

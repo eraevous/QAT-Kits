@@ -1,6 +1,6 @@
 ---
 name: effort-cost
-version: 0.1.0
+version: 0.2.0
 description: From inside a conversation, give a heuristic estimate of the environmental cost (energy, CO2e, water) of answering it at a higher model or reasoning-effort setting versus the current one, in everyday terms, next to what the extra effort would plausibly buy for this particular request.
 inputs:
   thread: {type: text, required: true, doc: "the conversation so far (in ChatGPT, the thread the tool is invoked in)"}
@@ -43,15 +43,17 @@ A person in a thread is deciding whether to turn the effort up (a reasoning mode
 6. **Levers**, specific to this thread.
 7. **Lean**, then **Basis and limits**.
 
-Keep the whole output under about 350 words.
+Write every section as bullets except Estimate (the table) and Lean (one line). Keep the output under about 350 words, not counting the table.
 
 ### module: settings
-- Use the user's statement of current and proposed settings. In ChatGPT the effort level is shown in the composer; ask the user to read it if they have not said. If they cannot, assume the app's default and label it "assumed".
+- Use the user's statement of current and proposed settings. In ChatGPT the effort level is shown in the composer; ask the user to read it if they have not said. If they cannot, assume reasoning medium (a thinking mode at its standard effort) and label it "assumed".
+- Map product names to Table 1 rows: an instant or non-thinking mode → fast; the lightest thinking effort → minimal or low; standard or default thinking → medium; extended or high → high; heavy, Pro, parallel or deep research → Pro. Say which row you used.
 - Thread size: estimate tokens as words × 1.3. Say it is an estimate.
-- Expected answer length: from the request (a paragraph ≈ 150 tokens; an essay-length answer ≈ 1,000-2,000 tokens).
+- Expected answer length: of the answer to the user's underlying request, not of this check (a paragraph ≈ 150 tokens; an essay-length answer ≈ 1,000-2,000 tokens).
+- Next N answers: assume the same length each; add the context add-on once the thread will pass 5k tokens.
 
 ### module: estimate
-**Table 1. Energy per answer**, for an answer of about 1,000 tokens with a short context. Scale in proportion to expected answer length. Reasoning tokens are hidden, so for reasoning settings keep the table value as the floor even for short visible answers.
+**Table 1. Energy per answer**, for an answer of about 1,000 tokens with a short context. Scale in proportion to expected answer length, except that a reasoning setting never goes below its table value: its hidden reasoning tokens are spent even when the visible answer is short.
 
 | Setting | Low | Central | High | Basis |
 |---|---|---|---|---|
@@ -63,9 +65,11 @@ Keep the whole output under about 350 words.
 
 **Context add-on**, when the model rereads a long thread without a cache (follow-ups in an active thread are often cached and cost less): under 5k tokens +0; 5-20k +1-5 Wh; 20-60k +5-20 Wh; over 60k +20-40 Wh. Based on Epoch AI's 10k-token ≈ 2.4 Wh and 100k-token ≈ 40 Wh estimates for GPT-4o (Feb 2025). Treat as an upper-end adjustment.
 
-**Table 2. Carbon**, kg CO2e per kWh (= g per Wh). Central 0.35, the Azure factor used by Jegham et al. (Nov 2025). Adjust for the user's local time if in the US: evening peak (about 5-9 pm) 0.45; overnight or a sunny midday 0.25. Clean-energy-matched accounting can be far lower (Google reports 0.03 g for a 0.24 Wh prompt, Aug 2025). The time adjustments are assumptions.
+**Table 2. Carbon**, kg CO2e per kWh (= g per Wh). Central 0.35, the Azure factor used by Jegham et al. (Nov 2025). Adjust for the user's local time if in the US: 4-10 pm (evening peak) 0.45; 10 am-3 pm (midday solar) 0.30; otherwise 0.35. Clean-energy-matched accounting can be far lower (Google reports 0.03 g for a 0.24 Wh prompt, Aug 2025). The time adjustments are assumptions.
 
 **Table 3. Water**, mL per Wh. On-site cooling only ≈ 1 (OpenAI 0.32 mL per 0.34 Wh, Jun 2025; Google 0.26 mL per 0.24 Wh, Aug 2025). Including water used to generate the electricity ≈ 5 (Jegham et al., Azure factors, Nov 2025). Report central 3 (1-5).
+
+**Ranges.** Low = energy low × the low factor; high = energy high × the high factor (carbon uses one factor, so its range comes from energy only). For the difference row, central = proposed central − current central; low and high likewise, rounded, and labelled approximate.
 
 **Table 4. Anchors** (approximate): a 10 W LED bulb uses 1 Wh in 6 minutes · a phone charge ≈ 15 Wh · boiling 1 L in an electric kettle ≈ 100 Wh · an average US gasoline car ≈ 400 g CO2 per mile (EPA) · a sip of water ≈ 30 mL · a toilet flush ≈ 6 L.
 
