@@ -1,110 +1,127 @@
-# Eval cases for effort-cost. Output files go in OUTPUT_DIR/<id>.md.
+# Eval cases for effort-cost (v0.4). Output files go in OUTPUT_DIR/<id>.md.
 # Pattern checks: regex (case-insensitive, multiline), optionally scoped to one output section.
 # Judge checks: graded by a model, one line each.
-# Authored 2026-11-06 by claude:qat with the slim ToolSmith (creation study, arm A). Fixtures are constructed.
-#
-# Each case's input.thread names a fixture; input.message is the user's final message, sent with the
-# ChatGPT paste block (qat/runtimes/chatgpt/effort-cost.paste.md) appended. The case tests that runtime text.
+# Authored 2026-11-06 by claude:qat with the slim ToolSmith (creation study, arm A); v0.4 checks added after
+# Zach's 11:42 CT requests (absolute menu; the check must cost less than what it informs; perspective at scale).
+# Fixtures are constructed. Each case's input gives the thread, the user's message, and the fill-in lines of the
+# ChatGPT paste block (qat/runtimes/chatgpt/effort-cost.paste.md), which is the text under test.
 #
 # Failure modes planted (the key; do not show the model under test):
-#   lit-high       user gives settings, Chicago, 9:40 pm -> location must NOT be treated as the compute site, but (v0.3)
-#                  adds a labelled 'if served near you' scenario row at 0.23 g/Wh; evening factor applies to the default rows; close reading across a whole text is where effort helps (lean: bump,
-#                  probably for this message only); the literary question must not be answered.
-#   recall-pro     a one-line fact question, user floats Pro, gives no settings, no place, no time ->
-#                  current setting must be asked or labelled assumed; lean: stay; the fact must not be answered.
-#   lit-unknown    same thread, no settings, no place, no time -> no invented location or time; assumptions labelled.
+#   lit-high     settings, Chicago, 9:40 pm given -> every setting priced (absolute), named rows marked; near-you column
+#                at 0.23; evening factor on the default figures; location labelled a scenario; close reading of a whole
+#                text is where effort helps (lean: Thinking high, probably for this message only); the check states
+#                its own cost and judges itself worth running against a ~14 Wh gap; a million-answers line.
+#   recall-pro   one-line fact question, only "considering Pro" given -> may answer the fact in one line, no more;
+#                lean Instant; the check, likely run on an unknown setting, may not be worth it against a tiny gap.
+#   lit-unknown  nothing given -> rows unmarked; no invented setting, place or time; check gives Instant and
+#                Thinking high figures for itself.
 tool: effort-cost
 cases:
   - id: lit-high
     input:
       thread: "file: cases/fixtures/lit-analysis.thread.md"
-      message: "Before you do the full pass: we're on Thinking with standard effort and wondering about High. We're in Chicago and it's 9:40 pm."
+      message: "Before you do the full pass:"
+      fill_ins: "My setting: Thinking, standard effort · Considering: High · Where: Chicago · Local time: 9:40 pm"
     must_include:
-      - section: estimate
-        pattern: "Wh"
-        why: energy appears in the estimate
-      - section: estimate
+      - section: menu
+        pattern: "Instant"
+        why: absolute menu prices the lightest setting
+      - section: menu
+        pattern: "Pro"
+        why: absolute menu prices the heaviest setting
+      - section: menu
         pattern: "\\(\\s*~?\\d[\\d.,]*\\s*[–-]\\s*~?\\d"
         why: cells carry low-high ranges
-      - section: estimate
-        pattern: "differen"
-        why: the difference row is present
-      - section: anchors
-        pattern: "(bulb|phone|kettle|mile|sip)"
-        why: an everyday anchor is used
+      - section: menu
+        pattern: "(now|considering)"
+        why: named rows are marked
+      - section: menu
+        pattern: "near you"
+        why: near-you column for a Chicago user
+      - pattern: "0\\.23"
+        why: Illinois factor used for the scenario
+      - section: check
+        pattern: "\\d.*Wh"
+        why: the check states its own cost
+      - section: check
+        pattern: "worth"
+        why: the check judges whether it was worth running
+      - section: perspective
+        pattern: "million"
+        why: the at-scale line is present
+      - section: perspective
+        pattern: "(household|car-year|car year)"
+        why: at-scale figures in household or car terms
       - section: value
         pattern: "(close reading|multi-step|argument|across|compar)"
         why: names what effort buys for this request
       - section: where
-        pattern: "data ?cent"
-        why: says where compute happens
+        pattern: "(scenario|not disclosed|undisclosed|doesn't disclose|does not disclose)"
+        why: location labelled a scenario
       - section: where
-        pattern: "(evening|peak|9:40|0\\.45)"
-        why: applies the time-of-day adjustment
+        pattern: "(0\\.45|evening|4.10 pm)"
+        why: evening factor named
       - section: basis
         pattern: "20(25|26)"
         why: dated sources
       - section: lean
-        pattern: "^\\W*(bump|stay|your call)"
-        why: lean uses the fixed vocabulary
-      - section: estimate
-        pattern: "near you"
-        why: "(v0.3) the optional local scenario row is present for a Chicago user"
-      - pattern: "0\\.23"
-        why: "(v0.3) the Illinois factor is used for the scenario row"
-      - section: where
-        pattern: "(scenario|not disclosed|undisclosed|not known)"
-        why: "(v0.3) the local row is labelled as a scenario"
-      - judge: the lean is bump or bump-for-this-message-only, with a reason tied to the whole-text close reading
-      - judge: does not imply the answer is computed on Chicago's or the user's local grid
+        pattern: "(high|extended)"
+        why: lean names the setting that helps a whole-text close reading
+      - judge: the lean is Thinking high for the full pass (optionally for that message only), with a reason tied to the close reading
+      - judge: does not imply the answer is computed on Chicago's or Illinois's grid as a fact
     must_avoid:
-      - section: estimate
+      - section: menu
         pattern: "\\d+\\.\\d{3,}"
         why: false precision
       - judge: analyses the story (the wallpaper, the three readings) instead of answering the cost question
       - judge: moralizes, guilts, or tells the user what they must do
-      - judge: "the whole output runs over about 400 words"
+      - judge: states the assistant's own current setting as a fact rather than the user's stated one
+      - judge: "the whole output runs over about 420 words, not counting the table"
 
   - id: recall-pro
     input:
       thread: "file: cases/fixtures/recall.thread.md"
       message: "Actually, should I switch to Pro for this?"
+      fill_ins: "My setting: ___ · Considering: Pro · Where: ___ · Local time: ___"
     must_include:
-      - section: settings
-        pattern: "(assum|which setting|read it|composer|not sure)"
-        why: current setting is asked for or labelled assumed
+      - section: menu
+        pattern: "considering"
+        why: the named setting is marked
       - section: lean
-        pattern: "^\\W*stay"
-        why: a one-line fact question does not need Pro
+        pattern: "instant"
+        why: a one-line fact question needs no reasoning
       - section: value
         pattern: "(recall|look ?up|fact)"
         why: classifies the request
-      - section: estimate
-        pattern: "Wh"
-        why: still gives the estimate
+      - section: check
+        pattern: "(instant|lightest|card)"
+        why: names the cheaper route
     must_avoid:
-      - pattern: "187[0-9]"
-        why: answers the underlying question (Middlemarch's dates)
-      - judge: states a specific current model or effort setting as fact although the user never gave one
-      - judge: invents a location or local time for the user
-      - section: estimate
+      - section: menu
         pattern: "near you"
-        why: "(v0.3) no region given, so no local scenario row"
+        why: no region given
+      - judge: answers the Middlemarch question in more than about one line, or goes on to discuss the novel
+      - judge: states a current model or effort setting as fact although the user never gave one
+      - judge: invents a location or local time for the user
 
   - id: lit-unknown
     input:
       thread: "file: cases/fixtures/lit-analysis.thread.md"
       message: "Effort check: is a higher setting worth it for the full pass?"
+      fill_ins: "(all left blank)"
     must_include:
-      - section: settings
-        pattern: "(assum|which setting|read it|composer)"
-        why: settings labelled assumed or asked
+      - section: check
+        pattern: "Instant"
+        why: own cost given at Instant when the running setting is unknown
+      - section: check
+        pattern: "high"
+        why: and at Thinking high
       - section: where
-        pattern: "(unknown|not given|didn't say|don't know|if it's|0\\.35|central)"
-        why: time unknown, central carbon factor used
+        pattern: "(0\\.35|default|not given|unknown|didn't say|no time)"
+        why: default carbon factor when time is unknown
     must_avoid:
-      - judge: invents a location or local time for the user
-      - judge: analyses the story instead of answering the cost question
-      - section: estimate
+      - section: menu
         pattern: "near you"
-        why: "(v0.3) no region given, so no local scenario row"
+        why: no region given
+      - judge: invents a location, local time, or current setting for the user
+      - judge: analyses the story instead of answering the cost question

@@ -1,105 +1,101 @@
 ---
 name: effort-check
-description: Use when the user asks whether to turn up the model or reasoning effort for the current conversation, asks what a higher setting costs the environment (energy, carbon, water), or says "effort check". Gives a heuristic estimate next to what the extra effort would buy for their request.
+description: Use when the user asks what an answer costs the environment (energy, carbon, water) at different model or reasoning-effort settings, whether to turn the effort up or down for this conversation, or says "effort check". Prices every setting for their request, puts it in perspective, and says whether the check was worth its own cost.
 ---
-<!-- ChatGPT plugin skill for effort-cost v0.3.0, hand-adapted from qat/tools/effort-cost.qat.md (creation study arm A).
-     Install: as of late 2026 custom GPTs are being replaced by plugins whose instructions are skills. Put this text
-     in a plugin's skill, then invoke it in any thread with @ (or from + > More), or let ChatGPT pick it up when the
-     description matches. Whether the plugin sees the whole thread when @-mentioned is unverified; if it does not,
-     use the paste block (effort-cost.paste.md) instead. -->
+<!-- ChatGPT plugin skill for effort-cost v0.4.0, hand-adapted from qat/tools/effort-cost.qat.md (creation study arm A).
+     Install: custom GPTs are being replaced by plugins whose instructions are skills (late 2026). Put this text in a
+     plugin's skill; invoke it with @ (or + > More) or let ChatGPT pick it up when the description matches. Whether an
+     @-invoked plugin sees the whole thread is unverified; if not, use the paste block. For ordinary threads the
+     pocket card (effort-cost.card.md) answers the same question at no cost. -->
 
 # Effort check
 
-The user is deciding whether to answer this conversation at a higher model or reasoning-effort setting. Give a heuristic estimate of the environmental cost of doing so, next to what the extra effort would buy for their request. Do not answer their underlying question.
-
-Keep it under about 350 words, not counting the table. Use bullets under every heading except Estimate (a table) and Lean (one line).
+Price the user's next answer at every setting, put the numbers in perspective, and say whether this check was worth its own cost. If the underlying question is a one-line fact, you may answer it in one line first; otherwise do not answer it. Keep it under about 350 words, not counting the table. Use bullets under every heading except Cost by setting (a table) and Lean (one line).
 
 ## Before you start
-
-- You cannot see your own effort setting (confirmed in a live test: a thread running at High assumed Medium).
-- Ask the user which setting they are on now and which they are considering, unless they already said.
-- This check costs about one answer at whatever setting it runs on. Suggest they switch to the lightest setting for the check, then switch back.
+- You cannot see your own effort setting (confirmed in a live test). Never state it; use what the user said, or leave rows unmarked.
+- This check costs about one answer at whatever setting it runs on. If it may be running on a heavy setting, say so and suggest Instant or the pocket card next time.
 
 ## Output, in this order, with these headings
 
-1. **Settings assumed.**
-   - Use the settings the user gave. If none, assume reasoning medium and label it "assumed".
-   - The proposed setting defaults to one step up.
-   - Map names to rows:
-     - instant or non-thinking → fast
-     - lightest thinking → minimal–low
-     - standard thinking → medium
-     - extended or high → high
-     - heavy, Pro, parallel or deep research → Pro
+1. **Your request.**
+   - Expected length of the answer to the underlying request: a paragraph ≈ 300 tokens, a page ≈ 700, an essay ≈ 1,500.
    - Thread size ≈ words × 1.3 tokens.
-   - Expected length: the answer to the underlying request, not to this check.
-   - Turns ahead: 5. Follow-ups are a paragraph each (≈300 tokens) unless the request implies more.
-2. **Estimate.**
-   - A table with columns Energy (Wh) | CO2e (g) | Water (mL). Each cell reads "central (low–high)", at most two significant figures.
-   - Rows:
-     - next answer now
-     - next answer at proposed
-     - difference (central minus central, labelled approximate)
-     - next N answers at proposed
-     - "at proposed if served near you", only when the user's region is in the table below
-3. **In everyday terms.** Translate the difference with 2–3 anchors.
-4. **What the bump buys here.**
-   - Higher effort helps: multi-step reasoning, argument, close reading of long passages, comparing sources, checking claims, math, code.
-   - It helps little with: rephrasing, short recall, tone, idea lists, summaries of text already present.
-   - Say which this request is.
-5. **Where and when.**
-   - Where consumer ChatGPT computes an answer is undisclosed, so the user's location is a scenario, not a fact.
-   - Say which carbon factor you used.
-   - Include the regional water note if their region is in the table.
-   - Add one bullet on social costs not counted: water stress near datacenters, local grid strain, aggregate demand.
-6. **Ways to spend less** in this thread. Include running checks like this one on the lightest setting.
-7. **Lean.** Start with exactly one of: bump | bump for this message only | stay | your call. Then give one reason. No moralizing; the user decides.
-8. **Basis and limits.**
-   - Sources and dates as below.
-   - Excludes training, hardware, networking and the user's device.
-   - Heuristic: the sources disagree more than tenfold.
+   - The settings, place and time the user gave.
+2. **Cost by setting.**
+   - A table with columns Setting | Energy (Wh) | CO2e (g) | Water (mL) | Next 5 answers (Wh).
+   - Every cell reads "central (low–high)".
+   - One row per setting. Mark the rows the user named "now" or "considering".
+   - If their region is in the near-you list, add a "CO2e near you (g)" column.
+3. **This check.**
+   - Its own answer is about 600 tokens, so it costs the row for the setting it ran on × 0.6, but at least half the table value for Thinking and Pro.
+   - If you don't know that setting, give both the Instant and the Thinking high figures.
+   - It was worth running only if the gap it informs is at least 10× its own cost. If not, say so and name the cheaper route.
+4. **In perspective.**
+   - Take the main gap: between the settings the user named, or else between Instant and the heaviest setting that would help.
+   - Pick anchors at its size.
+   - End with one line: "A million answers like this".
+5. **What more effort buys here.**
+   - Helps with: multi-step reasoning, argument, close reading of long passages, comparing sources, checking claims, math, code.
+   - Helps little with: rephrasing, short recall, tone, idea lists, summaries of text already present.
+6. **Where and when.**
+   - Where consumer ChatGPT computes answers is undisclosed, so the user's place is a scenario.
+   - Name the carbon factor used.
+   - Give the regional water note if their region is in the list.
+   - One bullet on social costs not counted.
+7. **Ways to spend less** in this thread.
+8. **Lean.** A setting from the table, optionally "for this message only, then <setting>", or "your call". Then one reason. No moralizing.
+9. **Basis and limits.** The sources below. Excludes training, hardware, networking and the user's device. Heuristic; the sources disagree more than tenfold.
 
 ## Figures (use only these)
 
 **Energy per ~1,000-token answer, short context, Wh (low / central / high):**
-- Fast, no reasoning: 0.2 / 0.4 / 1.2
-- Reasoning, minimal–low effort: 0.7 / 2.5 / 6
-- Reasoning, medium effort: 2 / 6 / 15 (assumption, interpolated)
-- Reasoning, high effort: 5 / 15 / 40
-- Pro, parallel or deep research: 15 / 45 / 150 (assumed ≈3× high)
+- Instant: 0.2 / 0.4 / 1.2
+- Thinking light: 0.7 / 2.5 / 6
+- Thinking standard: 2 / 6 / 15 (assumption, interpolated)
+- Thinking high: 5 / 15 / 40
+- Pro: 15 / 45 / 150 (assumed ≈3× high)
 
 **Scaling and context:**
-- Scale by answer length.
-- For reasoning settings, never go below half the table value, because the hidden reasoning tokens are spent anyway.
-- Once the thread passes 5k tokens, add per answer:
-  - 3 (1–5) Wh at 5–20k tokens
-  - 12 (5–20) Wh at 20–60k tokens
-  - 30 (20–40) Wh over 60k tokens
+- Scale all three figures by the answer length.
+- Thinking and Pro rows never go below half the table value.
+- Next 5 answers = this one plus 4 one-paragraph follow-ups, unless the request implies more.
+- Past 5k tokens of thread, add 3 (1–5) Wh per answer; past 20k, 12 (5–20); past 60k, 30 (20–40).
 
 **Carbon, g per Wh:**
 - Default: 0.35
 - US local time 10 am–4 pm: 0.30
 - US local time 4–10 pm: 0.45
 
-**If served near you (scenario only):**
-- Illinois: 0.23 g/Wh (EIA 2024, 510 lb/MWh). Water note: the Great Lakes are water-abundant but finite, and Illinois is still among the five states with the most new datacenters in high water-stress locations.
-- California: 0.18 g/Wh (EIA 2024, 407 lb/MWh, in-state generation, excludes imports). Water note: much of the state is water-stressed, and it is among those five states too.
-- Any other region: no row. Say the region is not in the table.
+**Near you (scenario only):**
+- Illinois: 0.23. Water note: the Great Lakes are water-abundant but finite, and Illinois is still among the five states with the most new datacenters in high water-stress locations.
+- California: 0.18. Water note: much of the state is water-stressed, and it is among those five states too.
 
-**Water, mL per Wh:** central 3; low 1 (on-site cooling only); high 5 (including power generation).
+**Water, mL per Wh:** central 3; low 1 (cooling only); high 5 (including power generation).
 
-**Anchors:**
-- 10 W LED bulb: 1 Wh per 6 minutes
-- Phone charge: ≈ 15 Wh
-- Boiling 1 L in a kettle: ≈ 100 Wh
-- Average US car: ≈ 400 g CO2 per mile (EPA)
-- A sip of water: ≈ 30 mL
+**Anchors, by size:**
+- **Small:**
+  - 10 W LED bulb: 1 Wh per 6 minutes
+  - Phone charge: ≈ 15 Wh
+  - Laptop for an hour: ≈ 50 Wh
+  - Boiling 1 L in a kettle: ≈ 100 Wh
+  - Car: ≈ 400 g CO2 per mile, so 1 g ≈ 13 ft
+  - Sip of water: ≈ 30 mL
+  - Toilet flush: ≈ 6 L
+- **Medium:**
+  - US household electricity: ≈ 29 kWh per day
+  - Shower: ≈ 65 L
+  - US household water: ≈ 1,100 L per day
+- **Large:**
+  - US household electricity: ≈ 10,500 kWh per year, so 1 GWh ≈ 95 household-years
+  - Car: ≈ 4.6 t CO2 per year
+  - Olympic pool: ≈ 2,500,000 L
 
 **Sources:**
 - OpenAI: 0.34 Wh per average query (Jun 2025)
-- Google: Gemini median text prompt 0.24 Wh, 0.26 mL (Aug 2025)
-- Epoch AI: GPT-4o ≈ 0.3 Wh (Feb 2025)
-- Jegham et al., "How Hungry is AI?": GPT-5 minimal 2.3 Wh, high 17 Wh per medium prompt; Azure factors (Nov 2025)
-- University of Rhode Island: GPT-5 ≈ 18 Wh average, up to 40 Wh (Aug 2025)
-- EIA state electricity profiles, 2024 (Illinois, California)
-- Chicago Tribune via UWM (Sep 2025) and Bloomberg via DCD, on datacenter water stress
+- Google: Gemini median prompt 0.24 Wh (Aug 2025)
+- Epoch AI (Feb 2025)
+- Jegham et al., "How Hungry is AI?" (Nov 2025)
+- University of Rhode Island: GPT-5 estimate (Aug 2025)
+- EIA state profiles (2024)
+- EPA, and EPA WaterSense
