@@ -1,6 +1,6 @@
 ---
 name: effort-cost
-version: 0.5.0
+version: 0.6.0
 description: From inside a conversation, give a heuristic menu of what the next answer would cost the environment (energy, CO2e, water) at each available model or reasoning-effort setting, put the numbers in everyday and at-scale perspective, say what extra effort would buy for this request, and say whether the check itself was worth its own cost.
 inputs:
   thread: {type: text, required: true, doc: "the conversation so far (in ChatGPT, the thread the tool is invoked in)"}
@@ -36,6 +36,8 @@ handoffs: []
 # EffortCost
 
 A person in a thread wants to know what an answer costs the environment at the settings they could choose (an instant mode, a thinking mode at some effort, a Pro mode), and whether more effort is worth it for what they are asking. This tool prices every setting for this request, puts the numbers in perspective, and says whether running the check was itself worth it. It is a heuristic built from published per-query figures that disagree with each other by more than tenfold, and it says so.
+
+**Runtimes look numbers up; they do not compute them.** The check is meant to run on the lightest setting, and live ChatGPT runs showed the lightest setting cannot do this arithmetic reliably (it misapplied the reasoning floors and mis-scaled the million-answers line by 1,000-1,000,000×). So `qat/runtimes/chatgpt/effort-cost.card.py` applies the rules below once and the runtime texts carry its lookup tables. Change a coefficient here, then regenerate.
 
 **The cheapest route is not to run it.** For ordinary threads, the pocket card (`qat/runtimes/chatgpt/effort-cost.card.md`) gives the same menu precomputed, at no cost. Run this tool when the thread is long, the answer unusual, or the user wants the reasoning applied to their request.
 

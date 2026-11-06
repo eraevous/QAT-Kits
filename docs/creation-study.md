@@ -36,6 +36,7 @@ Built by hand, before ToolSmith existed, so it is a baseline and not part of eit
 **Human interventions**
 - 1: the idea message.
 - 2: "incorporate local (optional) information" (11:17 CT).
+- 3: absolute pricing, check cheaper than what it informs, perspective at scale (11:42 CT).
 
 **ToolSmith run**
 - Followed in order: brief → build-or-reuse (build; no neighbor) → failure modes (9) → contract → reflexes (9, one per failure mode) → method with a sourced table → eval stub (3 cases) → runtime notes → design notes.
@@ -72,6 +73,16 @@ Built by hand, before ToolSmith existed, so it is a baseline and not part of eit
 - v0.3 added the local scenario row and the two live-test fixes.
 - Blind run on v0.3: 3/3 deterministic, 10/10 judge (self-graded).
 - Correction cycles: 2 (v0.1 → v0.2 → v0.3).
+
+**Same day, after Zach's 11:42 CT requests (intervention 3)**
+- His requests: absolute pricing for every setting; "evaluating should not cost more than the thing it's evaluating"; comparisons at household and car scale.
+- v0.4: absolute menu, a "This check" section, tiered perspective, and a pocket card.
+- Blind run on v0.4: 3/3, after fixing a false positive in my own eval's precision regex.
+- Four live ChatGPT runs (v0.4 ×2, v0.5, v0.6). They found that Instant can't do the arithmetic, which led to lookup tables in v0.6. The v0.6 live run was correct.
+- Correction cycles: 5 (v0.1 → v0.6).
+- **Lesson for ToolSmith:**
+  - When a tool must run on a cheap model, move arithmetic into precomputed tables at design time.
+  - Generate every runtime text from one source.
 
 **Infrastructure and process cost**
 - **Paste block missing heading names.** Caught before the first run (about 2 minutes).

@@ -1,38 +1,96 @@
-"""Regenerate the effort-cost pocket card numbers from the spec's Table 1.
+"""Generate the effort-cost lookup tables from the spec's Table 1.
 
-Run: python3 -I runtimes/chatgpt/effort-cost.card.py
-Prints the energy table and the key gaps (with million-answer perspective) used in
-effort-cost.card.md. Keep T1 in step with Table 1 of qat/tools/effort-cost.qat.md.
-Rules mirrored from the spec: scale by answer length; thinking and Pro rows never go below
-half the table value; carbon 0.35 g/Wh; water 3 mL/Wh; household 10,500 kWh/yr; car 4.6 t/yr;
-household water 1,100 L/day; Olympic pool 2,500,000 L. Two significant figures.
+WHY THIS EXISTS
+    The check is meant to run on ChatGPT's lightest setting (Instant), so that
+    evaluating costs far less than what it informs. Live runs (2026-11-06) showed
+    Instant cannot do the multi-step arithmetic reliably: it misapplied the
+    reasoning floors and twice mis-scaled the "million answers" line by factors of
+    1,000 to 1,000,000. So the arithmetic is done here, once, and the paste block
+    and pocket card only look values up.
+
+WHAT IT PRINTS (paste the output into effort-cost.paste.md and effort-cost.card.md)
+    1. Energy per answer, Wh, central (low-high), by setting x answer length.
+    2. Next 5 answers, Wh, central: this answer + 4 one-paragraph follow-ups.
+    3. A million answers like this, per setting pair the user is likely to weigh,
+       already converted to household-years, car-years and household-days of water.
+
+RULES MIRRORED FROM THE SPEC (qat/tools/effort-cost.qat.md, module: menu)
+    - Scale by answer length (per 1,000 tokens).
+    - Thinking and Pro rows never go below half the table value (hidden reasoning).
+    - Carbon 0.35 g/Wh by default; water 3 mL/Wh central.
+    - US household 10,500 kWh/yr; car 4.6 t CO2/yr; household water 1,100 L/day.
+    - Two significant figures.
+
+Run: python3 -I runtimes/chatgpt/effort-cost.card.py     (from qat/)
 """
-from math import log10, floor
-T1 = [("Instant", (0.2, 0.4, 1.2), False), ("Thinking light", (0.7, 2.5, 6), True),
-      ("Thinking standard", (2, 6, 15), True), ("Thinking high", (5, 15, 40), True),
-      ("Pro", (15, 45, 150), True)]
-LENGTHS = [("Paragraph (~300 tokens)", 0.3), ("Page (~700)", 0.7), ("Essay (~1,500)", 1.5)]
-def sig(x):
-    if x == 0: return "0"
+from math import floor, log10
+
+# Table 1 of the spec: (name, (low, central, high) Wh per ~1,000-token answer, is_reasoning)
+T1 = [
+    ("Instant", (0.2, 0.4, 1.2), False),
+    ("Thinking light", (0.7, 2.5, 6), True),
+    ("Thinking standard (ChatGPT Medium)", (2, 6, 15), True),
+    ("Thinking high (ChatGPT High)", (5, 15, 40), True),
+    ("Pro", (15, 45, 150), True),
+]
+LENGTHS = [("Short reply (~100 tokens)", 0.1), ("Paragraph (~300)", 0.3), ("Page (~700)", 0.7), ("Essay (~1,500)", 1.5)]
+PARAGRAPH = 0.3
+CARBON, WATER = 0.35, 3.0
+HH_KWH_YR, CAR_T_YR, HH_L_DAY = 10_500, 4.6, 1_100
+
+
+def sig(x: float) -> str:
+    """Two significant figures, with thousands separators."""
+    if x == 0:
+        return "0"
     d = 2 - int(floor(log10(abs(x)))) - 1
     v = round(x, d)
-    return f"{v:,.{max(d,0)}f}" if d > 0 else f"{int(round(v)):,}"
-def cost(vals, f, reasoning):
-    m = max(f, 0.5) if reasoning else f
+    return f"{v:,.{d}f}" if d > 0 else f"{int(round(v)):,}"
+
+
+def per_answer(vals, factor, reasoning):
+    m = max(factor, 0.5) if reasoning else factor
     return tuple(v * m for v in vals)
-rows = []
-for name, vals, r in T1:
-    cells = []
-    for _, f in LENGTHS:
-        lo, c, hi = cost(vals, f, r)
-        cells.append(f"{sig(c)} ({sig(lo)}–{sig(hi)})")
-    rows.append(f"| {name} | " + " | ".join(cells) + " |")
-print("| Setting | " + " | ".join(l for l, _ in LENGTHS) + " |")
-print("|---|" + "---|" * len(LENGTHS))
-print("\n".join(rows))
-# key gaps, essay length
-e = {n: cost(v, 1.5, r)[1] for n, v, r in T1}
-p = {n: cost(v, 0.3, r)[1] for n, v, r in T1}
-for a, b, d in [("Thinking standard", "Thinking high", e), ("Instant", "Thinking high", e), ("Thinking high", "Pro", e), ("Instant", "Pro", p)]:
-    g = d[b] - d[a]
-    print(f"GAP {a}->{b}: {sig(g)} Wh, {sig(g*0.35)} g, {sig(g*3)} mL | x1M: {sig(g)} MWh = {sig(g*1e6/10500e3)} household-years; {sig(g*0.35)} t = {sig(g*0.35/4.6)} car-years; {sig(g*3)} kL = {sig(g*3e3/1100)} household-days, pools {sig(g*3e3/2.5e6)}")
+
+
+def next5(vals, factor, reasoning):
+    first = per_answer(vals, factor, reasoning)[1]
+    return first + 4 * per_answer(vals, PARAGRAPH, reasoning)[1]
+
+
+def million(gap_wh: float) -> str:
+    hh_years = gap_wh * 1e6 / 1000 / HH_KWH_YR
+    car_years = gap_wh * CARBON * 1e6 / 1e6 / CAR_T_YR
+    hh_days = gap_wh * WATER * 1e6 / 1000 / HH_L_DAY
+    return f"{sig(hh_years)} household-years of electricity, {sig(car_years)} car-years of CO2, {sig(hh_days)} household-days of water"
+
+
+def main():
+    print("ENERGY PER ANSWER (Wh): central (low–high)")
+    print("| Setting | " + " | ".join(l for l, _ in LENGTHS) + " |")
+    print("|---|" + "---|" * len(LENGTHS))
+    for name, vals, r in T1:
+        cells = []
+        for _, f in LENGTHS:
+            lo, c, hi = per_answer(vals, f, r)
+            cells.append(f"{sig(c)} ({sig(lo)}–{sig(hi)})")
+        print(f"| {name} | " + " | ".join(cells) + " |")
+
+    print("\nNEXT 5 ANSWERS (Wh, central): this answer + 4 one-paragraph follow-ups")
+    print("| Setting | " + " | ".join(l for l, _ in LENGTHS) + " |")
+    print("|---|" + "---|" * len(LENGTHS))
+    for name, vals, r in T1:
+        print(f"| {name} | " + " | ".join(sig(next5(vals, f, r)) for _, f in LENGTHS) + " |")
+
+    print("\nA MILLION ANSWERS LIKE THIS (gap between two settings, already converted)")
+    central = {n: {l: per_answer(v, f, r)[1] for l, f in LENGTHS} for n, v, r in T1}
+    names = [n for n, _, _ in T1]
+    pairs = [(names[0], names[3]), (names[2], names[3]), (names[3], names[4]), (names[0], names[4]), (names[0], names[2])]
+    for a, b in pairs:
+        for l, _ in [LENGTHS[1], LENGTHS[3]]:
+            gap = central[b][l] - central[a][l]
+            print(f"- {a.split(' (')[0]} → {b.split(' (')[0]}, {l.split(' (')[0].lower()}: gap {sig(gap)} Wh; a million answers ≈ {million(gap)}")
+
+
+if __name__ == "__main__":
+    main()

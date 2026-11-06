@@ -2,7 +2,8 @@
 name: effort-check
 description: Use when the user asks what an answer costs the environment (energy, carbon, water) at different model or reasoning-effort settings, whether to turn the effort up or down for this conversation, or says "effort check". Prices every setting for their request, puts it in perspective, and says whether the check was worth its own cost.
 ---
-<!-- ChatGPT plugin skill for effort-cost v0.5.0, hand-adapted from qat/tools/effort-cost.qat.md (creation study arm A).
+<!-- ChatGPT plugin skill for effort-cost v0.6.0. Generated from effort-cost.paste.md (same instructions and lookup
+     tables, so the two cannot drift); regenerate both when the tables change (effort-cost.card.py).
      Install: custom GPTs are being replaced by plugins whose instructions are skills (late 2026). Put this text in a
      plugin's skill; invoke it with @ (or + > More) or let ChatGPT pick it up when the description matches. Whether an
      @-invoked plugin sees the whole thread is unverified; if not, use the paste block. For ordinary threads the
@@ -10,94 +11,49 @@ description: Use when the user asks what an answer costs the environment (energy
 
 # Effort check
 
-Price the user's next answer at every setting, put the numbers in perspective, and say whether this check was worth its own cost. If the underlying question is a one-line fact not yet answered, you may answer it in one line before the first heading; otherwise do not answer it. Keep it under about 350 words, not counting the table. Use bullets under every heading except Cost by setting (a table) and Lean (one line).
+Before you start: ask which setting the user is on (from the composer) and which they are considering, unless they said; and suggest they switch to Instant for this check, then switch back, because the check costs about one answer at whatever setting it runs on. Place and time are optional; if they don't give them and you have an approximate location or time from your own context, you may use it, labelled "estimated". Treat "my" and "I" below as the user.
 
-## Before you start
-- You cannot see your own effort setting (confirmed in a live test). Never state it; use what the user said, or leave rows unmarked.
-- This check costs about one answer at whatever setting it runs on. If it may be running on a heavy setting, say so and suggest Instant or the pocket card next time.
+EFFORT CHECK (heuristic). Look numbers up in the tables below; do not recompute them. If my underlying question is a one-line fact not yet answered, you may answer it in one line before the first heading; otherwise don't answer it.
 
-## Output, in this order, with these headings
+Use these nine headings, in order, with bullets under each except Cost by setting (a table) and Lean (one line): Your request · Cost by setting · This check · In perspective · What more effort buys here · Where and when · Ways to spend less · Lean · Basis and limits. Under 350 words, not counting the table.
 
-1. **Your request.**
-   - Expected length of the answer to the underlying request: a paragraph ≈ 300 tokens, a page ≈ 700, an essay ≈ 1,500.
-   - Thread size ≈ words × 1.3 tokens.
-   - The settings, place and time the user gave. If they left place or time blank and you have an approximate location or time from your own context, you may use it, labelled "estimated".
-   - ChatGPT's Power slider maps as Instant → Instant, Medium → Thinking standard, High → Thinking high.
-2. **Cost by setting.**
-   - A table with columns Setting | Energy (Wh) | CO2e (g) | Water (mL) | Next 5 answers (Wh).
-   - Every cell reads "central (low–high)".
-   - One row per setting. Mark the rows the user named "now" or "considering".
-   - If their region is in the near-you list, add a "CO2e near you (g)" column.
-3. **This check.**
-   - Its own answer is about 600 tokens, so it costs the per-1,000-token figure for the setting it ran on × 0.6, but at least half the table value for Thinking and Pro.
-   - The gap it informs is the next-answer gap.
-   - If you don't know that setting, give both the Instant and the Thinking high figures.
-   - It was worth running only if the gap it informs is at least 10× its own cost. If not, say so and name the cheaper route.
-4. **In perspective.**
-   - Take the main gap: between the settings the user named, or else between Instant and the heaviest setting that would help.
-   - Pick anchors at its size.
-   - End with one line: "A million answers like this". Use these exact multipliers on the next-answer gap: household-years of electricity = gap Wh × 0.095; car-years of CO2 = gap g × 0.22; household-days of water = gap mL × 0.91. (Two live runs got this wrong without them.)
-5. **What more effort buys here.**
-   - Helps with: multi-step reasoning, argument, close reading of long passages, comparing sources, checking claims, math, code.
-   - Helps little with: rephrasing, short recall, tone, idea lists, summaries of text already present.
-6. **Where and when.**
-   - Where consumer ChatGPT computes answers is undisclosed, so the user's place is a scenario.
-   - Name the carbon factor used.
-   - Give the regional water note if their region is in the list.
-   - One bullet on social costs not counted.
-7. **Ways to spend less** in this thread.
-8. **Lean.** A setting from the table, optionally "for this message only, then <setting>", or "your call". Then one reason. No moralizing.
-9. **Basis and limits.** The sources below. Excludes training, hardware, networking and the user's device. Heuristic; the sources disagree more than tenfold.
+1. Your request: pick the length column for the answer to my underlying request (Short ~100 tokens, Paragraph ~300, Page ~700, Essay ~1,500); the settings, place and time I gave. If I left place or time blank and you have an approximate location or time from your own context, you may use it, labelled "estimated". You cannot see your own setting; never state it. ChatGPT's Power slider: Instant → Instant row, Medium → Thinking standard, High → Thinking high.
+2. Cost by setting: copy the five rows for my length column from Table A, with columns Setting | Energy (Wh) | CO2e (g) | Water (mL) | Next 5 answers (Wh). Mark my named rows "now" / "considering". CO2e (g) = the central Wh × carbon factor (0.35; US local time 10 am–4 pm 0.30; 4–10 pm 0.45). Water (mL) = the central Wh × 3. Next 5 from Table B. If my region is Illinois or California, add a column "CO2e near you (g)" = central Wh × 0.23 (Illinois) or 0.18 (California). If the thread is past roughly 4,000 words, say every answer costs about 3 Wh more (past 15,000 words, about 12 Wh more).
 
-## Figures (use only these)
+TABLE A. Energy per answer (Wh): central (low–high)
+| Setting | Short (~100 tokens) | Paragraph (~300) | Page (~700) | Essay (~1,500) |
+| Instant | 0.040 (0.020–0.12) | 0.12 (0.060–0.36) | 0.28 (0.14–0.84) | 0.60 (0.30–1.8) |
+| Thinking light | 1.2 (0.35–3.0) | 1.2 (0.35–3.0) | 1.8 (0.49–4.2) | 3.8 (1.0–9.0) |
+| Thinking standard (Medium) | 3.0 (1.0–7.5) | 3.0 (1.0–7.5) | 4.2 (1.4–10) | 9.0 (3.0–22) |
+| Thinking high (High) | 7.5 (2.5–20) | 7.5 (2.5–20) | 10 (3.5–28) | 22 (7.5–60) |
+| Pro | 22 (7.5–75) | 22 (7.5–75) | 31 (10–100) | 68 (22–220) |
 
-**Energy per ~1,000-token answer, short context, Wh (low / central / high):**
-- Instant: 0.2 / 0.4 / 1.2
-- Thinking light: 0.7 / 2.5 / 6
-- Thinking standard: 2 / 6 / 15 (assumption, interpolated)
-- Thinking high: 5 / 15 / 40
-- Pro: 15 / 45 / 150 (assumed ≈3× high)
+TABLE B. Next 5 answers (Wh, central): this answer + 4 one-paragraph follow-ups
+| Setting | Short | Paragraph | Page | Essay |
+| Instant | 0.52 | 0.60 | 0.76 | 1.1 |
+| Thinking light | 6.2 | 6.2 | 6.8 | 8.8 |
+| Thinking standard (Medium) | 15 | 15 | 16 | 21 |
+| Thinking high (High) | 38 | 38 | 40 | 52 |
+| Pro | 110 | 110 | 120 | 160 |
 
-**Scaling and context:**
-- Scale all three figures by the answer length.
-- Thinking and Pro rows never go below half the table value.
-- Next 5 answers = this one plus 4 one-paragraph follow-ups, unless the request implies more.
-- Past 5k tokens of thread, add 3 (1–5) Wh per answer; past 20k, 12 (5–20); past 60k, 30 (20–40).
+3. This check cost about 0.24 Wh if it ran on Instant, 3.6 Wh on Medium, 9.0 Wh on High, 27 Wh on Pro. If you don't know which, give the Instant and High figures. It was worth running if the next-answer gap between the settings I'm weighing is at least 2.4 Wh (on Instant), 36 Wh (on Medium) or 90 Wh (on High). If not, say so and point me to the pocket card or to running it on Instant.
+4. In perspective: the main gap is the difference in Table A between my two named settings (or, if I named one or none, between Instant and the heaviest setting that would help). Translate it with: 10 W LED bulb = 1 Wh per 6 minutes; phone charge ≈ 15 Wh; laptop for an hour ≈ 50 Wh; kettle 1 L ≈ 100 Wh; car ≈ 400 g CO2 per mile (1 g ≈ 13 ft); sip ≈ 30 mL. Then copy the matching line from Table C, word for word (pick the nearest pair and length; do not compute a new one).
 
-**Carbon, g per Wh:**
-- Default: 0.35
-- US local time 10 am–4 pm: 0.30
-- US local time 4–10 pm: 0.45
+TABLE C. A million answers like this
+- Instant → High, paragraph: gap 7.4 Wh; a million answers ≈ 0.70 household-years of electricity, 0.56 car-years of CO2, 20 household-days of water
+- Instant → High, essay: gap 22 Wh; ≈ 2.1 household-years, 1.7 car-years, 60 household-days of water
+- Medium → High, paragraph: gap 4.5 Wh; ≈ 0.43 household-years, 0.34 car-years, 12 household-days of water
+- Medium → High, essay: gap 14 Wh; ≈ 1.3 household-years, 1.0 car-years, 37 household-days of water
+- Instant → Medium, paragraph: gap 2.9 Wh; ≈ 0.27 household-years, 0.22 car-years, 7.9 household-days of water
+- Instant → Medium, essay: gap 8.4 Wh; ≈ 0.80 household-years, 0.64 car-years, 23 household-days of water
+- High → Pro, paragraph: gap 15 Wh; ≈ 1.4 household-years, 1.1 car-years, 41 household-days of water
+- High → Pro, essay: gap 45 Wh; ≈ 4.3 household-years, 3.4 car-years, 120 household-days of water
+- Instant → Pro, paragraph: gap 22 Wh; ≈ 2.1 household-years, 1.7 car-years, 61 household-days of water
+- Instant → Pro, essay: gap 67 Wh; ≈ 6.4 household-years, 5.1 car-years, 180 household-days of water
+(US household ≈ 10,500 kWh a year and ≈ 1,100 L of water a day; a typical car ≈ 4.6 t CO2 a year.)
 
-**Near you (scenario only):**
-- Illinois: 0.23. Water note: the Great Lakes are water-abundant but finite, and Illinois is still among the five states with the most new datacenters in high water-stress locations.
-- California: 0.18. Water note: much of the state is water-stressed, and it is among those five states too.
-
-**Water, mL per Wh:** central 3; low 1 (cooling only); high 5 (including power generation).
-
-**Anchors, by size:**
-- **Small:**
-  - 10 W LED bulb: 1 Wh per 6 minutes
-  - Phone charge: ≈ 15 Wh
-  - Laptop for an hour: ≈ 50 Wh
-  - Boiling 1 L in a kettle: ≈ 100 Wh
-  - Car: ≈ 400 g CO2 per mile, so 1 g ≈ 13 ft
-  - Sip of water: ≈ 30 mL
-  - Toilet flush: ≈ 6 L
-- **Medium:**
-  - US household electricity: ≈ 29 kWh per day
-  - Shower: ≈ 65 L
-  - US household water: ≈ 1,100 L per day
-- **Large:**
-  - US household electricity: ≈ 10,500 kWh per year, so 1 GWh ≈ 95 household-years
-  - Car: ≈ 4.6 t CO2 per year
-  - Olympic pool: ≈ 2,500,000 L
-
-**Sources:**
-- OpenAI: 0.34 Wh per average query (Jun 2025)
-- Google: Gemini median prompt 0.24 Wh (Aug 2025)
-- Epoch AI (Feb 2025)
-- Jegham et al., "How Hungry is AI?" (Nov 2025)
-- University of Rhode Island: GPT-5 estimate (Aug 2025)
-- EIA state profiles (2024)
-- EPA, and EPA WaterSense
+5. What more effort buys here: helps multi-step reasoning, argument, close reading of long passages, comparing sources, checking claims, math, code; little for rephrasing, short recall, tone, idea lists, summaries of text already here. Say which my request is.
+6. Where and when: consumer ChatGPT doesn't disclose where answers are computed, so my place is a scenario, not a fact; name the carbon factor used. Illinois: Great Lakes water is abundant but finite, and Illinois is still among the five states with the most new datacenters in high water-stress spots. California: much of it is water-stressed; also among those five. One bullet on social costs not counted (water stress near datacenters, local grid strain, aggregate demand).
+7. Ways to spend less in this thread.
+8. Lean: a setting from the table, optionally "for this message only, then <setting>", or "your call"; then one reason. No moralizing; I decide.
+9. Basis and limits: OpenAI 0.34 Wh/query (Jun 2025); Google Gemini 0.24 Wh median (Aug 2025); Epoch AI (Feb 2025); Jegham et al. "How Hungry is AI?" (Nov 2025); Univ. of Rhode Island GPT-5 estimate (Aug 2025); EIA (2024); EPA; EPA WaterSense. Excludes training, hardware, networking, my device. Heuristic; sources disagree more than tenfold.

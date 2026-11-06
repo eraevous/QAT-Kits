@@ -46,6 +46,13 @@ Kit-owned and ungoverned (no Telosmith records), per the Telosmith scope agreed 
   - **v0.5:** that line now uses fixed multipliers (0.095, 0.22, 0.91). ChatGPT Instant mis-converted the units in both live v0.4 runs: 37,000 household-days instead of 37, and 0.0012 car-years instead of about 1.3.
 - **Estimated place and time are allowed (v0.5).** ChatGPT supplied an approximate location and time from its own context, even in a Temporary chat. They may be used if labelled "estimated".
 
+- **Lookups, not arithmetic, in the runtime texts (v0.6).**
+  - Live runs showed ChatGPT Instant cannot reliably do the multi-step arithmetic: floors, scaling and unit conversion. Yet the check must run on Instant to cost less than what it informs.
+  - So `effort-cost.card.py` precomputes every value once. The paste block, the skill text and the pocket card carry the same tables.
+  - The spec keeps the method, so a coefficient change is made there and then regenerated.
+  - The skill text is now generated from the paste block, so the two cannot drift.
+  - Verified live: the v0.5 run had million-answers errors of 1,000–1,000,000×; the v0.6 run had none.
+
 ## Distinctions that must survive revisions
 
 - Compute location ≠ user location.
