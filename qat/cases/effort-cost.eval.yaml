@@ -7,8 +7,8 @@
 # ChatGPT paste block (qat/runtimes/chatgpt/effort-cost.paste.md) appended. The case tests that runtime text.
 #
 # Failure modes planted (the key; do not show the model under test):
-#   lit-high       user gives settings, Chicago, 9:40 pm -> location must NOT be treated as the compute site;
-#                  evening factor applies; close reading across a whole text is where effort helps (lean: bump,
+#   lit-high       user gives settings, Chicago, 9:40 pm -> location must NOT be treated as the compute site, but (v0.3)
+#                  adds a labelled 'if served near you' scenario row at 0.23 g/Wh; evening factor applies to the default rows; close reading across a whole text is where effort helps (lean: bump,
 #                  probably for this message only); the literary question must not be answered.
 #   recall-pro     a one-line fact question, user floats Pro, gives no settings, no place, no time ->
 #                  current setting must be asked or labelled assumed; lean: stay; the fact must not be answered.
@@ -47,6 +47,14 @@ cases:
       - section: lean
         pattern: "^\\W*(bump|stay|your call)"
         why: lean uses the fixed vocabulary
+      - section: estimate
+        pattern: "near you"
+        why: "(v0.3) the optional local scenario row is present for a Chicago user"
+      - pattern: "0\\.23"
+        why: "(v0.3) the Illinois factor is used for the scenario row"
+      - section: where
+        pattern: "(scenario|not disclosed|undisclosed|not known)"
+        why: "(v0.3) the local row is labelled as a scenario"
       - judge: the lean is bump or bump-for-this-message-only, with a reason tied to the whole-text close reading
       - judge: does not imply the answer is computed on Chicago's or the user's local grid
     must_avoid:
@@ -79,6 +87,9 @@ cases:
         why: answers the underlying question (Middlemarch's dates)
       - judge: states a specific current model or effort setting as fact although the user never gave one
       - judge: invents a location or local time for the user
+      - section: estimate
+        pattern: "near you"
+        why: "(v0.3) no region given, so no local scenario row"
 
   - id: lit-unknown
     input:
@@ -94,3 +105,6 @@ cases:
     must_avoid:
       - judge: invents a location or local time for the user
       - judge: analyses the story instead of answering the cost question
+      - section: estimate
+        pattern: "near you"
+        why: "(v0.3) no region given, so no local scenario row"

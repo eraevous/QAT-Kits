@@ -10,10 +10,18 @@ Kit-owned and ungoverned (no Telosmith records), per the Telosmith scope agreed 
 
 ## Choices and the alternatives rejected
 
-- **The user's location barely moves the estimate.** The answer is computed in a datacenter, not on the user's home grid.
-  - Zach's intuition that place and time help is partly right. Time of day shifts the carbon factor, because US datacenters share the evening peak.
-  - Place mostly tells you which country's datacenters are likely.
-  - Rejected: using the user's local grid intensity. It would produce precise-looking numbers for the wrong grid.
+- **Location is an optional scenario, not the default (v0.3).** Revised at Zach's request on 2026-11-06 at 11:17 CT: "Chicago, which has access both to plentiful water, nuclear power, and other differences vs if I were in Silicon Valley".
+  - v0.1–0.2 used location for nothing but the country.
+  - v0.3 adds a labelled row, "at proposed if served near you", that uses the user's state grid average and a water note. It never replaces the default rows, because consumer ChatGPT routing is undisclosed. OpenAI offers inference residency by region only to Enterprise and Edu customers.
+  - Rejected: replacing the default with the local grid. That would give precise-looking numbers for a grid that may not be the one serving the request.
+  - **What the figures show:**
+    - Carbon: Illinois (0.23 g/Wh) is not cleaner than California (0.18 g/Wh, in-state generation) on EIA's 2024 state averages.
+    - Water: the Great Lakes advantage is real but finite. Illinois is still among the five states with the most new datacenters in high water-stress locations.
+    - So "Chicago vs Silicon Valley" splits by measure: probably better on water, not on carbon.
+  - Only Illinois and California are in the table so far. EIA pages for Texas and Virginia could not be fetched in this session.
+- **Time of day adjusts the default carbon factor**, because US datacenters share the evening peak. The bands are 10 am–4 pm 0.30, 4–10 pm 0.45, and 0.35 otherwise. These are assumptions.
+- **The check tells the user to run it on the lightest setting.** A live ChatGPT test showed the check itself ran for 51 seconds at High, so it cost about what it measured.
+- **The setting is a fill-in.** In the same live test, ChatGPT could not see its own effort setting.
 - **Ranges, not points.** Published per-query energy figures for comparable settings disagree by more than tenfold:
   - Google's measured fleet median is 0.24 Wh.
   - Modeled estimates for GPT-5 at high effort are 17–40 Wh.
