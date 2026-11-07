@@ -1,0 +1,474 @@
+{
+  "seed": 158,
+  "design": "within-item, cross-grader Latin square; see README",
+  "tools": {
+    "real-problem": {
+      "halves": {
+        "H1": [
+          "RP03",
+          "RP04",
+          "RP05",
+          "RP09",
+          "RP10",
+          "RP11",
+          "RP14",
+          "RP15",
+          "RP16",
+          "RP20"
+        ],
+        "H2": [
+          "RP01",
+          "RP02",
+          "RP06",
+          "RP07",
+          "RP08",
+          "RP12",
+          "RP13",
+          "RP17",
+          "RP18",
+          "RP19"
+        ]
+      },
+      "graders": {
+        "claude": [
+          {
+            "oid": "RC706",
+            "item": "RP20",
+            "arm": "A"
+          },
+          {
+            "oid": "RC892",
+            "item": "RP02",
+            "arm": "B"
+          },
+          {
+            "oid": "RC669",
+            "item": "RP11",
+            "arm": "A"
+          },
+          {
+            "oid": "RC999",
+            "item": "RP18",
+            "arm": "B"
+          },
+          {
+            "oid": "RC206",
+            "item": "RP06",
+            "arm": "B"
+          },
+          {
+            "oid": "RC819",
+            "item": "RP10",
+            "arm": "A"
+          },
+          {
+            "oid": "RC457",
+            "item": "RP19",
+            "arm": "B"
+          },
+          {
+            "oid": "RC634",
+            "item": "RP12",
+            "arm": "B"
+          },
+          {
+            "oid": "RC409",
+            "item": "RP13",
+            "arm": "B"
+          },
+          {
+            "oid": "RC433",
+            "item": "RP09",
+            "arm": "A"
+          },
+          {
+            "oid": "RC443",
+            "item": "RP08",
+            "arm": "B"
+          },
+          {
+            "oid": "RC667",
+            "item": "RP15",
+            "arm": "A"
+          },
+          {
+            "oid": "RC801",
+            "item": "RP03",
+            "arm": "A"
+          },
+          {
+            "oid": "RC417",
+            "item": "RP07",
+            "arm": "B"
+          },
+          {
+            "oid": "RC343",
+            "item": "RP01",
+            "arm": "B"
+          },
+          {
+            "oid": "RC363",
+            "item": "RP14",
+            "arm": "A"
+          },
+          {
+            "oid": "RC357",
+            "item": "RP04",
+            "arm": "A"
+          },
+          {
+            "oid": "RC809",
+            "item": "RP16",
+            "arm": "A"
+          },
+          {
+            "oid": "RC981",
+            "item": "RP17",
+            "arm": "B"
+          },
+          {
+            "oid": "RC411",
+            "item": "RP05",
+            "arm": "A"
+          }
+        ],
+        "kate": [
+          {
+            "oid": "RK298",
+            "item": "RP08",
+            "arm": "A"
+          },
+          {
+            "oid": "RK424",
+            "item": "RP17",
+            "arm": "A"
+          },
+          {
+            "oid": "RK912",
+            "item": "RP10",
+            "arm": "B"
+          },
+          {
+            "oid": "RK229",
+            "item": "RP19",
+            "arm": "A"
+          },
+          {
+            "oid": "RK958",
+            "item": "RP03",
+            "arm": "B"
+          },
+          {
+            "oid": "RK243",
+            "item": "RP14",
+            "arm": "B"
+          },
+          {
+            "oid": "RK368",
+            "item": "RP20",
+            "arm": "B"
+          },
+          {
+            "oid": "RK829",
+            "item": "RP12",
+            "arm": "A"
+          },
+          {
+            "oid": "RK412",
+            "item": "RP06",
+            "arm": "A"
+          },
+          {
+            "oid": "RK638",
+            "item": "RP01",
+            "arm": "A"
+          },
+          {
+            "oid": "RK731",
+            "item": "RP16",
+            "arm": "B"
+          },
+          {
+            "oid": "RK512",
+            "item": "RP18",
+            "arm": "A"
+          },
+          {
+            "oid": "RK546",
+            "item": "RP09",
+            "arm": "B"
+          },
+          {
+            "oid": "RK882",
+            "item": "RP05",
+            "arm": "B"
+          },
+          {
+            "oid": "RK904",
+            "item": "RP15",
+            "arm": "B"
+          },
+          {
+            "oid": "RK672",
+            "item": "RP04",
+            "arm": "B"
+          },
+          {
+            "oid": "RK133",
+            "item": "RP07",
+            "arm": "A"
+          },
+          {
+            "oid": "RK160",
+            "item": "RP02",
+            "arm": "A"
+          },
+          {
+            "oid": "RK202",
+            "item": "RP11",
+            "arm": "B"
+          },
+          {
+            "oid": "RK960",
+            "item": "RP13",
+            "arm": "A"
+          }
+        ]
+      }
+    },
+    "kind-check": {
+      "halves": {
+        "H1": [
+          "KC02",
+          "KC03",
+          "KC05",
+          "KC07",
+          "KC09",
+          "KC12",
+          "KC13",
+          "KC18",
+          "KC19",
+          "KC20"
+        ],
+        "H2": [
+          "KC01",
+          "KC04",
+          "KC06",
+          "KC08",
+          "KC10",
+          "KC11",
+          "KC14",
+          "KC15",
+          "KC16",
+          "KC17"
+        ]
+      },
+      "graders": {
+        "claude": [
+          {
+            "oid": "KC150",
+            "item": "KC16",
+            "arm": "A"
+          },
+          {
+            "oid": "KC609",
+            "item": "KC18",
+            "arm": "B"
+          },
+          {
+            "oid": "KC143",
+            "item": "KC08",
+            "arm": "A"
+          },
+          {
+            "oid": "KC866",
+            "item": "KC02",
+            "arm": "B"
+          },
+          {
+            "oid": "KC912",
+            "item": "KC05",
+            "arm": "B"
+          },
+          {
+            "oid": "KC239",
+            "item": "KC09",
+            "arm": "B"
+          },
+          {
+            "oid": "KC674",
+            "item": "KC17",
+            "arm": "A"
+          },
+          {
+            "oid": "KC165",
+            "item": "KC14",
+            "arm": "A"
+          },
+          {
+            "oid": "KC938",
+            "item": "KC20",
+            "arm": "B"
+          },
+          {
+            "oid": "KC774",
+            "item": "KC12",
+            "arm": "B"
+          },
+          {
+            "oid": "KC521",
+            "item": "KC06",
+            "arm": "A"
+          },
+          {
+            "oid": "KC516",
+            "item": "KC01",
+            "arm": "A"
+          },
+          {
+            "oid": "KC834",
+            "item": "KC07",
+            "arm": "B"
+          },
+          {
+            "oid": "KC813",
+            "item": "KC15",
+            "arm": "A"
+          },
+          {
+            "oid": "KC780",
+            "item": "KC10",
+            "arm": "A"
+          },
+          {
+            "oid": "KC736",
+            "item": "KC04",
+            "arm": "A"
+          },
+          {
+            "oid": "KC115",
+            "item": "KC19",
+            "arm": "B"
+          },
+          {
+            "oid": "KC288",
+            "item": "KC03",
+            "arm": "B"
+          },
+          {
+            "oid": "KC842",
+            "item": "KC11",
+            "arm": "A"
+          },
+          {
+            "oid": "KC541",
+            "item": "KC13",
+            "arm": "B"
+          }
+        ],
+        "kate": [
+          {
+            "oid": "KK740",
+            "item": "KC07",
+            "arm": "A"
+          },
+          {
+            "oid": "KK698",
+            "item": "KC15",
+            "arm": "B"
+          },
+          {
+            "oid": "KK391",
+            "item": "KC20",
+            "arm": "A"
+          },
+          {
+            "oid": "KK983",
+            "item": "KC14",
+            "arm": "B"
+          },
+          {
+            "oid": "KK670",
+            "item": "KC03",
+            "arm": "A"
+          },
+          {
+            "oid": "KK183",
+            "item": "KC10",
+            "arm": "B"
+          },
+          {
+            "oid": "KK839",
+            "item": "KC11",
+            "arm": "B"
+          },
+          {
+            "oid": "KK524",
+            "item": "KC02",
+            "arm": "A"
+          },
+          {
+            "oid": "KK965",
+            "item": "KC04",
+            "arm": "B"
+          },
+          {
+            "oid": "KK462",
+            "item": "KC12",
+            "arm": "A"
+          },
+          {
+            "oid": "KK341",
+            "item": "KC17",
+            "arm": "B"
+          },
+          {
+            "oid": "KK975",
+            "item": "KC06",
+            "arm": "B"
+          },
+          {
+            "oid": "KK481",
+            "item": "KC19",
+            "arm": "A"
+          },
+          {
+            "oid": "KK188",
+            "item": "KC16",
+            "arm": "B"
+          },
+          {
+            "oid": "KK106",
+            "item": "KC13",
+            "arm": "A"
+          },
+          {
+            "oid": "KK911",
+            "item": "KC18",
+            "arm": "A"
+          },
+          {
+            "oid": "KK932",
+            "item": "KC09",
+            "arm": "A"
+          },
+          {
+            "oid": "KK716",
+            "item": "KC01",
+            "arm": "B"
+          },
+          {
+            "oid": "KK749",
+            "item": "KC08",
+            "arm": "B"
+          },
+          {
+            "oid": "KK984",
+            "item": "KC05",
+            "arm": "A"
+          }
+        ]
+      }
+    }
+  }
+}
