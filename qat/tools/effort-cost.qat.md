@@ -86,9 +86,9 @@ Write every section as bullets except Cost by setting (the table) and Lean (one 
 **Ranges.** Low = energy low × the low factor; high = energy high × the high factor. Carbon uses one factor, so its range comes from energy only.
 
 ### module: check-cost
-- This check's own answer is about 600 tokens. At the setting it ran on, it costs that setting's per-1,000-token energy × 0.6, but at least half the table value for thinking and Pro rows. The gap it informs is the next-answer gap between the settings being weighed. If the setting is unknown, give the Instant figure and the Thinking high figure.
+- This check's own answer is about 600 tokens. At the setting it ran on, its base cost is that setting's per-1,000-token energy × 0.6, but at least half the table value for thinking and Pro rows. Add the context add-on for the current thread (3 Wh at 5–20k tokens, 12 Wh at 20–60k, 30 Wh over 60k; none through 5k), because it applies to this answer too. For example, an Instant check in a 5–20k-token thread costs 0.24 + 3 = 3.24 Wh. The gap it informs is the next-answer gap between the settings being weighed. If the setting is unknown, give the Instant and Thinking high costs including context.
 - The pasted check also stays in the thread (about 1,200 tokens), slightly raising the cost of later answers once the thread is long.
-- **Worth running** if the gap it informs is at least ten times its own cost. Otherwise say plainly that it was not worth running, and name the cheaper route: the pocket card, or running the check on Instant.
+- **Worth running** if the gap it informs is at least ten times its full cost, including context. Otherwise say plainly that it was not worth running, and name the cheaper route: the pocket card, or running the check on Instant.
 
 **Table 4. Perspective**, approximate; pick by size.
 

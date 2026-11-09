@@ -80,7 +80,16 @@ TABLE B-context. Next 5 answers (Wh, central), by context tier
 | Pro | Page (~700) | 140 | 180 | 270 |
 | Pro | Essay (~1,500) | 170 | 220 | 310 |
 
-3. This check cost about 0.24 Wh if it ran on Instant, 3.6 Wh on Medium, 9.0 Wh on High, 27 Wh on Pro. If you don't know which, give the Instant and High figures. It was worth running if the next-answer gap between the settings I'm weighing is at least 2.4 Wh (on Instant), 36 Wh (on Medium) or 90 Wh (on High). If not, say so and point me to the pocket card or to running it on Instant.
+3. This check's base cost is about 0.24 Wh on Instant, 1.5 Wh on Thinking light, 3.6 Wh on Medium, 9.0 Wh on High, or 27 Wh on Pro. Add the thread-context cost (none through 5k tokens, 3 Wh at 5–20k, 12 Wh at 20–60k, 30 Wh over 60k) to both the check's cost and its ten-times-cost cutoff. Use this lookup (check cost / minimum next-answer gap, Wh; rounded to two significant figures):
+
+| Setting | Through 5k tokens | 5–20k | 20–60k | Over 60k |
+|---|---:|---:|---:|---:|
+| Instant | 0.24 / 2.4 | 3.2 / 32 | 12 / 120 | 30 / 300 |
+| Thinking light | 1.5 / 15 | 4.5 / 45 | 14 / 140 | 32 / 320 |
+| Medium | 3.6 / 36 | 6.6 / 66 | 16 / 160 | 34 / 340 |
+| High | 9.0 / 90 | 12 / 120 | 21 / 210 | 39 / 390 |
+| Pro | 27 / 270 | 30 / 300 | 39 / 390 | 57 / 570 |
+If you don't know which setting it ran on, give the applicable Instant and High figures. It was worth running if the next-answer gap between the settings I'm weighing meets the cutoff; otherwise say so and point me to the pocket card or to running it on Instant.
 4. In perspective: the main gap is the difference in Table A between my two named settings (or, if I named one or none, between Instant and the heaviest setting that would help). Translate it with: 10 W LED bulb = 1 Wh per 6 minutes; phone charge ≈ 15 Wh; laptop for an hour ≈ 50 Wh; kettle 1 L ≈ 100 Wh; car ≈ 400 g CO2 per mile (1 g ≈ 13 ft); sip ≈ 30 mL. Then copy the matching line from Table C, word for word (pick the nearest pair and length; do not compute a new one). Table C is a separate default-factor scenario at 0.35 g CO2e/Wh, even if the menu uses another carbon factor.
 
 TABLE C. A million answers like this (separate default-factor scenario: 0.35 g CO2e/Wh)
