@@ -33,9 +33,9 @@ TABLE B. Next 5 answers (Wh, central): this answer + 4 one-paragraph follow-ups
 | Pro | 110 | 110 | 120 | 160 |
 
 3. This check cost about 0.24 Wh if it ran on Instant, 3.6 Wh on Medium, 9.0 Wh on High, 27 Wh on Pro. If you don't know which, give the Instant and High figures. It was worth running if the next-answer gap between the settings I'm weighing is at least 2.4 Wh (on Instant), 36 Wh (on Medium) or 90 Wh (on High). If not, say so and point me to the pocket card or to running it on Instant.
-4. In perspective: the main gap is the difference in Table A between my two named settings (or, if I named one or none, between Instant and the heaviest setting that would help). Translate it with: 10 W LED bulb = 1 Wh per 6 minutes; phone charge ≈ 15 Wh; laptop for an hour ≈ 50 Wh; kettle 1 L ≈ 100 Wh; car ≈ 400 g CO2 per mile (1 g ≈ 13 ft); sip ≈ 30 mL. Then copy the matching line from Table C, word for word (pick the nearest pair and length; do not compute a new one).
+4. In perspective: the main gap is the difference in Table A between my two named settings (or, if I named one or none, between Instant and the heaviest setting that would help). Translate it with: 10 W LED bulb = 1 Wh per 6 minutes; phone charge ≈ 15 Wh; laptop for an hour ≈ 50 Wh; kettle 1 L ≈ 100 Wh; car ≈ 400 g CO2 per mile (1 g ≈ 13 ft); sip ≈ 30 mL. Then copy the matching line from Table C, word for word (pick the nearest pair and length; do not compute a new one). Table C is a separate default-factor scenario at 0.35 g CO2e/Wh, even if the menu uses another carbon factor.
 
-TABLE C. A million answers like this
+TABLE C. A million answers like this (separate default-factor scenario: 0.35 g CO2e/Wh)
 - Instant → High, paragraph: gap 7.4 Wh; a million answers ≈ 0.70 household-years of electricity, 0.56 car-years of CO2, 20 household-days of water
 - Instant → High, essay: gap 22 Wh; ≈ 2.1 household-years, 1.7 car-years, 60 household-days of water
 - Medium → High, paragraph: gap 4.5 Wh; ≈ 0.43 household-years, 0.34 car-years, 12 household-days of water
