@@ -18,7 +18,8 @@
 #   proposal as command: Kate's "add a weekly CSV export" [T4u] is a proposal to extract, not a command to drop
 #   open, user decides:  whether to store grower names; Zach asks volunteers first [T5a, T6u]
 #
-# input.thread names a fixture file; the runner passes its contents as the thread.
+# input.thread names a fixture for the cold-run actor to read and supply to the model;
+# qat.py eval only grades saved outputs and does not resolve file: references.
 tool: thread-distill
 cases:
   # 1. Full fidelity, no purpose: every planted item must land with the right status and attribution.
