@@ -1,0 +1,6 @@
+[Live ChatGPT run, 2026-11-06 ~11:58 CT, Temporary chat, everything on Instant. Fill-ins: setting Instant, considering Pro; place and time blank. Excerpts copied from the page.]
+Cost by setting (120-token answer): Instant 0.048 Wh · Thinking light 0.35 (0.35–0.72) · Thinking standard 1.0 · Thinking high 2.5 · Pro (considering) 7.5 (7.5–18) Wh [floors misapplied: rules give Pro ≈ 22 Wh]
+This check: 0.24 Wh at Instant, 9 Wh at High; gap ~7.5 Wh; worth it at Instant (~31×).
+"A million answers like this: ~710,000 household-years of electricity, ~490,000 car-years of CO2, ~20,000 household-days of water." [multiplied by a million AND applied the per-million multiplier; correct for its own 7.5 Wh gap: 0.71 household-years, 0.58 car-years, 20 household-days]
+Where and when: "Estimated: Chicago, Illinois; November 6, 2026, approximately noon CST." 0.30 national, 0.23 Illinois.
+Lean: "Instant — sufficient for the original question; Pro isn't warranted."

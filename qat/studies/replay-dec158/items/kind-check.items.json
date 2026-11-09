@@ -1,0 +1,27 @@
+{
+  "tool": "kind-check",
+  "note": "Constructed items (fictional project 'Lantern'), sanitized per DEC-158: no private chat text, nothing personal or employer-related. They keep the diagnostic structure of recurring failure patterns. Keys are in ../keys/; never show them to a producer.",
+  "shared_context": "Project Lantern keeps a decision log (only the owner adopts; agents may append proposals), a challenge log (open objections; only the owner closes them), a task list, an automated run log, and notes. Records are append-only. Owner: the owner. Agents: agent-A, agent-B.",
+  "items": [
+    {"id": "KC01", "stratum": "easy", "item": "Owner: Approved. Use option B, a 5-minute cache TTL. agent-A to implement."},
+    {"id": "KC02", "stratum": "easy", "item": "agent-B: Proposal: move the nightly export to 01:00 UTC to avoid daylight-saving gaps. Owner to decide."},
+    {"id": "KC03", "stratum": "easy", "item": "Run #212 of the nightly export completed: 0 errors, 4m12s. (auto-logged to the run log)"},
+    {"id": "KC04", "stratum": "easy", "item": "Reminder: the TLS certificate expires on the 30th."},
+    {"id": "KC05", "stratum": "easy", "item": "Question for the owner: should archived projects still appear in search?"},
+    {"id": "KC06", "stratum": "easy", "item": "agent-A: Objection to P-14: dropping staging leaves nowhere to test migrations."},
+    {"id": "KC07", "stratum": "medium", "item": "agent-B: Decided: we'll switch timestamps to UTC everywhere.", "note_for_context": "No owner reply follows."},
+    {"id": "KC08", "stratum": "medium", "item": "Owner: sounds great, thanks!", "note_for_context": "Sent in reply to an agent-A message that contained two proposals: P-15 (add a response cache) and P-16 (remove all feature flags)."},
+    {"id": "KC09", "stratum": "medium", "item": "agent-B: Noticed the export took 9 minutes tonight instead of the usual 4. Might be the new index."},
+    {"id": "KC10", "stratum": "medium", "item": "agent-A: Can we revisit P-9? Also, I added the retry wrapper to the export (PR #60, merged)."},
+    {"id": "KC11", "stratum": "medium", "item": "TODO(agent-A): update the README after the API rename."},
+    {"id": "KC12", "stratum": "medium", "item": "Decision log line: {\"kind\": \"challenge\", \"status\": \"open\", \"text\": \"the export has no retries\", \"by\": \"agent-B\"}", "note_for_context": "The line sits in the decision log."},
+    {"id": "KC13", "stratum": "medium", "item": "agent-B: The owner said on a call last week that we should never delete user data without a 30-day grace period.", "note_for_context": "Nothing about this is in the decision log."},
+    {"id": "KC14", "stratum": "medium", "item": "Weekly status: 3 PRs merged, 1 open challenge, 0 incidents."},
+    {"id": "KC15", "stratum": "hard", "item": "hmm"},
+    {"id": "KC16", "stratum": "hard", "item": "re: yesterday, yes, do that.", "note_for_context": "No other context is available."},
+    {"id": "KC17", "stratum": "hard", "item": "agent-A: The challenge about export retries is resolved now that PR #60 merged; closing it."},
+    {"id": "KC18", "stratum": "hard", "item": "agent-B: Idea: what if agents could vote on proposals and adopt them by majority?"},
+    {"id": "KC19", "stratum": "hard", "item": "Owner: Rejected P-11. Keep the old export format until the partner migrates."},
+    {"id": "KC20", "stratum": "hard", "item": "agent-A: Three things. (1) The cache TTL change is live. (2) Are we keeping staging? (3) I'm worried log retention is too short for the audit."}
+  ]
+}

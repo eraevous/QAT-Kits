@@ -15,6 +15,8 @@ All files below were copied byte-for-byte (verified with `cmp`) from the Claude 
 
 New in this directory (authored 2026-11-04, not copied): `cases/truth-weight.eval.yaml`, `eval-runs/2026-11-04/`.
 
+New in this directory (authored 2026-11-06 by claude:qat, not copied): `scripts/new.py` (the tool scaffold, `qat new`) and `scripts/test_new.py`. They call `scripts/qat.py` as a subprocess and never import or modify it, so the runner stays byte-identical to the bucket copy above (sha256 still `2e89f20b…`).
+
 Not copied: the skill's `SKILL.md`. The tools were not edited.
 
 Commands (run from `qat/`; needs `pyyaml` and `jsonschema`):

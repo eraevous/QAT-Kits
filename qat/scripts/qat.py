@@ -299,8 +299,23 @@ def check_handoff(src: Spec, h: dict, registry: dict[str, Spec]) -> Report:
 # ---------------------------------------------------------------------------
 def split_sections(md: str) -> dict[str, str]:
     """'## Heading' -> body (until next ## or #)."""
-    sections, current, buf = {}, None, []
+    sections, current, buf, fence = {}, None, [], None
     for line in md.splitlines():
+        if fence is not None:
+            close = re.match(r"^ {0,3}(`{3,}|~{3,})[ \t]*$", line)
+            if close and close.group(1)[0] == fence[0] and len(close.group(1)) >= fence[1]:
+                if current is not None:
+                    buf.append(line)
+                fence = None
+            elif current is not None:
+                buf.append(line)
+            continue
+        opening = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
+        if opening:
+            if current is not None:
+                buf.append(line)
+            fence = (opening.group(1)[0], len(opening.group(1)))
+            continue
         m = re.match(r"^##\s+(.+?)\s*#*\s*$", line)
         if m and not line.startswith("###"):
             if current is not None:
