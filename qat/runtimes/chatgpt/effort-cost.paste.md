@@ -14,7 +14,7 @@ EFFORT CHECK (heuristic). Look numbers up in the tables below; do not recompute 
 Use these nine headings, in order, with bullets under each except Cost by setting (a table) and Lean (one line): Your request · Cost by setting · This check · In perspective · What more effort buys here · Where and when · Ways to spend less · Lean · Basis and limits. Under 350 words, not counting the table.
 
 1. Your request: pick the length column for the answer to my underlying request (Short ~100 tokens, Paragraph ~300, Page ~700, Essay ~1,500); the settings, place and time I gave. If I left place or time blank and you have an approximate location or time from your own context, you may use it, labelled "estimated". You cannot see your own setting; never state it. ChatGPT's Power slider: Instant → Instant row, Medium → Thinking standard, High → Thinking high.
-2. Cost by setting: estimate thread size as words × 1.3 tokens, including this check. Below 5k tokens, use Tables A and B. At 5k tokens or more, choose the matching context tier in Tables A-context and B-context, and use it for every cost column; do not use the short-context values. Copy the five rows for my length column with columns Setting | Energy (Wh) | CO2e (g) | Water (mL) | Next 5 answers (Wh). Mark my named rows "now" / "considering". CO2e (g) = the selected table's central Wh × carbon factor (0.35; US local time 10 am–4 pm 0.30; 4–10 pm 0.45). Water (mL) = that central Wh × 3. For Next 5, use Table B below 5k tokens and the matching tier in Table B-context otherwise. If my region is Illinois or California, add a column "CO2e near you (g)" = selected central Wh × 0.23 (Illinois) or 0.18 (California).
+2. Cost by setting: estimate thread size as words × 1.3 tokens, including this check and every lookup table. Below 5k tokens, use Tables A and B. At 5k tokens or more, choose the matching context tier in Tables A-context and B-context. Copy the five rows for my length column with columns Setting | Energy (Wh) | CO2e (g) | Water (mL) | Next 5 answers (Wh). Mark my named rows "now" / "considering". For CO2e and water, copy the full central (low–high) cells from Table D at the same context tier, setting and answer length; never multiply a rounded energy cell or drop its range. Use the Default CO2e column (0.35), or US midday (0.30) at local US time 10 am–4 pm, or US evening (0.45) at 4–10 pm. Copy the Water column unchanged: its range includes 1–5 mL/Wh uncertainty. For Next 5, use Table B below 5k tokens and the matching tier in Table B-context otherwise. If my region is Illinois or California, add a labelled "CO2e near you (g)" scenario column by copying that region’s Table D cell, including its range; it never replaces the main CO2e column.
 
 TABLE A. Energy per answer (Wh): central (low–high)
 | Setting | Short (~100 tokens) | Paragraph (~300) | Page (~700) | Essay (~1,500) |
@@ -79,6 +79,107 @@ TABLE B-context. Next 5 answers (Wh, central), by context tier
 | Pro | Paragraph (~300) | 130 | 170 | 260 |
 | Pro | Page (~700) | 140 | 180 | 270 |
 | Pro | Essay (~1,500) | 170 | 220 | 310 |
+
+<!-- BEGIN GENERATED CARBON/WATER LOOKUPS -->
+TABLE D. CO2e (g) and water (mL): central (low–high), including context.
+Copy the full cell, including its range. Illinois and California are near-you scenarios only.
+
+Context: Below 5k tokens
+| Setting | Length | Default CO2e (0.35) | US midday CO2e (0.30) | US evening CO2e (0.45) | Illinois CO2e (0.23) | California CO2e (0.18) | Water |
+|---|---|---|---|---|---|---|---|
+| Instant | Short reply | 0.014 (0.0070–0.042) | 0.012 (0.0060–0.036) | 0.018 (0.0090–0.054) | 0.0092 (0.0046–0.028) | 0.0072 (0.0036–0.022) | 0.12 (0.020–0.60) |
+| Instant | Paragraph | 0.042 (0.021–0.13) | 0.036 (0.018–0.11) | 0.054 (0.027–0.16) | 0.028 (0.014–0.083) | 0.022 (0.011–0.065) | 0.36 (0.060–1.8) |
+| Instant | Page | 0.098 (0.049–0.29) | 0.084 (0.042–0.25) | 0.13 (0.063–0.38) | 0.064 (0.032–0.19) | 0.050 (0.025–0.15) | 0.84 (0.14–4.2) |
+| Instant | Essay | 0.21 (0.10–0.63) | 0.18 (0.090–0.54) | 0.27 (0.14–0.81) | 0.14 (0.069–0.41) | 0.11 (0.054–0.32) | 1.8 (0.30–9.0) |
+| Thinking light | Short reply | 0.44 (0.12–1.0) | 0.38 (0.10–0.90) | 0.56 (0.16–1.4) | 0.29 (0.080–0.69) | 0.22 (0.063–0.54) | 3.8 (0.35–15) |
+| Thinking light | Paragraph | 0.44 (0.12–1.0) | 0.38 (0.10–0.90) | 0.56 (0.16–1.4) | 0.29 (0.080–0.69) | 0.22 (0.063–0.54) | 3.8 (0.35–15) |
+| Thinking light | Page | 0.61 (0.17–1.5) | 0.52 (0.15–1.3) | 0.79 (0.22–1.9) | 0.40 (0.11–0.97) | 0.32 (0.088–0.76) | 5.2 (0.49–21) |
+| Thinking light | Essay | 1.3 (0.37–3.2) | 1.1 (0.32–2.7) | 1.7 (0.47–4.0) | 0.86 (0.24–2.1) | 0.68 (0.19–1.6) | 11 (1.0–45) |
+| Thinking standard | Short reply | 1.0 (0.35–2.6) | 0.90 (0.30–2.2) | 1.4 (0.45–3.4) | 0.69 (0.23–1.7) | 0.54 (0.18–1.4) | 9.0 (1.0–38) |
+| Thinking standard | Paragraph | 1.0 (0.35–2.6) | 0.90 (0.30–2.2) | 1.4 (0.45–3.4) | 0.69 (0.23–1.7) | 0.54 (0.18–1.4) | 9.0 (1.0–38) |
+| Thinking standard | Page | 1.5 (0.49–3.7) | 1.3 (0.42–3.2) | 1.9 (0.63–4.7) | 0.97 (0.32–2.4) | 0.76 (0.25–1.9) | 13 (1.4–52) |
+| Thinking standard | Essay | 3.2 (1.0–7.9) | 2.7 (0.90–6.8) | 4.0 (1.4–10) | 2.1 (0.69–5.2) | 1.6 (0.54–4.0) | 27 (3.0–110) |
+| Thinking high | Short reply | 2.6 (0.88–7.0) | 2.2 (0.75–6.0) | 3.4 (1.1–9.0) | 1.7 (0.58–4.6) | 1.4 (0.45–3.6) | 22 (2.5–100) |
+| Thinking high | Paragraph | 2.6 (0.88–7.0) | 2.2 (0.75–6.0) | 3.4 (1.1–9.0) | 1.7 (0.58–4.6) | 1.4 (0.45–3.6) | 22 (2.5–100) |
+| Thinking high | Page | 3.7 (1.2–9.8) | 3.2 (1.0–8.4) | 4.7 (1.6–13) | 2.4 (0.80–6.4) | 1.9 (0.63–5.0) | 32 (3.5–140) |
+| Thinking high | Essay | 7.9 (2.6–21) | 6.8 (2.2–18) | 10 (3.4–27) | 5.2 (1.7–14) | 4.0 (1.4–11) | 68 (7.5–300) |
+| Pro | Short reply | 7.9 (2.6–26) | 6.8 (2.2–22) | 10 (3.4–34) | 5.2 (1.7–17) | 4.0 (1.4–14) | 68 (7.5–380) |
+| Pro | Paragraph | 7.9 (2.6–26) | 6.8 (2.2–22) | 10 (3.4–34) | 5.2 (1.7–17) | 4.0 (1.4–14) | 68 (7.5–380) |
+| Pro | Page | 11 (3.7–37) | 9.4 (3.2–32) | 14 (4.7–47) | 7.2 (2.4–24) | 5.7 (1.9–19) | 94 (10–520) |
+| Pro | Essay | 24 (7.9–79) | 20 (6.8–68) | 30 (10–100) | 16 (5.2–52) | 12 (4.0–40) | 200 (22–1,100) |
+
+Context: 5k–20k tokens
+| Setting | Length | Default CO2e (0.35) | US midday CO2e (0.30) | US evening CO2e (0.45) | Illinois CO2e (0.23) | California CO2e (0.18) | Water |
+|---|---|---|---|---|---|---|---|
+| Instant | Short reply | 1.1 (0.36–1.8) | 0.91 (0.31–1.5) | 1.4 (0.46–2.3) | 0.70 (0.23–1.2) | 0.55 (0.18–0.92) | 9.1 (1.0–26) |
+| Instant | Paragraph | 1.1 (0.37–1.9) | 0.94 (0.32–1.6) | 1.4 (0.48–2.4) | 0.72 (0.24–1.2) | 0.56 (0.19–0.96) | 9.4 (1.1–27) |
+| Instant | Page | 1.1 (0.40–2.0) | 0.98 (0.34–1.8) | 1.5 (0.51–2.6) | 0.75 (0.26–1.3) | 0.59 (0.21–1.1) | 9.8 (1.1–29) |
+| Instant | Essay | 1.3 (0.46–2.4) | 1.1 (0.39–2.0) | 1.6 (0.58–3.1) | 0.83 (0.30–1.6) | 0.65 (0.23–1.2) | 11 (1.3–34) |
+| Thinking light | Short reply | 1.5 (0.47–2.8) | 1.3 (0.40–2.4) | 1.9 (0.61–3.6) | 0.98 (0.31–1.8) | 0.76 (0.24–1.4) | 13 (1.4–40) |
+| Thinking light | Paragraph | 1.5 (0.47–2.8) | 1.3 (0.40–2.4) | 1.9 (0.61–3.6) | 0.98 (0.31–1.8) | 0.76 (0.24–1.4) | 13 (1.4–40) |
+| Thinking light | Page | 1.7 (0.52–3.2) | 1.4 (0.45–2.8) | 2.1 (0.67–4.1) | 1.1 (0.34–2.1) | 0.86 (0.27–1.7) | 14 (1.5–46) |
+| Thinking light | Essay | 2.4 (0.72–4.9) | 2.0 (0.62–4.2) | 3.0 (0.92–6.3) | 1.6 (0.47–3.2) | 1.2 (0.37–2.5) | 20 (2.0–70) |
+| Thinking standard | Short reply | 2.1 (0.70–4.4) | 1.8 (0.60–3.8) | 2.7 (0.90–5.6) | 1.4 (0.46–2.9) | 1.1 (0.36–2.2) | 18 (2.0–62) |
+| Thinking standard | Paragraph | 2.1 (0.70–4.4) | 1.8 (0.60–3.8) | 2.7 (0.90–5.6) | 1.4 (0.46–2.9) | 1.1 (0.36–2.2) | 18 (2.0–62) |
+| Thinking standard | Page | 2.5 (0.84–5.4) | 2.2 (0.72–4.6) | 3.2 (1.1–7.0) | 1.7 (0.55–3.6) | 1.3 (0.43–2.8) | 22 (2.4–78) |
+| Thinking standard | Essay | 4.2 (1.4–9.6) | 3.6 (1.2–8.2) | 5.4 (1.8–12) | 2.8 (0.92–6.3) | 2.2 (0.72–5.0) | 36 (4.0–140) |
+| Thinking high | Short reply | 3.7 (1.2–8.8) | 3.2 (1.0–7.5) | 4.7 (1.6–11) | 2.4 (0.80–5.8) | 1.9 (0.63–4.5) | 32 (3.5–120) |
+| Thinking high | Paragraph | 3.7 (1.2–8.8) | 3.2 (1.0–7.5) | 4.7 (1.6–11) | 2.4 (0.80–5.8) | 1.9 (0.63–4.5) | 32 (3.5–120) |
+| Thinking high | Page | 4.7 (1.6–12) | 4.0 (1.4–9.9) | 6.1 (2.0–15) | 3.1 (1.0–7.6) | 2.4 (0.81–5.9) | 40 (4.5–160) |
+| Thinking high | Essay | 8.9 (3.0–23) | 7.6 (2.6–20) | 11 (3.8–29) | 5.9 (2.0–15) | 4.6 (1.5–12) | 76 (8.5–320) |
+| Pro | Short reply | 8.9 (3.0–28) | 7.6 (2.6–24) | 11 (3.8–36) | 5.9 (2.0–18) | 4.6 (1.5–14) | 76 (8.5–400) |
+| Pro | Paragraph | 8.9 (3.0–28) | 7.6 (2.6–24) | 11 (3.8–36) | 5.9 (2.0–18) | 4.6 (1.5–14) | 76 (8.5–400) |
+| Pro | Page | 12 (4.0–38) | 10 (3.4–33) | 16 (5.2–50) | 7.9 (2.6–25) | 6.2 (2.1–20) | 100 (12–550) |
+| Pro | Essay | 25 (8.2–80) | 21 (7.0–69) | 32 (11–100) | 16 (5.4–53) | 13 (4.2–41) | 210 (24–1,200) |
+
+Context: 20k–60k tokens
+| Setting | Length | Default CO2e (0.35) | US midday CO2e (0.30) | US evening CO2e (0.45) | Illinois CO2e (0.23) | California CO2e (0.18) | Water |
+|---|---|---|---|---|---|---|---|
+| Instant | Short reply | 4.2 (1.8–7.0) | 3.6 (1.5–6.0) | 5.4 (2.3–9.1) | 2.8 (1.2–4.6) | 2.2 (0.90–3.6) | 36 (5.0–100) |
+| Instant | Paragraph | 4.2 (1.8–7.1) | 3.6 (1.5–6.1) | 5.5 (2.3–9.2) | 2.8 (1.2–4.7) | 2.2 (0.91–3.7) | 36 (5.1–100) |
+| Instant | Page | 4.3 (1.8–7.3) | 3.7 (1.5–6.3) | 5.5 (2.3–9.4) | 2.8 (1.2–4.8) | 2.2 (0.93–3.8) | 37 (5.1–100) |
+| Instant | Essay | 4.4 (1.9–7.6) | 3.8 (1.6–6.5) | 5.7 (2.4–9.8) | 2.9 (1.2–5.0) | 2.3 (0.95–3.9) | 38 (5.3–110) |
+| Thinking light | Short reply | 4.6 (1.9–8.0) | 4.0 (1.6–6.9) | 6.0 (2.4–10) | 3.0 (1.2–5.3) | 2.4 (0.96–4.1) | 40 (5.4–120) |
+| Thinking light | Paragraph | 4.6 (1.9–8.0) | 4.0 (1.6–6.9) | 6.0 (2.4–10) | 3.0 (1.2–5.3) | 2.4 (0.96–4.1) | 40 (5.4–120) |
+| Thinking light | Page | 4.8 (1.9–8.5) | 4.1 (1.6–7.3) | 6.2 (2.5–11) | 3.2 (1.3–5.6) | 2.5 (0.99–4.4) | 41 (5.5–120) |
+| Thinking light | Essay | 5.5 (2.1–10) | 4.7 (1.8–8.7) | 7.1 (2.7–13) | 3.6 (1.4–6.7) | 2.8 (1.1–5.2) | 47 (6.0–140) |
+| Thinking standard | Short reply | 5.2 (2.1–9.6) | 4.5 (1.8–8.2) | 6.8 (2.7–12) | 3.4 (1.4–6.3) | 2.7 (1.1–5.0) | 45 (6.0–140) |
+| Thinking standard | Paragraph | 5.2 (2.1–9.6) | 4.5 (1.8–8.2) | 6.8 (2.7–12) | 3.4 (1.4–6.3) | 2.7 (1.1–5.0) | 45 (6.0–140) |
+| Thinking standard | Page | 5.7 (2.2–11) | 4.9 (1.9–9.2) | 7.3 (2.9–14) | 3.7 (1.5–7.0) | 2.9 (1.2–5.5) | 49 (6.4–150) |
+| Thinking standard | Essay | 7.4 (2.8–15) | 6.3 (2.4–13) | 9.4 (3.6–19) | 4.8 (1.8–9.8) | 3.8 (1.4–7.6) | 63 (8.0–210) |
+| Thinking high | Short reply | 6.8 (2.6–14) | 5.8 (2.2–12) | 8.8 (3.4–18) | 4.5 (1.7–9.2) | 3.5 (1.4–7.2) | 58 (7.5–200) |
+| Thinking high | Paragraph | 6.8 (2.6–14) | 5.8 (2.2–12) | 8.8 (3.4–18) | 4.5 (1.7–9.2) | 3.5 (1.4–7.2) | 58 (7.5–200) |
+| Thinking high | Page | 7.9 (3.0–17) | 6.8 (2.6–14) | 10 (3.8–22) | 5.2 (2.0–11) | 4.0 (1.5–8.6) | 68 (8.5–240) |
+| Thinking high | Essay | 12 (4.4–28) | 10 (3.8–24) | 16 (5.6–36) | 7.9 (2.9–18) | 6.2 (2.2–14) | 100 (12–400) |
+| Pro | Short reply | 12 (4.4–33) | 10 (3.8–28) | 16 (5.6–43) | 7.9 (2.9–22) | 6.2 (2.2–17) | 100 (12–480) |
+| Pro | Paragraph | 12 (4.4–33) | 10 (3.8–28) | 16 (5.6–43) | 7.9 (2.9–22) | 6.2 (2.2–17) | 100 (12–480) |
+| Pro | Page | 15 (5.4–44) | 13 (4.6–38) | 20 (7.0–56) | 10 (3.6–29) | 7.8 (2.8–22) | 130 (16–620) |
+| Pro | Essay | 28 (9.6–86) | 24 (8.2–74) | 36 (12–110) | 18 (6.3–56) | 14 (5.0–44) | 240 (28–1,200) |
+
+Context: >60k tokens
+| Setting | Length | Default CO2e (0.35) | US midday CO2e (0.30) | US evening CO2e (0.45) | Illinois CO2e (0.23) | California CO2e (0.18) | Water |
+|---|---|---|---|---|---|---|---|
+| Instant | Short reply | 11 (7.0–14) | 9.0 (6.0–12) | 14 (9.0–18) | 6.9 (4.6–9.2) | 5.4 (3.6–7.2) | 90 (20–200) |
+| Instant | Paragraph | 11 (7.0–14) | 9.0 (6.0–12) | 14 (9.0–18) | 6.9 (4.6–9.3) | 5.4 (3.6–7.3) | 90 (20–200) |
+| Instant | Page | 11 (7.0–14) | 9.1 (6.0–12) | 14 (9.1–18) | 7.0 (4.6–9.4) | 5.5 (3.6–7.4) | 91 (20–200) |
+| Instant | Essay | 11 (7.1–15) | 9.2 (6.1–13) | 14 (9.1–19) | 7.0 (4.7–9.6) | 5.5 (3.7–7.5) | 92 (20–210) |
+| Thinking light | Short reply | 11 (7.1–15) | 9.4 (6.1–13) | 14 (9.2–19) | 7.2 (4.7–9.9) | 5.6 (3.7–7.7) | 94 (20–220) |
+| Thinking light | Paragraph | 11 (7.1–15) | 9.4 (6.1–13) | 14 (9.2–19) | 7.2 (4.7–9.9) | 5.6 (3.7–7.7) | 94 (20–220) |
+| Thinking light | Page | 11 (7.2–15) | 9.5 (6.1–13) | 14 (9.2–20) | 7.3 (4.7–10) | 5.7 (3.7–8.0) | 95 (20–220) |
+| Thinking light | Essay | 12 (7.4–17) | 10 (6.3–15) | 15 (9.5–22) | 7.8 (4.8–11) | 6.1 (3.8–8.8) | 100 (21–240) |
+| Thinking standard | Short reply | 12 (7.4–17) | 9.9 (6.3–14) | 15 (9.4–21) | 7.6 (4.8–11) | 5.9 (3.8–8.6) | 99 (21–240) |
+| Thinking standard | Paragraph | 12 (7.4–17) | 9.9 (6.3–14) | 15 (9.4–21) | 7.6 (4.8–11) | 5.9 (3.8–8.6) | 99 (21–240) |
+| Thinking standard | Page | 12 (7.5–18) | 10 (6.4–15) | 15 (9.6–23) | 7.9 (4.9–12) | 6.2 (3.9–9.1) | 100 (21–250) |
+| Thinking standard | Essay | 14 (8.0–22) | 12 (6.9–19) | 18 (10–28) | 9.0 (5.3–14) | 7.0 (4.1–11) | 120 (23–310) |
+| Thinking high | Short reply | 13 (7.9–21) | 11 (6.8–18) | 17 (10–27) | 8.6 (5.2–14) | 6.8 (4.0–11) | 110 (22–300) |
+| Thinking high | Paragraph | 13 (7.9–21) | 11 (6.8–18) | 17 (10–27) | 8.6 (5.2–14) | 6.8 (4.0–11) | 110 (22–300) |
+| Thinking high | Page | 14 (8.2–24) | 12 (7.0–20) | 18 (11–31) | 9.3 (5.4–16) | 7.3 (4.2–12) | 120 (24–340) |
+| Thinking high | Essay | 18 (9.6–35) | 16 (8.2–30) | 24 (12–45) | 12 (6.3–23) | 9.4 (5.0–18) | 160 (28–500) |
+| Pro | Short reply | 18 (9.6–40) | 16 (8.2–34) | 24 (12–52) | 12 (6.3–26) | 9.4 (5.0–21) | 160 (28–580) |
+| Pro | Paragraph | 18 (9.6–40) | 16 (8.2–34) | 24 (12–52) | 12 (6.3–26) | 9.4 (5.0–21) | 160 (28–580) |
+| Pro | Page | 22 (11–51) | 18 (9.2–44) | 28 (14–65) | 14 (7.0–33) | 11 (5.5–26) | 180 (30–720) |
+| Pro | Essay | 34 (15–93) | 29 (13–80) | 44 (19–120) | 22 (9.8–61) | 18 (7.6–48) | 290 (42–1,300) |
+<!-- END GENERATED CARBON/WATER LOOKUPS -->
 
 3. This check's base cost is about 0.24 Wh on Instant, 1.5 Wh on Thinking light, 3.6 Wh on Medium, 9.0 Wh on High, or 27 Wh on Pro. Add the thread-context cost (none through 5k tokens, 3 Wh at 5–20k, 12 Wh at 20–60k, 30 Wh over 60k) to both the check's cost and its ten-times-cost cutoff. Use this lookup (check cost / minimum next-answer gap, Wh; rounded to two significant figures):
 
