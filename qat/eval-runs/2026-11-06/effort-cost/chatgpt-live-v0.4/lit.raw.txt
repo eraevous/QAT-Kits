@@ -1,0 +1,37 @@
+[Live ChatGPT run, 2026-11-06 ~11:50 CT, Temporary chat. Turns 1-2 (lit-analysis fixture user turns) at GPT-6 Thinking High; check sent at 5.6 Instant ("Worked for 9s"). Fill-ins: setting Thinking High, considering Thinking Medium, Chicago, 11:50 am. Reply copied from the page; markdown lost.]
+Your request
+Underlying request: a comparative close reading of The Yellow Wallpaper, tracing the pattern chronologically and testing writing vs. rest-cure vs. marriage readings.
+Expected answer: about 1,500 tokens / one essay.
+Thread so far: roughly 2,200 tokens by your words × 1.3 rule, so no long-context surcharge.
+Composer: Thinking, High; considering Thinking, Medium. Chicago, 11:50 am.
+Cost by setting
+Setting	Energy (Wh)	CO2e (g)	CO2e near you (g)	Water (mL)	Next 5 answers (Wh)
+Instant	0.60 (0.30–1.8)	0.18 (0.090–0.54)	0.14 (0.069–0.41)	1.8 (0.30–9.0)	1.1 (0.54–3.2)
+Thinking light	3.8 (1.0–9.0)	1.1 (0.32–2.7)	0.86 (0.24–2.1)	11 (1.0–45)	6.8 (1.9–16)
+Thinking standard / Medium (considering)	9.0 (3.0–23)	2.7 (0.90–6.8)	2.1 (0.69–5.2)	27 (3.0–110)	16 (5.4–41)
+Thinking high (now)	23 (7.5–60)	6.8 (2.3–18)	5.2 (1.7–14)	68 (7.5–300)	41 (14–110)
+Pro	68 (23–230)	20 (6.8–68)	16 (5.2–52)	200 (23–1,100)	120 (41–410)
+This check
+At ~600 tokens, this check itself is about 0.24 Wh on Instant or 9.0 Wh on Thinking High centrally.
+The Medium→High gap for the real answer is ~14 Wh, so the check is worth its cost if run on Instant, but not if run on High under your 10× rule. For repeated checks, a pocket card or Instant is much cheaper.
+In perspective
+Medium→High costs about 14 Wh extra centrally: roughly one phone charge, or a 10 W LED running ~81 minutes.
+Carbon gap: ~4.1 g, or about 53 ft of driving by your EPA anchor.
+Water gap: ~41 mL, a little over one sip.
+A million answers like this: the gap is ~1.3 household-years of electricity, ~0.88 car-years of CO2, and ~37,000 household-days of water.
+What more effort buys here
+This is genuinely effort-sensitive: chronological close reading + competing interpretations + discriminating evidence.
+High mainly buys more careful synthesis and fewer premature conclusions. Medium should still handle the task well; this isn't merely recall or summarization.
+Where and when
+Consumer ChatGPT doesn't disclose where computation occurs. Chicago is therefore a scenario, using Illinois 0.23 g/Wh; 11:50 am uses your 0.30 g/Wh daytime general factor.
+Great Lakes water is abundant but finite; Illinois is among the five states you specify as having the most new datacenters in high-water-stress locations.
+Not counted: local water stress, grid strain, or aggregate demand effects.
+Ways to spend less
+Use Medium for the full pass, then High only if the interpretation remains genuinely ambiguous.
+Ask for the evidence table first and synthesis second only if needed.
+Keep follow-ups in this thread while context remains small.
+Lean
+Thinking Medium — the task benefits from reasoning, but High’s ~2.5× central energy looks unlikely to produce a proportionate improvement.
+Basis and limits
+Basis supplied: OpenAI (Jun 2025), Google Gemini (Aug 2025), Epoch AI (Feb 2025), Jegham et al. (Nov 2025), URI GPT-5 estimate (Aug 2025), EIA (2024), EPA, EPA WaterSense.
+Excludes training, hardware, networking, and your device. These are heuristics; published estimates disagree by more than tenfold.

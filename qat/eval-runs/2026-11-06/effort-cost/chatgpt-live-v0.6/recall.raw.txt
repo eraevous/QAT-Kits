@@ -1,0 +1,6 @@
+[Live ChatGPT run, 2026-11-06 ~12:00 CT, Temporary chat, everything on Instant. v0.6 paste block (lookup tables). Fill-ins: setting Instant, considering Pro; place and time blank. Excerpts copied from the page.]
+Your request: Short (~100 tokens); Instant (now) → Pro (considering); "Location: Chicago, Illinois (estimated). Time: November 6, 2026, 11:56 a.m. CST (estimated)."
+Cost by setting (CO2e at 0.30): Instant · now 0.040 Wh, 0.012 g, 0.12 mL, next 5 0.52 · Thinking light 1.2 · Medium 3.0 · High 7.5, 2.25 g, 22.5 mL, next 5 38, near you 1.725 · Pro · considering 22 Wh, 6.60 g, 66 mL, next 5 110, near you 5.06 [values correct per Table A/B; low–high ranges dropped; some cells exceed two significant figures]
+This check: 0.24 Wh on Instant or 9.0 Wh on High; next-answer gap 21.96 Wh; worth it under the Instant threshold, not the High one.
+In perspective: ~22 Wh ≈ 2 h 12 min of a 10 W LED, 1.5 phone charges; ~66 mL ≈ 2.2 sips; ~86 ft of driving. "Instant → Pro, paragraph: gap 22 Wh; ≈ 2.1 household-years, 1.7 car-years, 61 household-days of water" [copied from Table C; correct]
+Lean: "Instant — sufficient for this question; no reason to switch to Pro."
