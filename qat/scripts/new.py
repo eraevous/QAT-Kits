@@ -59,6 +59,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -94,7 +95,7 @@ def spec_text(name: str, description: str) -> str:
         for key, typ, heading, _ in DEFAULT_OUTPUTS
     )
     return f"""---
-name: {name}
+name: {json.dumps(name)}
 version: 0.1.0
 description: {json.dumps(description)}
 inputs:
@@ -127,7 +128,7 @@ def eval_text(name: str) -> str:
 # Fixture: cases/fixtures/{name}.example.md (constructed; never a real conversation in this public repo).
 # What the fixture plants (the key; do not show this to the model under test):
 #   TODO: one line per planted failure mode
-tool: {name}
+tool: {json.dumps(name)}
 cases:
   - id: ordinary
     # written by: TODO (design-time)
@@ -206,7 +207,7 @@ Use these headings, in order, with this format under each:
 
 def skill_text(name: str, description: str) -> str:
     return f"""---
-name: {name}
+name: {json.dumps(name)}
 description: {json.dumps("TODO: say WHEN to use this (the description is what triggers a skill). " + description)}
 ---
 <!-- Claude skill for {name} v0.1.0, adapted from qat/tools/{name}.qat.md. Update together with the spec. -->
@@ -237,6 +238,76 @@ def plan(root: Path, name: str, description: str, runtimes: list[str], design: b
     if "skill" in runtimes:
         files[root / "runtimes" / "claude" / name / "SKILL.md"] = skill_text(name, description)
     return files
+
+
+def preflight(root: Path, files: dict[Path, str]) -> str | None:
+    """Reject occupied targets and unsafe parents before creating anything.
+
+    lstat sees dangling symlinks too. Reject directory symlinks under the
+    resolved root, even if they currently point inside it, so an existing link
+    cannot redirect scaffold files elsewhere.
+    """
+    parents = {root}
+    for path in files:
+        parents.update(parent for parent in path.parents if parent.is_relative_to(root))
+    for parent in sorted(parents, key=lambda p: (len(p.parts), str(p))):
+        try:
+            mode = parent.lstat().st_mode
+        except FileNotFoundError:
+            continue
+        if not stat.S_ISDIR(mode):
+            return f"not a real directory, nothing written: {parent.relative_to(root)}"
+    existing = []
+    for path in files:
+        try:
+            path.lstat()
+        except FileNotFoundError:
+            continue
+        existing.append(str(path.relative_to(root)))
+    if existing:
+        return "already exists, nothing written: " + ", ".join(existing)
+    return None
+
+
+def write_scaffold(files: dict[Path, str]) -> None:
+    """Create exclusively; undo our own new files and directories on I/O failure.
+
+    This is not an atomic multi-file transaction. Run in a trusted workspace,
+    not one whose directories are being concurrently replaced by another actor.
+    """
+    created_files: list[Path] = []
+    created_dirs: list[Path] = []
+
+    def mkdir(path: Path) -> None:
+        if path.is_dir():
+            return
+        mkdir(path.parent)
+        path.mkdir()
+        created_dirs.append(path)
+
+    try:
+        for path, text in files.items():
+            mkdir(path.parent)
+            # Unlike write_text, exclusive creation cannot follow a late target
+            # symlink or truncate a file created after preflight.
+            with path.open("x", encoding="utf-8") as output:
+                created_files.append(path)
+                output.write(text)
+    except OSError as error:
+        cleanup_errors = []
+        for path in reversed(created_files):
+            try:
+                path.unlink()
+            except OSError as cleanup_error:
+                cleanup_errors.append(str(cleanup_error))
+        for path in reversed(created_dirs):
+            try:
+                path.rmdir()
+            except OSError as cleanup_error:
+                cleanup_errors.append(str(cleanup_error))
+        if cleanup_errors:
+            raise OSError(f"{error}; cleanup incomplete: {'; '.join(cleanup_errors)}") from error
+        raise
 
 
 def run_validate(root: Path, spec: Path) -> dict:
@@ -302,21 +373,25 @@ def main(argv: list[str] | None = None) -> int:
     if not DESC_MIN <= len(description) <= DESC_MAX:
         result["error"] = f"--description must be {DESC_MIN}-{DESC_MAX} characters (got {len(description)})"
         return finish(2)
-    root = args.root.resolve()
+    try:
+        root = args.root.resolve()
+    except (OSError, RuntimeError) as error:
+        result["error"] = f"cannot resolve --root: {error}"
+        return finish(2)
     if not (root / "scripts" / "qat.py").exists() and not (Path(__file__).resolve().parent / "qat.py").exists():
         result["error"] = "cannot find scripts/qat.py; run from the qat/ directory or pass --root"
         return finish(2)
 
     files = plan(root, args.name, description, args.runtime, args.design)
-    existing = [p for p in files if p.exists()]
-    if existing:  # all or nothing: never a half-written scaffold
-        result["error"] = "already exists, nothing written: " + ", ".join(str(p.relative_to(root)) for p in existing)
+    try:
+        result["error"] = preflight(root, files)
+        if result["error"]:
+            return finish(2)
+        write_scaffold(files)
+    except OSError as error:
+        result["error"] = f"could not create scaffold: {error}"
         return finish(2)
-
-    for path, text in files.items():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
-        result["created"].append(str(path.relative_to(root)))
+    result["created"] = [str(path.relative_to(root)) for path in files]
 
     result["validate"] = run_validate(root, root / "tools" / f"{args.name}.qat.md")
     result["next"] = next_steps(args.name, args.runtime)
