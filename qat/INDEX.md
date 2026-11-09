@@ -39,7 +39,7 @@ Challenge the hidden assumptions, blind spots, backfire risks, reversals and eth
 - **modules:** reversal, sharpen, ethical-echo, application-stress, bias-climber
 - **hands off to** `truth-weight` when the user wants a verdict between the idea and its strongest counterargument
 
-## thread-distill v0.2.0 — ok
+## thread-distill v0.2.1 — ok
 
 Distill and compress a conversation into a layered distillate (hook, abstract, status ledger, ideas, open threads) that a later reader, model or tool can load at the depth it needs, with every status and attribution traceable to the thread.
 
