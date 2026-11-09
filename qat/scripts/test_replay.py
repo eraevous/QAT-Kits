@@ -85,7 +85,9 @@ class ReplayTest(unittest.TestCase):
             for r in rows:
                 key = "dispute" if (grader == "kate" and r["item"] == split_item) else "agree"
                 lines.append(json.dumps({"oid": r["oid"], "defensible": "yes", "corrections": 0,
-                                         "key": key, "arm_guess": "unsure"}))
+                                         "incorrect_commitment": False, "unnecessary_action": False,
+                                         "missed_abstention": False, "invented_detail": False,
+                                         "key": key, "key_note": "", "arm_guess": "unsure"}))
             (self.tmp / "grades" / f"{grader}.{tool}.jsonl").write_text("\n".join(lines) + "\n")
         res = replay.tally(self.tmp, tool)
         self.assertEqual([q["item"] for q in res["adjudication_queue"]], [split_item])
@@ -94,6 +96,40 @@ class ReplayTest(unittest.TestCase):
         self.assertEqual(res["blinding"], {"unsure": 40})
         res2 = replay.tally(self.tmp, tool, exclude_seen=True)
         self.assertEqual(res2["arms"]["A"]["graded"] + res2["arms"]["B"]["graded"], 40 - 2 * 6)
+
+    def test_tally_rejects_invalid_grades(self):
+        tool = "real-problem"
+        (self.tmp / "grades").mkdir()
+        graders = self.out["tools"][tool]["graders"]
+        invalids = {
+            ("claude", 0): ("key_note", None),
+            ("claude", 1): ("corrections", "0"),
+            ("kate", 0): ("incorrect_commitment", "false"),
+            ("kate", 1): ("defensible", "maybe"),
+        }
+        for grader, rows in graders.items():
+            lines = []
+            for index, row in enumerate(rows):
+                grade = {"oid": row["oid"], "defensible": "yes", "corrections": 0,
+                         "incorrect_commitment": False, "unnecessary_action": False,
+                         "missed_abstention": False, "invented_detail": False,
+                         "key": "agree", "key_note": "", "arm_guess": "unsure"}
+                invalid = invalids.get((grader, index))
+                if invalid:
+                    field, value = invalid
+                    if value is None:
+                        grade.pop(field)
+                    else:
+                        grade[field] = value
+                lines.append(json.dumps(grade))
+            (self.tmp / "grades" / f"{grader}.{tool}.jsonl").write_text("\n".join(lines) + "\n")
+        res = replay.tally(self.tmp, tool)
+        self.assertEqual(res["arms"]["A"]["graded"] + res["arms"]["B"]["graded"], 36)
+        self.assertEqual(sum("invalid grade:" in problem for problem in res["problems"]), 4)
+        self.assertTrue(any("missing key_note" in problem for problem in res["problems"]))
+        self.assertTrue(any("corrections must be 0, 1, or 2" in problem for problem in res["problems"]))
+        self.assertTrue(any("incorrect_commitment must be a boolean" in problem for problem in res["problems"]))
+        self.assertTrue(any("defensible must be one of yes, partly, no" in problem for problem in res["problems"]))
 
 
 if __name__ == "__main__":

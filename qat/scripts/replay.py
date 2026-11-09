@@ -52,6 +52,32 @@ TOOLS = ("real-problem", "kind-check")
 GRADERS = ("claude", "kate")
 ARMS = ("A", "B")
 FLAGS = ("incorrect_commitment", "unnecessary_action", "missed_abstention", "invented_detail")
+GRADE_VALUES = {
+    "defensible": ("yes", "partly", "no"),
+    "key": ("agree", "dispute"),
+    "arm_guess": ("plain", "tool", "unsure"),
+}
+
+
+def _grade_errors(g) -> list[str]:
+    if not isinstance(g, dict):
+        return ["expected a JSON object"]
+    required = ("oid", "defensible", "corrections", *FLAGS, "key", "key_note", "arm_guess")
+    errors = [f"missing {field}" for field in required if field not in g]
+    if "oid" in g and not isinstance(g["oid"], str):
+        errors.append("oid must be a string")
+    for field in ("key_note", "note"):
+        if field in g and not isinstance(g[field], str):
+            errors.append(f"{field} must be a string")
+    for field, values in GRADE_VALUES.items():
+        if field in g and g[field] not in values:
+            errors.append(f"{field} must be one of {', '.join(values)}")
+    if "corrections" in g and (type(g["corrections"]) is not int or g["corrections"] not in (0, 1, 2)):
+        errors.append("corrections must be 0, 1, or 2")
+    for field in FLAGS:
+        if field in g and type(g[field]) is not bool:
+            errors.append(f"{field} must be a boolean")
+    return errors
 
 
 def _load(path: Path):
@@ -156,10 +182,15 @@ def tally(study: Path, tool: str, exclude_seen: bool = False) -> dict:
             except json.JSONDecodeError:
                 problems.append(f"{f.name}:{n} not JSON")
                 continue
-            if g.get("oid") not in by_oid or by_oid[g["oid"]][0] != grader:
-                problems.append(f"{f.name}:{n} unknown oid {g.get('oid')} for {grader}")
+            errors = _grade_errors(g)
+            if errors:
+                problems.append(f"{f.name}:{n} invalid grade: {'; '.join(errors)}")
                 continue
-            grades[g["oid"]] = g
+            oid = g["oid"]
+            if oid not in by_oid or by_oid[oid][0] != grader:
+                problems.append(f"{f.name}:{n} unknown oid {oid} for {grader}")
+                continue
+            grades[oid] = g
     for oid in sorted(set(by_oid) - set(grades)):
         grader, item, arm = by_oid[oid]
         if not (exclude_seen and keys[item].get("seen_in_design")):
