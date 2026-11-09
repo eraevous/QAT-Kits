@@ -1,4 +1,4 @@
-"""Generate the effort-cost lookup tables from the spec's Table 1.
+"""Generate effort-cost lookup tables from constants manually synchronized with the spec.
 
 WHY THIS EXISTS
     The check is meant to run on ChatGPT's lightest setting (Instant), so that
@@ -22,10 +22,14 @@ RULES MIRRORED FROM THE SPEC (qat/tools/effort-cost.qat.md, module: menu)
     - Two significant figures.
 
 Run: python3 -I runtimes/chatgpt/effort-cost.card.py     (from qat/)
+
+The coefficients are hard-coded below, not read from the spec. When one changes,
+manually synchronize the matching constants, rerun this script, and propagate
+the output to the paste block and pocket card; then regenerate the skill text.
 """
 from math import floor, log10
 
-# Table 1 of the spec: (name, (low, central, high) Wh per ~1,000-token answer, is_reasoning)
+# Keep manually synchronized with Table 1 of the spec: (name, (low, central, high) Wh per ~1,000-token answer, is_reasoning)
 T1 = [
     ("Instant", (0.2, 0.4, 1.2), False),
     ("Thinking light", (0.7, 2.5, 6), True),

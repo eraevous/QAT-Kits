@@ -26,7 +26,7 @@ Kit-owned and ungoverned (no Telosmith records), per the Telosmith scope agreed 
   - Google's measured fleet median is 0.24 Wh.
   - Modeled estimates for GPT-5 at high effort are 17–40 Wh.
   - Rejected: a single "best estimate". It would hide the most decision-relevant fact, which is that nobody outside the providers knows.
-- **Coefficients live in a table in the spec**, so a refresh doesn't touch the method. The runtime texts inline the same table, so they must be updated together.
+- **The spec's tables define the coefficients, but the generator hard-codes them.** When a coefficient changes, manually synchronize the generator constants, run it, and manually propagate its output to the runtime texts.
 - **Cost sits next to value.** A cost figure alone invites either guilt or dismissal. The decision is whether *this request* benefits.
 - **A lean, not a verdict.** The tool can say "bump for this message only", but the user decides. It never moralizes.
 - **ChatGPT runtime: a paste block first, a plugin skill second.**
@@ -49,8 +49,8 @@ Kit-owned and ungoverned (no Telosmith records), per the Telosmith scope agreed 
 - **Lookups, not arithmetic, in the runtime texts (v0.6).**
   - Live runs showed ChatGPT Instant cannot reliably do the multi-step arithmetic: floors, scaling and unit conversion. Yet the check must run on Instant to cost less than what it informs.
   - So `effort-cost.card.py` precomputes every value once. The paste block, the skill text and the pocket card carry the same tables.
-  - The spec keeps the method, so a coefficient change is made there and then regenerated.
-  - The skill text is now generated from the paste block, so the two cannot drift.
+  - After changing a coefficient in the spec, manually update the matching generator constant, run `effort-cost.card.py`, and manually propagate its output to the paste block and pocket card. Regenerate the skill text from the paste block.
+  - The skill text is generated from the paste block, so regenerate it after propagating changes there.
   - Verified live: the v0.5 run had million-answers errors of 1,000–1,000,000×; the v0.6 run had none.
 
 ## Distinctions that must survive revisions
