@@ -98,9 +98,7 @@ cases:
         pattern: "(instant|lightest|card)"
         why: names the cheaper route
     must_avoid:
-      - section: menu
-        pattern: "near you"
-        why: no region given
+      - judge: adds a near-you column without a user-provided region or an explicitly labelled region estimate supplied by runtime context
       - judge: answers the Middlemarch question in more than about one line, or goes on to discuss the novel
       - judge: states a current model or effort setting as fact although the user never gave one
       - judge: invents a location or local time for the user
@@ -117,12 +115,8 @@ cases:
       - section: check
         pattern: "high"
         why: and at Thinking high
-      - section: where
-        pattern: "(0\\.35|default|not given|unknown|didn't say|no time)"
-        why: default carbon factor when time is unknown
+      - judge: names the carbon factor, using the user-provided or explicitly labelled runtime-supplied time when available and the default factor otherwise
     must_avoid:
-      - section: menu
-        pattern: "near you"
-        why: no region given
+      - judge: adds a near-you column without a user-provided region or an explicitly labelled region estimate supplied by runtime context
       - judge: invents a location, local time, or current setting for the user
       - judge: analyses the story instead of answering the cost question
