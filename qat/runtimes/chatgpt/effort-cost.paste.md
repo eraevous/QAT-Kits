@@ -93,16 +93,46 @@ If you don't know which setting it ran on, give the applicable Instant and High 
 4. In perspective: the main gap is the difference in Table A between my two named settings (or, if I named one or none, between Instant and the heaviest setting that would help). Translate it with: 10 W LED bulb = 1 Wh per 6 minutes; phone charge ≈ 15 Wh; laptop for an hour ≈ 50 Wh; kettle 1 L ≈ 100 Wh; car ≈ 400 g CO2 per mile (1 g ≈ 13 ft); sip ≈ 30 mL. Then copy the matching line from Table C, word for word (pick the nearest pair and length; do not compute a new one). Table C is a separate default-factor scenario at 0.35 g CO2e/Wh, even if the menu uses another carbon factor.
 
 TABLE C. A million answers like this (separate default-factor scenario: 0.35 g CO2e/Wh)
-- Instant → High, paragraph: gap 7.4 Wh; a million answers ≈ 0.70 household-years of electricity, 0.56 car-years of CO2, 20 household-days of water
-- Instant → High, essay: gap 22 Wh; ≈ 2.1 household-years, 1.7 car-years, 60 household-days of water
-- Medium → High, paragraph: gap 4.5 Wh; ≈ 0.43 household-years, 0.34 car-years, 12 household-days of water
-- Medium → High, essay: gap 14 Wh; ≈ 1.3 household-years, 1.0 car-years, 37 household-days of water
-- Instant → Medium, paragraph: gap 2.9 Wh; ≈ 0.27 household-years, 0.22 car-years, 7.9 household-days of water
-- Instant → Medium, essay: gap 8.4 Wh; ≈ 0.80 household-years, 0.64 car-years, 23 household-days of water
-- High → Pro, paragraph: gap 15 Wh; ≈ 1.4 household-years, 1.1 car-years, 41 household-days of water
-- High → Pro, essay: gap 45 Wh; ≈ 4.3 household-years, 3.4 car-years, 120 household-days of water
-- Instant → Pro, paragraph: gap 22 Wh; ≈ 2.1 household-years, 1.7 car-years, 61 household-days of water
-- Instant → Pro, essay: gap 67 Wh; ≈ 6.4 household-years, 5.1 car-years, 180 household-days of water
+- Instant → Thinking light, short reply: gap 1.2 Wh; a million answers ≈ 0.12 household-years of electricity, 0.092 car-years of CO2, 3.3 household-days of water
+- Instant → Thinking light, paragraph: gap 1.1 Wh; a million answers ≈ 0.11 household-years of electricity, 0.086 car-years of CO2, 3.1 household-days of water
+- Instant → Thinking light, page: gap 1.5 Wh; a million answers ≈ 0.14 household-years of electricity, 0.11 car-years of CO2, 4.0 household-days of water
+- Instant → Thinking light, essay: gap 3.1 Wh; a million answers ≈ 0.30 household-years of electricity, 0.24 car-years of CO2, 8.6 household-days of water
+- Instant → Thinking standard, short reply: gap 3.0 Wh; a million answers ≈ 0.28 household-years of electricity, 0.23 car-years of CO2, 8.1 household-days of water
+- Instant → Thinking standard, paragraph: gap 2.9 Wh; a million answers ≈ 0.27 household-years of electricity, 0.22 car-years of CO2, 7.9 household-days of water
+- Instant → Thinking standard, page: gap 3.9 Wh; a million answers ≈ 0.37 household-years of electricity, 0.30 car-years of CO2, 11 household-days of water
+- Instant → Thinking standard, essay: gap 8.4 Wh; a million answers ≈ 0.80 household-years of electricity, 0.64 car-years of CO2, 23 household-days of water
+- Instant → Thinking high, short reply: gap 7.5 Wh; a million answers ≈ 0.71 household-years of electricity, 0.57 car-years of CO2, 20 household-days of water
+- Instant → Thinking high, paragraph: gap 7.4 Wh; a million answers ≈ 0.70 household-years of electricity, 0.56 car-years of CO2, 20 household-days of water
+- Instant → Thinking high, page: gap 10 Wh; a million answers ≈ 0.97 household-years of electricity, 0.78 car-years of CO2, 28 household-days of water
+- Instant → Thinking high, essay: gap 22 Wh; a million answers ≈ 2.1 household-years of electricity, 1.7 car-years of CO2, 60 household-days of water
+- Instant → Pro, short reply: gap 22 Wh; a million answers ≈ 2.1 household-years of electricity, 1.7 car-years of CO2, 61 household-days of water
+- Instant → Pro, paragraph: gap 22 Wh; a million answers ≈ 2.1 household-years of electricity, 1.7 car-years of CO2, 61 household-days of water
+- Instant → Pro, page: gap 31 Wh; a million answers ≈ 3.0 household-years of electricity, 2.4 car-years of CO2, 85 household-days of water
+- Instant → Pro, essay: gap 67 Wh; a million answers ≈ 6.4 household-years of electricity, 5.1 car-years of CO2, 180 household-days of water
+- Thinking light → Thinking standard, short reply: gap 1.8 Wh; a million answers ≈ 0.17 household-years of electricity, 0.13 car-years of CO2, 4.8 household-days of water
+- Thinking light → Thinking standard, paragraph: gap 1.8 Wh; a million answers ≈ 0.17 household-years of electricity, 0.13 car-years of CO2, 4.8 household-days of water
+- Thinking light → Thinking standard, page: gap 2.4 Wh; a million answers ≈ 0.23 household-years of electricity, 0.19 car-years of CO2, 6.7 household-days of water
+- Thinking light → Thinking standard, essay: gap 5.2 Wh; a million answers ≈ 0.50 household-years of electricity, 0.40 car-years of CO2, 14 household-days of water
+- Thinking light → Thinking high, short reply: gap 6.2 Wh; a million answers ≈ 0.60 household-years of electricity, 0.48 car-years of CO2, 17 household-days of water
+- Thinking light → Thinking high, paragraph: gap 6.2 Wh; a million answers ≈ 0.60 household-years of electricity, 0.48 car-years of CO2, 17 household-days of water
+- Thinking light → Thinking high, page: gap 8.8 Wh; a million answers ≈ 0.83 household-years of electricity, 0.67 car-years of CO2, 24 household-days of water
+- Thinking light → Thinking high, essay: gap 19 Wh; a million answers ≈ 1.8 household-years of electricity, 1.4 car-years of CO2, 51 household-days of water
+- Thinking light → Pro, short reply: gap 21 Wh; a million answers ≈ 2.0 household-years of electricity, 1.6 car-years of CO2, 58 household-days of water
+- Thinking light → Pro, paragraph: gap 21 Wh; a million answers ≈ 2.0 household-years of electricity, 1.6 car-years of CO2, 58 household-days of water
+- Thinking light → Pro, page: gap 30 Wh; a million answers ≈ 2.8 household-years of electricity, 2.3 car-years of CO2, 81 household-days of water
+- Thinking light → Pro, essay: gap 64 Wh; a million answers ≈ 6.1 household-years of electricity, 4.9 car-years of CO2, 170 household-days of water
+- Thinking standard → Thinking high, short reply: gap 4.5 Wh; a million answers ≈ 0.43 household-years of electricity, 0.34 car-years of CO2, 12 household-days of water
+- Thinking standard → Thinking high, paragraph: gap 4.5 Wh; a million answers ≈ 0.43 household-years of electricity, 0.34 car-years of CO2, 12 household-days of water
+- Thinking standard → Thinking high, page: gap 6.3 Wh; a million answers ≈ 0.60 household-years of electricity, 0.48 car-years of CO2, 17 household-days of water
+- Thinking standard → Thinking high, essay: gap 14 Wh; a million answers ≈ 1.3 household-years of electricity, 1.0 car-years of CO2, 37 household-days of water
+- Thinking standard → Pro, short reply: gap 20 Wh; a million answers ≈ 1.9 household-years of electricity, 1.5 car-years of CO2, 53 household-days of water
+- Thinking standard → Pro, paragraph: gap 20 Wh; a million answers ≈ 1.9 household-years of electricity, 1.5 car-years of CO2, 53 household-days of water
+- Thinking standard → Pro, page: gap 27 Wh; a million answers ≈ 2.6 household-years of electricity, 2.1 car-years of CO2, 74 household-days of water
+- Thinking standard → Pro, essay: gap 58 Wh; a million answers ≈ 5.6 household-years of electricity, 4.5 car-years of CO2, 160 household-days of water
+- Thinking high → Pro, short reply: gap 15 Wh; a million answers ≈ 1.4 household-years of electricity, 1.1 car-years of CO2, 41 household-days of water
+- Thinking high → Pro, paragraph: gap 15 Wh; a million answers ≈ 1.4 household-years of electricity, 1.1 car-years of CO2, 41 household-days of water
+- Thinking high → Pro, page: gap 21 Wh; a million answers ≈ 2.0 household-years of electricity, 1.6 car-years of CO2, 57 household-days of water
+- Thinking high → Pro, essay: gap 45 Wh; a million answers ≈ 4.3 household-years of electricity, 3.4 car-years of CO2, 120 household-days of water
 (US household ≈ 10,500 kWh a year and ≈ 1,100 L of water a day; a typical car ≈ 4.6 t CO2 a year.)
 
 5. What more effort buys here: helps multi-step reasoning, argument, close reading of long passages, comparing sources, checking claims, math, code; little for rephrasing, short recall, tone, idea lists, summaries of text already here. Say which my request is.

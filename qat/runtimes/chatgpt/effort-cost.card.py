@@ -11,7 +11,7 @@ WHY THIS EXISTS
 WHAT IT PRINTS (paste the output into effort-cost.paste.md and effort-cost.card.md)
     1. Energy per answer, Wh, central (low-high), by setting x answer length.
     2. Next 5 answers, Wh, central: this answer + 4 one-paragraph follow-ups.
-    3. A million answers like this, per setting pair the user is likely to weigh,
+    3. A million answers like this, for every setting pair and answer length,
        already converted to household-years, car-years and household-days of water.
 
 RULES MIRRORED FROM THE SPEC (qat/tools/effort-cost.qat.md, module: menu)
@@ -27,6 +27,7 @@ The coefficients are hard-coded below, not read from the spec. When one changes,
 manually synchronize the matching constants, rerun this script, and propagate
 the output to the paste block and pocket card; then regenerate the skill text.
 """
+from itertools import combinations
 from math import floor, log10
 
 # Keep manually synchronized with Table 1 of the spec: (name, (low, central, high) Wh per ~1,000-token answer, is_reasoning)
@@ -86,12 +87,11 @@ def main():
     for name, vals, r in T1:
         print(f"| {name} | " + " | ".join(sig(next5(vals, f, r)) for _, f in LENGTHS) + " |")
 
-    print("\nA MILLION ANSWERS LIKE THIS (gap between two settings, already converted)")
+    print("\nA MILLION ANSWERS LIKE THIS (all setting pairs and answer lengths, already converted)")
     central = {n: {l: per_answer(v, f, r)[1] for l, f in LENGTHS} for n, v, r in T1}
     names = [n for n, _, _ in T1]
-    pairs = [(names[0], names[3]), (names[2], names[3]), (names[3], names[4]), (names[0], names[4]), (names[0], names[2])]
-    for a, b in pairs:
-        for l, _ in [LENGTHS[1], LENGTHS[3]]:
+    for a, b in combinations(names, 2):
+        for l, _ in LENGTHS:
             gap = central[b][l] - central[a][l]
             print(f"- {a.split(' (')[0]} → {b.split(' (')[0]}, {l.split(' (')[0].lower()}: gap {sig(gap)} Wh; a million answers ≈ {million(gap)}")
 
