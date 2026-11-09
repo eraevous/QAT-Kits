@@ -160,6 +160,10 @@ def tally(study: Path, tool: str, exclude_seen: bool = False) -> dict:
                 problems.append(f"{f.name}:{n} unknown oid {g.get('oid')} for {grader}")
                 continue
             grades[g["oid"]] = g
+    for oid in sorted(set(by_oid) - set(grades)):
+        grader, item, arm = by_oid[oid]
+        if not (exclude_seen and keys[item].get("seen_in_design")):
+            problems.append(f"missing grade {oid} for {grader} ({item}, arm {arm})")
     arms = {a: Counter() for a in ARMS}
     per_item = defaultdict(dict)
     guesses = Counter()
