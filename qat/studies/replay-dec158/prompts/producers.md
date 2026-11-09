@@ -28,7 +28,7 @@ The response's format would give the arm away (arm B has fixed headings). A sepa
 
 > Rewrite the response below into exactly these five lines, keeping its meaning and its own wording where possible. Add nothing that is not in the response; if a line has no content in the response, write "not stated".
 >
-> - Verdict: what the response concludes the item is or needs
+> - Verdict: what the response concludes the item is or needs, retaining all supporting claims, evidence/quotes, source pointers, failure modes, observables and tripwires with their conditions and thresholds, even if they appear incorrect
 > - Actions proposed: every action it proposes, and who does it
 > - Commitments asserted: anything it states as decided, accepted, closed, adopted or established
 > - Escalation: whether it asks the owner or someone else to decide, and what
