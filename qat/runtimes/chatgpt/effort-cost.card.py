@@ -13,6 +13,8 @@ WHAT IT PRINTS (paste the output into effort-cost.paste.md and effort-cost.card.
     2. Next 5 answers, Wh, central: this answer + 4 one-paragraph follow-ups.
     3. A million answers like this, for every setting pair and answer length,
        already converted to household-years, car-years and household-days of water.
+    4. Table D: carbon and water, central (low-high), for every context tier,
+       setting and answer length. Copy this block into both runtime texts.
 
 RULES MIRRORED FROM THE SPEC (qat/tools/effort-cost.qat.md, module: menu)
     - Scale by answer length (per 1,000 tokens).
@@ -22,11 +24,14 @@ RULES MIRRORED FROM THE SPEC (qat/tools/effort-cost.qat.md, module: menu)
     - Two significant figures.
 
 Run: python3 -I runtimes/chatgpt/effort-cost.card.py     (from qat/)
+Only Table D: add --conversions. Tests check both runtime copies against it.
 
 The coefficients are hard-coded below, not read from the spec. When one changes,
 manually synchronize the matching constants, rerun this script, and propagate
 the output to the paste block and pocket card; then regenerate the skill text.
 """
+import argparse
+from decimal import Decimal
 from itertools import combinations
 from math import floor, log10
 
@@ -42,6 +47,18 @@ LENGTHS = [("Short reply (~100 tokens)", 0.1), ("Paragraph (~300)", 0.3), ("Page
 PARAGRAPH = 0.3
 CARBON, WATER = 0.35, 3.0
 HH_KWH_YR, CAR_T_YR, HH_L_DAY = 10_500, 4.6, 1_100
+# Keep synchronized with the spec's context add-on and Tables 2, 2b and 3.
+CONTEXTS = [
+    ("Below 5k tokens", (0, 0, 0)),
+    ("5k–20k tokens", (1, 3, 5)),
+    ("20k–60k tokens", (5, 12, 20)),
+    (">60k tokens", (20, 30, 40)),
+]
+CARBON_FACTORS = [("Default", 0.35), ("US midday", 0.30), ("US evening", 0.45),
+                  ("Illinois", 0.23), ("California", 0.18)]
+WATER_RANGE = (1, WATER, 5)
+CONVERSIONS_START = "<!-- BEGIN GENERATED CARBON/WATER LOOKUPS -->"
+CONVERSIONS_END = "<!-- END GENERATED CARBON/WATER LOOKUPS -->"
 
 
 def sig(x: float) -> str:
@@ -70,7 +87,49 @@ def million(gap_wh: float) -> str:
     return f"{sig(hh_years)} household-years of electricity, {sig(car_years)} car-years of CO2, {sig(hh_days)} household-days of water"
 
 
-def main():
+def conversion_cells(vals, factor, reasoning, context):
+    """Convert unrounded, context-adjusted low/central/high energy, then round.
+
+    Decimal keeps exact source coefficients at rounding boundaries. Carbon's
+    range comes from energy; water also carries its own 1/3/5 mL/Wh factors.
+    """
+    scale = max(Decimal(str(factor)), Decimal("0.5")) if reasoning else Decimal(str(factor))
+    energy = tuple(Decimal(str(v)) * scale + Decimal(str(add))
+                   for v, add in zip(vals, context))
+
+    def cell(values):
+        low, central, high = values
+        return f"{sig(central)} ({sig(low)}–{sig(high)})"
+
+    carbon = [cell(tuple(v * Decimal(str(f)) for v in energy)) for _, f in CARBON_FACTORS]
+    water = cell(tuple(v * Decimal(str(f)) for v, f in zip(energy, WATER_RANGE)))
+    return carbon + [water]
+
+
+def conversion_tables():
+    """Standalone lookup block shared byte-for-byte by paste and skill runtimes."""
+    lines = [CONVERSIONS_START,
+             "TABLE D. CO2e (g) and water (mL): central (low–high), including context.",
+             "Copy the full cell, including its range. Illinois and California are near-you scenarios only."]
+    for tier, context in CONTEXTS:
+        lines.extend(["", f"Context: {tier}",
+                      "| Setting | Length | " + " | ".join(f"{name} CO2e ({factor:.2f})" for name, factor in CARBON_FACTORS) + " | Water |",
+                      "|---|---|" + "---|" * (len(CARBON_FACTORS) + 1)])
+        for name, vals, reasoning in T1:
+            for length, factor in LENGTHS:
+                cells = conversion_cells(vals, factor, reasoning, context)
+                lines.append(f"| {name.split(' (')[0]} | {length.split(' (')[0]} | " + " | ".join(cells) + " |")
+    lines.append(CONVERSIONS_END)
+    return "\n".join(lines)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--conversions", action="store_true", help="print only the generated Table D block")
+    args = parser.parse_args(argv)
+    if args.conversions:
+        print(conversion_tables())
+        return
     print("ENERGY PER ANSWER (Wh): central (low–high)")
     print("| Setting | " + " | ".join(l for l, _ in LENGTHS) + " |")
     print("|---|" + "---|" * len(LENGTHS))
@@ -94,6 +153,7 @@ def main():
         for l, _ in LENGTHS:
             gap = central[b][l] - central[a][l]
             print(f"- {a.split(' (')[0]} → {b.split(' (')[0]}, {l.split(' (')[0].lower()}: gap {sig(gap)} Wh; a million answers ≈ {million(gap)}")
+    print("\n" + conversion_tables())
 
 
 if __name__ == "__main__":
