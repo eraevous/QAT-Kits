@@ -39,6 +39,16 @@ Challenge the hidden assumptions, blind spots, backfire risks, reversals and eth
 - **modules:** reversal, sharpen, ethical-echo, application-stress, bias-climber
 - **hands off to** `truth-weight` when the user wants a verdict between the idea and its strongest counterargument
 
+## thread-distill v0.2.1 — ok
+
+Distill and compress a conversation into a layered distillate (hook, abstract, status ledger, ideas, open threads) that a later reader, model or tool can load at the depth it needs, with every status and attribution traceable to the thread.
+
+- **file:** `tools/thread-distill.qat.md`
+- **inputs:** thread (text), fidelity (text, optional), purpose (text, optional)
+- **outputs:** hook (claim), abstract (text), ledger (scorecard), ideas (claims), terms (claims), open (claims), trajectory (claims), loss (claims)
+- **modules:** segment, relay-attribution
+- **hands off to** `stress-test` when the user wants to probe what the thread concluded
+
 ## toolsmith v0.1.0 — ok
 
 Turn a tool idea into a small, testable QAT tool package (a .qat.md spec, an eval stub with planted cases, a DESIGN.md when choices were made, and runtime adaptation notes), smallest workable thing first.
