@@ -18,7 +18,7 @@ EFFORT CHECK (heuristic). Look numbers up in the tables below; do not recompute 
 Use these nine headings, in order, with bullets under each except Cost by setting (a table) and Lean (one line): Your request · Cost by setting · This check · In perspective · What more effort buys here · Where and when · Ways to spend less · Lean · Basis and limits. Under 350 words, not counting the table.
 
 1. Your request: pick the length column for the answer to my underlying request (Short ~100 tokens, Paragraph ~300, Page ~700, Essay ~1,500); the settings, place and time I gave. If I left place or time blank and you have an approximate location or time from your own context, you may use it, labelled "estimated". You cannot see your own setting; never state it. ChatGPT's Power slider: Instant → Instant row, Medium → Thinking standard, High → Thinking high.
-2. Cost by setting: copy the five rows for my length column from Table A, with columns Setting | Energy (Wh) | CO2e (g) | Water (mL) | Next 5 answers (Wh). Mark my named rows "now" / "considering". CO2e (g) = the central Wh × carbon factor (0.35; US local time 10 am–4 pm 0.30; 4–10 pm 0.45). Water (mL) = the central Wh × 3. Next 5 from Table B. If my region is Illinois or California, add a column "CO2e near you (g)" = central Wh × 0.23 (Illinois) or 0.18 (California). If the thread is past roughly 4,000 words, say every answer costs about 3 Wh more (past 15,000 words, about 12 Wh more).
+2. Cost by setting: estimate thread size as words × 1.3 tokens, including this check. Below 5k tokens, use Tables A and B. At 5k tokens or more, choose the matching context tier in Tables A-context and B-context, and use it for every cost column; do not use the short-context values. Copy the five rows for my length column with columns Setting | Energy (Wh) | CO2e (g) | Water (mL) | Next 5 answers (Wh). Mark my named rows "now" / "considering". CO2e (g) = the selected table's central Wh × carbon factor (0.35; US local time 10 am–4 pm 0.30; 4–10 pm 0.45). Water (mL) = that central Wh × 3. For Next 5, use Table B below 5k tokens and the matching tier in Table B-context otherwise. If my region is Illinois or California, add a column "CO2e near you (g)" = selected central Wh × 0.23 (Illinois) or 0.18 (California).
 
 TABLE A. Energy per answer (Wh): central (low–high)
 | Setting | Short (~100 tokens) | Paragraph (~300) | Page (~700) | Essay (~1,500) |
@@ -35,6 +35,54 @@ TABLE B. Next 5 answers (Wh, central): this answer + 4 one-paragraph follow-ups
 | Thinking standard (Medium) | 15 | 15 | 16 | 21 |
 | Thinking high (High) | 38 | 38 | 40 | 52 |
 | Pro | 110 | 110 | 120 | 160 |
+
+TABLE A-context. Energy per answer (Wh): central (low–high), by context tier
+| Setting | Answer length | 5k–20k tokens | 20k–60k tokens | >60k tokens |
+|---|---|---:|---:|---:|
+| Instant | Short (~100 tokens) | 3.0 (1.0–5.1) | 12 (5.0–20) | 30 (20–40) |
+| Instant | Paragraph (~300) | 3.1 (1.1–5.4) | 12 (5.1–20) | 30 (20–40) |
+| Instant | Page (~700) | 3.3 (1.1–5.8) | 12 (5.1–21) | 30 (20–41) |
+| Instant | Essay (~1,500) | 3.6 (1.3–6.8) | 13 (5.3–22) | 31 (20–42) |
+| Thinking light | Short (~100 tokens) | 4.2 (1.4–8.0) | 13 (5.3–23) | 31 (20–43) |
+| Thinking light | Paragraph (~300) | 4.2 (1.4–8.0) | 13 (5.3–23) | 31 (20–43) |
+| Thinking light | Page (~700) | 4.8 (1.5–9.2) | 14 (5.5–24) | 32 (20–44) |
+| Thinking light | Essay (~1,500) | 6.8 (2.0–14) | 16 (6.0–29) | 34 (21–49) |
+| Thinking standard (Medium) | Short (~100 tokens) | 6.0 (2.0–12) | 15 (6.0–28) | 33 (21–48) |
+| Thinking standard (Medium) | Paragraph (~300) | 6.0 (2.0–12) | 15 (6.0–28) | 33 (21–48) |
+| Thinking standard (Medium) | Page (~700) | 7.2 (2.4–16) | 16 (6.4–30) | 34 (21–50) |
+| Thinking standard (Medium) | Essay (~1,500) | 12 (4.0–28) | 21 (8.0–42) | 39 (23–62) |
+| Thinking high (High) | Short (~100 tokens) | 10 (3.5–25) | 20 (7.5–40) | 38 (22–60) |
+| Thinking high (High) | Paragraph (~300) | 10 (3.5–25) | 20 (7.5–40) | 38 (22–60) |
+| Thinking high (High) | Page (~700) | 14 (4.5–33) | 22 (8.5–48) | 40 (24–68) |
+| Thinking high (High) | Essay (~1,500) | 26 (8.5–65) | 34 (12–80) | 52 (28–100) |
+| Pro | Short (~100 tokens) | 26 (8.5–80) | 34 (12–95) | 52 (28–120) |
+| Pro | Paragraph (~300) | 26 (8.5–80) | 34 (12–95) | 52 (28–120) |
+| Pro | Page (~700) | 34 (12–110) | 44 (16–120) | 62 (30–140) |
+| Pro | Essay (~1,500) | 70 (24–230) | 80 (28–240) | 98 (42–260) |
+
+TABLE B-context. Next 5 answers (Wh, central), by context tier
+| Setting | Answer length | 5k–20k tokens | 20k–60k tokens | >60k tokens |
+|---|---|---:|---:|---:|
+| Instant | Short (~100 tokens) | 16 | 61 | 150 |
+| Instant | Paragraph (~300) | 16 | 61 | 150 |
+| Instant | Page (~700) | 16 | 61 | 150 |
+| Instant | Essay (~1,500) | 16 | 61 | 150 |
+| Thinking light | Short (~100 tokens) | 21 | 66 | 160 |
+| Thinking light | Paragraph (~300) | 21 | 66 | 160 |
+| Thinking light | Page (~700) | 22 | 67 | 160 |
+| Thinking light | Essay (~1,500) | 24 | 69 | 160 |
+| Thinking standard (Medium) | Short (~100 tokens) | 30 | 75 | 160 |
+| Thinking standard (Medium) | Paragraph (~300) | 30 | 75 | 160 |
+| Thinking standard (Medium) | Page (~700) | 31 | 76 | 170 |
+| Thinking standard (Medium) | Essay (~1,500) | 36 | 81 | 170 |
+| Thinking high (High) | Short (~100 tokens) | 52 | 98 | 190 |
+| Thinking high (High) | Paragraph (~300) | 52 | 98 | 190 |
+| Thinking high (High) | Page (~700) | 56 | 100 | 190 |
+| Thinking high (High) | Essay (~1,500) | 68 | 110 | 200 |
+| Pro | Short (~100 tokens) | 130 | 170 | 260 |
+| Pro | Paragraph (~300) | 130 | 170 | 260 |
+| Pro | Page (~700) | 140 | 180 | 270 |
+| Pro | Essay (~1,500) | 170 | 220 | 310 |
 
 3. This check cost about 0.24 Wh if it ran on Instant, 3.6 Wh on Medium, 9.0 Wh on High, 27 Wh on Pro. If you don't know which, give the Instant and High figures. It was worth running if the next-answer gap between the settings I'm weighing is at least 2.4 Wh (on Instant), 36 Wh (on Medium) or 90 Wh (on High). If not, say so and point me to the pocket card or to running it on Instant.
 4. In perspective: the main gap is the difference in Table A between my two named settings (or, if I named one or none, between Instant and the heaviest setting that would help). Translate it with: 10 W LED bulb = 1 Wh per 6 minutes; phone charge ≈ 15 Wh; laptop for an hour ≈ 50 Wh; kettle 1 L ≈ 100 Wh; car ≈ 400 g CO2 per mile (1 g ≈ 13 ft); sip ≈ 30 mL. Then copy the matching line from Table C, word for word (pick the nearest pair and length; do not compute a new one). Table C is a separate default-factor scenario at 0.35 g CO2e/Wh, even if the menu uses another carbon factor.
