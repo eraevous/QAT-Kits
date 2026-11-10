@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - name: Generator tests (stdlib only)
-        run: cd qat && python3 -I -m unittest scripts/test_skills.py -v
+        run: python3 -I qat/scripts/test_skills.py -v
       - name: Staleness check
         if: github.event_name == 'push'
         run: python3 -I qat/scripts/skills.py check
