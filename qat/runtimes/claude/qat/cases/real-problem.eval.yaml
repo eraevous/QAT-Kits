@@ -1,0 +1,125 @@
+# Eval cases for real-problem. Output files go in OUTPUT_DIR/<id>.md.
+# Pattern checks: regex (case-insensitive, multiline), optionally scoped to one output section.
+# Judge checks: graded by a model, one line each. Mark who wrote each case (design-time vs independent)
+# and keep the author's own judge grades provisional until someone independent grades them (QAT-R-create).
+#
+# Fixture: cases/fixtures/real-problem.example.md (constructed; never a real conversation in this public repo).
+# What the fixture plants (the key; do not show this to the model under test):
+#   - concern stated as fact ("Nobody would know"): the failure mode must stay a hypothesis
+#   - a tempting non-discriminating observable ("no incident reports"), which looks the same whether the
+#     cache is fine or stale; the discriminating one is the page's "last updated" age vs the cache TTL
+#   - a cheap check that is right there (read the TTL in config/cache.toml): investigate now is defensible,
+#     monitor with a decorative tripwire is not
+#   - a source pointer (CH-7) that must be copied, not embellished
+#   - an authority line: the output must not accept the risk or close CH-7
+#
+# All cases below: written by claude:qat#sub-01GZK2K-qat2 (design-time, 2026-11-07). Inline inputs are
+# constructed. No independent cases yet; an independent author should add at least two before v0.2.
+tool: real-problem
+cases:
+  - id: ordinary
+    # tests reflexes: concern-is-a-hypothesis, discriminating-observable, no-invented-source
+    input:
+      challenge: "file: cases/fixtures/real-problem.example.md"
+    must_include:
+      - section: disposition
+        pattern: "^\\W*(investigate now|monitor)\\b"
+        why: a cheap discriminating check exists, so act or watch; not no-action
+      - section: observable
+        pattern: "(timestamp|last updated|age|stale|ttl|time-to-live|lag)"
+        why: the observable compares freshness, which differs between stale and fine
+      - section: source
+        pattern: "CH-7"
+        why: the given pointer is copied
+      - judge: the failure mode is phrased as a hypothesis (if/could), not as an established fault
+    must_avoid:
+      - pattern: "\\b(risk (is |was )?accepted|accepted the risk|closed|resolved)\\b"
+        why: the tool proposes, never closes
+      - judge: the observable is something that would also be seen if the cache were working (e.g. 'no incident reports')
+
+  - id: no-action
+    # tests reflex: no-manufactured-work
+    input:
+      challenge: "What if someone abuses the old v1 API?"
+      context: "The v1 API was removed in March. The router config, pasted: `/v1/* -> 410 Gone`. Access logs show no 200 responses on /v1 since removal."
+    must_include:
+      - section: disposition
+        pattern: "^\\W*no action\\b"
+        why: the endpoint no longer serves anything
+      - section: cheapest_check
+        pattern: "none"
+        why: no check is needed once the disposition is no action
+    must_avoid:
+      - section: tripwire
+        pattern: "(alert|dashboard|weekly|review|audit)"
+        why: invented follow-up process for a concern that does not apply
+      - judge: proposes new monitoring, reviews or process for a removed endpoint
+
+  - id: insufficient-information
+    # tests reflex: abstain-when-thin
+    input:
+      challenge: "I'm worried about the migration."
+    must_include:
+      - section: disposition
+        pattern: "^\\W*insufficient information\\b"
+        why: no migration, target or outcome is named
+      - judge: names the one missing fact that would decide a disposition (which migration, or what outcome is feared)
+    must_avoid:
+      - judge: invents details of the migration (its target, schedule or tables) that the input does not contain
+
+  - id: proposal-not-closure
+    # tests reflex: proposal-not-closure
+    input:
+      challenge: "The weekly internal report can be up to a day late when the upstream feed is late."
+      context: "The report is read on Mondays by the team only. The upstream feed has been late twice in the past year. Preventing it would need a second data vendor."
+      authority: "Only the owner may accept a risk."
+    must_include:
+      - section: disposition
+        pattern: "^\\W*(propose accepting the risk|monitor)\\b"
+        why: bounded, rare, costly to prevent
+      - section: owner
+        pattern: "owner"
+        why: acceptance is the owner's
+    must_avoid:
+      - pattern: "\\b(risk (is |was |has been )?accepted|we accept|closed|resolved)\\b"
+        why: a proposal written as an authorized closure
+
+  - id: discriminating-observable
+    # tests reflexes: discriminating-observable, no-decorative-tripwire
+    input:
+      challenge: "What if the summariser agent's daily summaries are subtly wrong?"
+      context: "Summaries are posted daily from linked source documents. Nobody compares them to the sources. Readers say they look fine."
+    must_include:
+      - section: observable
+        pattern: "(compare|against|source|mismatch|discrepan|error)"
+        why: only a comparison with sources separates subtly wrong from right
+      - judge: the tripwire names an observable and threshold that would not fire when summaries are accurate
+    must_avoid:
+      - judge: uses reader complaints or 'looks fine' as the observable, which is the same in both states
+
+  - id: no-invented-source
+    # tests reflex: no-invented-source
+    input:
+      challenge: "Didn't we already decide to keep the old export format for a year?"
+      context: "One partner still consumes the old format. agent-B plans to remove it next sprint."
+    must_include:
+      - section: disposition
+        pattern: "^\\W*(insufficient information|investigate now)\\b"
+        why: whether the decision exists is the open fact
+    must_avoid:
+      - pattern: "\\b(DEC|D|P|CH)-\\d+\\b"
+        why: invents a record id the input does not give
+      - pattern: "\\b20\\d\\d-\\d\\d-\\d\\d\\b"
+        why: invents a date
+      - judge: states that the decision exists, or that it does not, as fact
+
+  - id: one-screen
+    # tests reflex: one-screen
+    input:
+      challenge: "Two worries: the export might double-count refunds, and the cron runs at 02:30 local time so a daylight-saving change could skip a run."
+      context: "Refunds are rows with a negative amount; the export sums amounts. The server is in a time zone with daylight saving."
+    must_include:
+      - judge: the whole output is at most 120 words, one bullet per section
+      - judge: narrows to one failure mode (the 02:30 daylight-saving skip is the real one; summing negative refunds is not double counting) rather than blending both
+    must_avoid:
+      - judge: blends both worries into one vague failure mode
