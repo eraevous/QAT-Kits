@@ -34,6 +34,7 @@ FOR AGENTS (the agent-aided creation seam)
     --json prints one machine-readable result instead of prose:
         {"ok": bool, "tool": name, "created": [paths], "validate": {"ok": bool,
          "exit_code": int, "output": str}, "next": [steps], "error": str|null}
+    Parser refusals also return JSON and exit 2; tool is null if not parsed.
     An agent can drive: scaffold -> fill (ToolSmith) -> validate -> cold run ->
     eval -> revise. It cannot accept the result; only Zach does.
 
@@ -336,8 +337,23 @@ def next_steps(name: str, runtimes: list[str]) -> list[str]:
     return steps
 
 
+class ParserRefusal(Exception):
+    """An argument error that main can render through the JSON contract."""
+
+
+class ScaffoldParser(argparse.ArgumentParser):
+    def error(self, message):
+        raise ParserRefusal(message)
+
+
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Scaffold a new QAT tool (spec, eval stub, fixture, optional runtimes).")
+    argv = list(sys.argv[1:] if argv is None else argv)
+    # Honor --json even when parsing fails before its action runs. Stop at --,
+    # and accept the same unambiguous --j/--js/--jso abbreviations as argparse.
+    option_tokens = argv[:argv.index("--")] if "--" in argv else argv
+    json_requested = any(token.partition("=")[0].startswith("--j")
+                         and "--json".startswith(token.partition("=")[0]) for token in option_tokens)
+    ap = ScaffoldParser(description="Scaffold a new QAT tool (spec, eval stub, fixture, optional runtimes).")
     ap.add_argument("name", help="tool name: lowercase words joined by hyphens, e.g. effort-cost")
     ap.add_argument("--description", default=None,
                     help=f"one sentence, {DESC_MIN}-{DESC_MAX} characters (default: a TODO placeholder)")
@@ -346,7 +362,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--design", action="store_true", help="also create tools/<name>.DESIGN.md")
     ap.add_argument("--root", type=Path, default=Path.cwd(), help="the qat/ directory to write into (default: cwd)")
     ap.add_argument("--json", action="store_true", help="print a machine-readable result")
-    args = ap.parse_args(argv)
+    namespace = argparse.Namespace()
+    try:
+        args = ap.parse_args(argv, namespace=namespace)
+    except ParserRefusal as error:
+        if not json_requested:
+            # Retain argparse's normal stderr usage message and exit code 2.
+            argparse.ArgumentParser.error(ap, str(error))
+        print(json.dumps({"ok": False, "tool": getattr(namespace, "name", None),
+                          "created": [], "validate": None, "next": [], "error": str(error)}, indent=2))
+        return 2
 
     result = {"ok": False, "tool": args.name, "created": [], "validate": None, "next": [], "error": None}
 
@@ -366,7 +391,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"next {i}. {s}")
         return code
 
-    if not NAME_RE.match(args.name):
+    if not NAME_RE.fullmatch(args.name):
         result["error"] = f"name '{args.name}' must be lowercase words joined by hyphens (e.g. effort-cost)"
         return finish(2)
     description = args.description or f"TODO: one sentence on what {args.name} does and for whom."

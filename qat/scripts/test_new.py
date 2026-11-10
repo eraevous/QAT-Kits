@@ -15,10 +15,11 @@ touched. What is tested, and why it matters:
 
 import io
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
@@ -246,6 +247,77 @@ class ScaffoldTests(unittest.TestCase):
         res = json.loads(out)
         self.assertFalse(res["ok"])
         self.assertIn("lowercase", res["error"])
+
+    def test_control_characters_in_names_refused_without_writes(self):
+        for name in ("demo-tool\n", "demo-tool\r\n", "demo\ntool", "demo-tool\t"):
+            with self.subTest(name=repr(name)):
+                code, out = run(name, "--root", str(self.root), "--json")
+                self.assertEqual(code, 2, out)
+                result = json.loads(out)
+                self.assertFalse(result["ok"])
+                self.assertEqual(result["created"], [])
+                self.assertIsNone(result["validate"])
+                self.assertIn("lowercase", result["error"])
+                self.assertEqual(list(self.root.iterdir()), [])
+
+    def test_argument_parser_refusals_return_json_without_writes(self):
+        cases = [
+            ("demo-tool", "--runtime", "invalid-runtime"),
+            ("demo-tool", "--bogus"),
+            (),
+            ("demo-tool", "--runtime"),
+            ("demo-tool", "--d"),
+        ]
+        for args in cases:
+            for json_args in (("--json", *args), (*args, "--json")):
+                with self.subTest(args=json_args):
+                    err = io.StringIO()
+                    with redirect_stderr(err):
+                        code, out = run("--root", str(self.root), *json_args)
+                    self.assertEqual(code, 2, out)
+                    result = json.loads(out)
+                    self.assertFalse(result["ok"])
+                    self.assertEqual(result["created"], [])
+                    self.assertIsNone(result["validate"])
+                    self.assertEqual(result["next"], [])
+                    self.assertTrue(result["error"])
+                    self.assertEqual(err.getvalue(), "")
+                    self.assertEqual(list(self.root.iterdir()), [])
+
+    def test_json_parser_refusals_work_through_cli_argv(self):
+        for flag in ("--json", "--js", "--json=false"):
+            with self.subTest(flag=flag):
+                result = subprocess.run([sys.executable, "-I", "-B", str(Path(new.__file__)),
+                                         "--root", str(self.root), "demo-tool",
+                                         "--runtime", "invalid-runtime", flag],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 2)
+                self.assertFalse(json.loads(result.stdout)["ok"])
+                self.assertEqual(result.stderr, "")
+                self.assertEqual(list(self.root.iterdir()), [])
+
+    def test_parser_refusal_without_json_retains_argparse_behavior(self):
+        err = io.StringIO()
+        out = io.StringIO()
+        with redirect_stderr(err), redirect_stdout(out), self.assertRaises(SystemExit) as raised:
+            new.main(["demo-tool", "--runtime", "invalid-runtime"])
+        self.assertEqual(raised.exception.code, 2)
+        self.assertEqual(out.getvalue(), "")
+        self.assertIn("usage:", err.getvalue())
+        self.assertIn("invalid choice", err.getvalue())
+
+    def test_json_after_option_terminator_is_only_a_name(self):
+        code, out = run("--root", str(self.root), "--", "--json")
+        self.assertEqual(code, 2)
+        self.assertTrue(out.startswith("REFUSED"), out)
+        self.assertEqual(list(self.root.iterdir()), [])
+
+    def test_help_remains_normal_successful_help(self):
+        out = io.StringIO()
+        with redirect_stdout(out), self.assertRaises(SystemExit) as raised:
+            new.main(["--json", "--help"])
+        self.assertEqual(raised.exception.code, 0)
+        self.assertIn("usage:", out.getvalue())
 
 
 if __name__ == "__main__":
