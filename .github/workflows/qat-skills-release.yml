@@ -1,0 +1,33 @@
+# Versioned release of the generated Claude skills (DEC-193). Push a tag qat-skills-v<BUNDLE_VERSION>
+# (for example qat-skills-v1.0.0) on a commit of main; this builds the plugin bundle and per-skill zips
+# and attaches them to a GitHub release with that tag. The tag must match qat/runtimes/claude/BUNDLE_VERSION.
+name: qat-skills-release
+on:
+  push:
+    tags: ["qat-skills-v*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Tag matches BUNDLE_VERSION and is on main
+        run: |
+          want="qat-skills-v$(tr -d '[:space:]' < qat/runtimes/claude/BUNDLE_VERSION)"
+          [ "$GITHUB_REF_NAME" = "$want" ] || { echo "tag $GITHUB_REF_NAME does not match $want"; exit 1; }
+          git merge-base --is-ancestor HEAD origin/main || { echo "tagged commit is not on main"; exit 1; }
+      - name: Check and package
+        run: |
+          python3 -I qat/scripts/skills.py check
+          python3 -I qat/scripts/skills.py package dist
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --title "QAT-Kit skills $GITHUB_REF_NAME" \
+            --notes "Generated Claude skills, bundle $(cat qat/runtimes/claude/BUNDLE_VERSION). Versions and source hashes: skills.lock.json. Install: qat/runtimes/claude/README.md." \
+            dist/*.zip dist/skills.lock.json dist/SHA256SUMS

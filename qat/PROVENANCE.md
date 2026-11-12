@@ -24,3 +24,31 @@ Commands (run from `qat/`; needs `pyyaml` and `jsonschema`):
     python3 -I scripts/qat.py index
     python3 -I scripts/qat.py audit truth-weight eval-runs/2026-11-04/truth-weight/<case>.md
     python3 -I scripts/qat.py eval cases/truth-weight.eval.yaml eval-runs/2026-11-04/truth-weight
+
+## 2026-11-10: Claude skills ported in as sources (DEC-192, DEC-193; HO-QAT-20261110-QVYX)
+
+Zach adopted QAT-Kits as the single source for the QAT skills Claude runs. The eleven installed skills were ported into `tools/<name>.skill.md` from the synced account skill bucket (`/root/.claude/skills/synced/7bbdaa89-…/`, read 2026-11-10). Each port matches the installed `SKILL.md` byte for byte, except for two changes:
+
+1. A `version:` line in the frontmatter (plus `kind: runner` for `qat`). The generator strips both from the generated `SKILL.md`, so the frontmatter Claude reads is unchanged.
+2. Links to documents in the owner's private Google Drive are replaced with "(in the owner's Drive; link not published)", because this repository is public. This affects 11 links in 8 skills (provenance lines only; no instructions changed).
+
+The generated `runtimes/claude/<name>/SKILL.md` also gains one stamp line at the top of its body.
+
+| Skill | Installed `updatedAt` | Installed SKILL.md sha256 | Ported version |
+|---|---|---|---|
+| stress-test | 2026-10-15 | `6bf357f9964bbda1ee3761aa914eb3b244ce23624f7aff5bfe90188b99bb8d6c` | 1.0.0 |
+| truth-weight | 2026-10-15 | `ad9c612fe1f649c8be22ea22bf97a6adfb30d496994348218badfc95849b8dcf` | 1.0.0 |
+| frame-shift | 2026-10-15 | `7d25197fd7891f7302f9edd99cc8f75d1f8d863beff0b94e2ba8469d3bee043c` | 1.0.0 |
+| negative-space | 2026-10-15 | `bbfd648affe22a6328daa5cc761d6482e6d33823bf08b07370af4e77f2970f64` | 0.1.0-reconstruction |
+| meta-distill | 2026-10-15 | `44634b8aeb394f9e1ac5ef58dd307b26b935511f0e95f74291fa506a194a9035` | 1.0.0 |
+| thread-map | 2026-10-15 | `26c15eca6a0e3946bc752904bbb54c719a617138823d975f3269740fdbc74f15` | 1.0.0 |
+| thread-seed | 2026-10-27 | `b6a65a5d39844a23a5c59f64b30366bf399e41d93a0e597496235d8e3f8b4571` | 1.0.0 |
+| braided-explanations | 2026-10-15 | `a507d8703908981b5ae5925de31e36f56d982711520c1cc2a3f665c6374e7ad3` | 1.0.0 |
+| legal-ease | 2026-10-15 | `cc6cc8649275ed01e8996b7e997550abd7ee8b586acf9180bcbdc276be2cfae6` | 1.0.0 |
+| selective-self-distillation | 2026-10-16 | `c1bf59a771c6138be4d48a68dffdad530fb8f5b5e6104889adee19d4717fc424` | 1.0.0 |
+| qat (runner) | 2026-10-26 | `7ae45f806b343f6a65d6390fb9174958f8c5e6c836c5e1d8e4b0ee370a0cc393` | 1.0.0 |
+
+**Runner bundle differs from the installed runner.** The generated `qat` skill carries this repo's runner files, not the installed ones. This changes what the installed runner does in two ways:
+
+- `scripts/qat.py` includes the fence-aware output parsing from aa69a89. The installed copy predates it.
+- `tools/` and `cases/` hold every spec in this repo: kind-check, real-problem, effort-cost, thread-distill and toolsmith, as well as stress-test and truth-weight. The installed runner has only the last two. The stress-test and truth-weight specs and `cases/stress-test.eval.yaml` are byte-identical to the installed ones.

@@ -1,0 +1,157 @@
+---
+name: "selective-self-distillation"
+version: 1.0.0
+description: "Extract Zach's own contributions from mixed human-AI transcripts and rebuild his thinking with evidence, separating his words from AI proposals. Use when he asks for SSD or self-distillation."
+---
+
+# Selective Self-Distillation
+
+Reconstruct the trajectory of the user's own thinking from mixed human-AI transcripts, rather than summarizing the whole exchange. The output must never let a polished AI description replace the author's record.
+
+Use it when Zach says "Selective Self-Distillation", "SSD", "self-distill", "what did I actually say", or asks to pull his ideas, positions or voice out of conversations, chat exports or an Obsidian vault.
+
+## Inputs
+
+Any of these, mixed:
+- Markdown or text transcripts with "You said:" / "<Name> said:" headers (his ChatGPT-to-Markdown format). Some of his notes use "Zach said:" instead of "You said:"; both count as his turns
+- ChatGPT `conversations.json` exports
+- Claude `conversations.json` exports
+- A pasted single conversation (treat its turns the same way)
+
+If no files are given, apply the method to the current conversation.
+
+## Known traps in Zach's material
+
+- **Paste delimiter.** He marks pasted material as `>"""` ... `"""`. Text inside is not his.
+- **Undelimited pastes.** Long turns with heavy markdown, tables or an AI-style opening ("Here's...", "Great prompt...") usually contain a pasted model reply. Use only the lines before the paste, or flag the turn.
+- **Inverted roles.** In some experiments an AI played him (for example a "Human Prompter" thread). There the "You said" turns are model text. Check the first turn of any thread that sets up role-play, and exclude it if so.
+- **Relays.** He passes replies between sibling threads ("your sister's response", "Workthread", "another thread said"). The relayed text is not his; his framing sentence is.
+- **Coinage drift.** A model often names his idea in its reply (Selective Self-Distillation itself was named that way). Credit the idea to him and the label to whoever coined it.
+- **Silence is not adoption.** Continuing the conversation does not mean he accepted a proposal. Adoption needs an explicit statement ("I like", "let's go with", "yes, that").
+
+## Procedure
+
+1. **Extract.** Write the script at the end of this file to a working directory outside the inputs, then run `python3 -I extract_turns.py INPUTS -o turns.json`. It keeps one copy of duplicate turns, strips delimited pastes and quoted lines into `own`, and flags likely pastes. Report the counts.
+2. **Screen flags.** Read every flagged turn. Keep his framing sentences, drop the pasted body, and mark role inversions and relays. Never quote a flagged region as his.
+3. **Resolve references minimally.** When a turn says "that third option" or "I like it", add only the smallest fragment of the model reply needed to understand it, labeled as model text.
+4. **Label every claim.** Use: Direct (his words) · Adopted (a model proposal he explicitly accepted, with the acceptance quoted) · Revised (his change to a proposal) · AI proposal (no acceptance) · Unresolved.
+5. **Track changes of mind.** List positions he changed, quoting before and after with locations. A later statement outranks an earlier one; keep both.
+6. **Reconstruct.** Write a concise account of his positions in a voice close to his: direct, plain, wry, his metaphors kept. Every strong sentence must trace to a Direct or Adopted row.
+7. **Verify quotes.** Check every quotation against the source text programmatically (normalize whitespace and curly quotes). Fix or drop any that fail. Report how many were checked.
+
+## Output
+
+Deliver these, in a doc when the result is long:
+1. **Evidence table**: claim · his words (verbatim) · source and line · label.
+2. **Reconstruction**: positions in his voice, with sources.
+3. **Changes of mind**: before and after, with locations.
+4. **How he works**: recurring conversational moves, with approximate counts and one example each, labeled as keyword counts.
+5. **Unresolved attribution**: items where authorship can't be settled, and the check that would settle each.
+6. **Corpus file**: the extracted `turns.json` (and a readable Markdown version) so the evidence travels with the synthesis.
+
+## Checks before delivering
+
+- Is any sentence attributing a belief to him supported only by a model reply? Remove it or relabel it AI proposal.
+- Did a flagged or relayed region get quoted as his? Re-run step 2.
+- Are labels on names (coinages) separated from labels on ideas?
+- Did every quote pass verification?
+
+## extract_turns.py
+
+```python
+#!/usr/bin/env python3
+'''Extract the user's own turns from chat exports, with provenance and flags.
+Inputs (any mix, files or folders): Markdown/text transcripts with "You said:" /
+"<Name> said:" headers; ChatGPT conversations.json; Claude conversations.json.
+Usage: python3 -I extract_turns.py INPUT [INPUT ...] -o turns.json [--delim '>"""']
+'''
+import argparse, hashlib, json, os, re, sys
+
+U = re.compile(r'^#{0,6}\s*(You said|Zach said|User|Human|Me)\s*:?\s*$', re.I)
+A = re.compile(r'^#{0,6}\s*(?!You\b|Zach\b|When\b)[\w .-]{1,30}\s+said\s*:?\s*$|^#{0,6}\s*(Assistant|ChatGPT|Claude|Gemini)\s*:?\s*$', re.I)
+
+def strip_pastes(t, delim):
+    if delim:
+        d = re.escape(delim)
+        t = re.sub(d + r'[\s\S]*?("""|$)', ' [PASTE] ', t)
+    lines = ['[QUOTE]' if l.lstrip().startswith('>') else l for l in t.split('\n')]
+    return re.sub(r'(\[QUOTE\]\n?)+', '[QUOTE]\n', '\n'.join(lines)).strip()
+
+def likely_paste(t):
+    w = len(t.split())
+    if w < 250: return False
+    return (t.count('**') / w > 0.02 or t.count('|') / w > 0.05
+            or len(re.findall(r'^#+ ', t, re.M)) >= 3
+            or bool(re.match(r"\s*(Here's|Here’s|Great (prompt|question)|Absolutely|Certainly|This (plan|is a))", t)))
+
+def from_markdown(path, text):
+    out, cur, buf, start = [], None, [], 0
+    def flush():
+        if cur == 'user' and '\n'.join(buf).strip():
+            out.append((start, '\n'.join(buf).strip()))
+    for i, l in enumerate(text.split('\n'), 1):
+        if U.match(l): flush(); cur, buf, start = 'user', [], i + 1
+        elif A.match(l): flush(); cur, buf = 'ai', []
+        elif cur == 'user': buf.append(l)
+    flush()
+    return out
+
+def from_chatgpt_json(data):
+    for conv in data:
+        title = conv.get('title') or 'untitled'
+        nodes = conv.get('mapping', {}).values()
+        msgs = [n['message'] for n in nodes if n.get('message')]
+        msgs.sort(key=lambda m: m.get('create_time') or 0)
+        for k, m in enumerate(msgs):
+            if (m.get('author') or {}).get('role') == 'user':
+                parts = (m.get('content') or {}).get('parts') or []
+                t = '\n'.join(p for p in parts if isinstance(p, str)).strip()
+                if t: yield title, k, t
+
+def from_claude_json(data):
+    for conv in data:
+        title = conv.get('name') or 'untitled'
+        for k, m in enumerate(conv.get('chat_messages', [])):
+            if m.get('sender') == 'human':
+                t = (m.get('text') or '').strip()
+                if t: yield title, k, t
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('inputs', nargs='+'); ap.add_argument('-o', default='turns.json')
+    ap.add_argument('--delim', default='>"""', help="the user's paste delimiter; '' to disable")
+    a = ap.parse_args()
+    seen, recs = {}, []
+    def add(src, loc, t):
+        h = hashlib.sha1(re.sub(r'\s+', ' ', t).encode()).hexdigest()[:12]
+        if h in seen: seen[h]['dupes'].append(f'{src}:{loc}'); return
+        own = strip_pastes(t, a.delim)
+        r = {'id': h, 'source': src, 'loc': loc, 'words': len(t.split()),
+             'own_words': len(own.split()), 'own': own, 'text': t, 'dupes': [],
+             'flags': [f for f, c in [('likely_paste', likely_paste(own)),
+                                     ('contains_paste_or_quote', '[PASTE]' in own or '[QUOTE]' in own)] if c]}
+        seen[h] = r; recs.append(r)
+    files = []
+    for p in a.inputs:
+        if os.path.isdir(p):
+            for dp, _, fn in os.walk(p):
+                files += [os.path.join(dp, f) for f in fn if f.endswith(('.md', '.txt', '.json'))]
+        else: files.append(p)
+    for f in sorted(files):
+        raw = open(f, encoding='utf-8', errors='replace').read()
+        if f.endswith('.json'):
+            try: data = json.loads(raw)
+            except Exception: continue
+            if isinstance(data, list) and data and 'mapping' in data[0]:
+                for title, k, t in from_chatgpt_json(data): add(f'{f}#{title}', f'msg{k}', t)
+            elif isinstance(data, list) and data and 'chat_messages' in data[0]:
+                for title, k, t in from_claude_json(data): add(f'{f}#{title}', f'msg{k}', t)
+        else:
+            for line, t in from_markdown(f, raw): add(f, f'L{line}', t)
+    json.dump(recs, open(a.o, 'w'), indent=1, ensure_ascii=False)
+    print(f"{len(recs)} turns, {sum(r['own_words'] for r in recs)} own words, "
+          f"{sum('likely_paste' in r['flags'] for r in recs)} flagged likely_paste -> {a.o}")
+
+if __name__ == '__main__':
+    main()
+```
