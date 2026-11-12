@@ -148,6 +148,23 @@ class SkillsTests(unittest.TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn("EVAL_NOT_RECORDED qat/tools/zz-fixture.skill.md", out)
 
+    def test_eval_file_named_after_tool_in_other_dir_does_not_count(self):
+        self.edit("qat/tools/zz-fixture.skill.md", "version: 1.0.0", "version: 1.1.0")
+        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("5.1.0\n")
+        log = self.repo / "qat/eval-runs/2026-12-01/truth-weight/zz-fixture.log"
+        log.parent.mkdir(parents=True)
+        log.write_text("x\n")
+        self.run_skills("build")
+        self.commit()
+        code, out = self.run_skills("check", "--base", "base")
+        self.assertIn("EVAL_NOT_RECORDED qat/tools/zz-fixture.skill.md", out)
+
+    def test_zip_metadata_is_platform_independent(self):
+        d = self.repo / "dist"
+        self.assertEqual(self.run_skills("package", str(d))[0], 0)
+        with zipfile.ZipFile(d / "zz-fixture-1.0.0.zip") as z:
+            self.assertEqual({i.create_system for i in z.infolist()}, {3})
+
     def test_gate_applies_to_qat_specs(self):
         self.append("qat/tools/stress-test.qat.md", "\nTest-only line.\n")
         (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("5.0.1\n")

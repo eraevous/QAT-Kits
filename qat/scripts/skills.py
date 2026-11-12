@@ -206,8 +206,8 @@ def gate(base: str, errors: list):
                 errors.append(f"VERSION_NOT_BUMPED {path}: changed but version {vn} is not above {vo}")
         except ValueError as e:
             errors.append(f"SPEC_INVALID {e}")
-        recorded = [p for p in evals if any(c == name or c.startswith(name + ".") or c.startswith(name + "-")
-                                            for c in p.split("/")[2:])]
+        # a run is recorded only under qat/eval-runs/<date>/<name>/ (exact tool directory)
+        recorded = [p for p in evals if len(p.split("/")) >= 5 and p.split("/")[3] == name]
         if not recorded:
             if m.group(2) == "qat":
                 cases = QAT / "cases" / f"{name}.eval.yaml"
@@ -261,6 +261,7 @@ def write_zip(path: Path, entries: dict):
         for name in sorted(entries):
             info = zipfile.ZipInfo(name, ZIP_TIME)
             info.external_attr = 0o644 << 16
+            info.create_system = 3          # fixed (Unix), so archives don't depend on the packaging host
             info.compress_type = zipfile.ZIP_DEFLATED
             z.writestr(info, entries[name])
 
