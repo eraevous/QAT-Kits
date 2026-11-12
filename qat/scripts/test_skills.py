@@ -162,6 +162,24 @@ class SkillsTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("SPEC_INVALID", out)
 
+    def test_semver_precedence(self):
+        sys.path.insert(0, str(self.repo / "qat/scripts"))
+        try:
+            import skills
+        finally:
+            sys.path.pop(0)
+        order = ["1.0.0-alpha", "1.0.0-alpha.1", "1.0.0-alpha.beta", "1.0.0-beta", "1.0.0-beta.2",
+                 "1.0.0-beta.11", "1.0.0-rc.1", "1.0.0-rc.9", "1.0.0-rc.10", "1.0.0", "1.0.1", "1.10.0"]
+        self.assertEqual(sorted(order, key=skills.version_key), order)
+        self.assertLess(skills.version_key("0.1.0-reconstruction"), skills.version_key("0.1.0"))
+
+    def test_runner_carries_runtime_tables(self):
+        files = json.loads((self.repo / "qat/runtimes/claude/skills.lock.json").read_text())["skills"]["qat"]["files"]
+        self.assertIn("runtimes/chatgpt/effort-cost.paste.md", files)
+        self.assertIn("runtimes/chatgpt/effort-cost.card.md", files)
+        paste = (self.repo / "qat/runtimes/claude/qat/runtimes/chatgpt/effort-cost.paste.md").read_text()
+        self.assertIn("TABLE D.", paste)
+
     def test_package_is_deterministic(self):
         outs = []
         for i in range(2):

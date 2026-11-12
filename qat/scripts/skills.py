@@ -75,10 +75,14 @@ def parse_source(text: str, where: str):
 
 
 def version_key(v: str):
+    """Sort key with semver precedence: a pre-release sorts below its release; pre-release
+    identifiers compare dot by dot, numeric ones numerically and below alphanumeric ones."""
     m = SEMVER.match(v)
     major, minor, patch, pre = int(m[1]), int(m[2]), int(m[3]), m[4]
-    # a pre-release sorts below its release (semver); pre-release tags compare as text
-    return (major, minor, patch, 0 if pre else 1, pre or "")
+    if not pre:
+        return (major, minor, patch, 1, ())
+    ids = tuple((0, int(i), "") if i.isdigit() else (1, 0, i) for i in pre.split("."))
+    return (major, minor, patch, 0, ids)
 
 
 def sources(tools: Path = TOOLS):
@@ -98,6 +102,11 @@ def runner_files():
     for p in sorted((QAT / "cases").rglob("*")):
         if p.is_file():
             out[f"cases/{p.relative_to(QAT / 'cases').as_posix()}"] = p
+    # Runtime texts the specs point to (effort-cost's lookup tables live in its paste block and card,
+    # and the spec forbids recomputing them). Same relative paths as under qat/, so a spec's
+    # `qat/runtimes/...` reference resolves inside the installed skill too.
+    for p in sorted((QAT / "runtimes" / "chatgpt").glob("*.md")):
+        out[f"runtimes/chatgpt/{p.name}"] = p
     return out
 
 

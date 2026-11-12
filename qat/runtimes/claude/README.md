@@ -5,7 +5,7 @@ This repository is the source of record for the QAT skills Claude runs (DEC-192,
 | What | Where |
 |---|---|
 | Source of each skill (edit this) | `qat/tools/<name>.skill.md`: frontmatter `name`, `version`, `description` (plus `kind: runner` for `qat`), then the skill text |
-| Runner contracts (the `qat` skill carries them) | `qat/tools/*.qat.md`, `qat/cases/`, `qat/scripts/qat.py`, `qat/INDEX.md` |
+| Runner contracts (the `qat` skill carries them) | `qat/tools/*.qat.md`, `qat/cases/`, `qat/scripts/qat.py`, `qat/INDEX.md`, and the runtime texts in `qat/runtimes/chatgpt/*.md` (effort-cost's lookup tables live there) |
 | Generated skill (never edit) | `qat/runtimes/claude/<name>/SKILL.md` (and, for `qat`, the runner files beside it) |
 | Versions and hashes of everything generated | `qat/runtimes/claude/skills.lock.json` (generated) |
 | Bundle version (edit this when skills change) | `qat/runtimes/claude/BUNDLE_VERSION` |
