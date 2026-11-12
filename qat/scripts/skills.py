@@ -181,8 +181,9 @@ def spec_version(text: str, where: str):
 def gate(base: str, errors: list):
     """Version and eval gates for specs changed since `base` (DEC-193: eval-gated changes)."""
     changed = [ln for ln in git("diff", "--name-status", "--no-renames", f"{base}...HEAD").splitlines() if ln]
-    touched = {ln.split("\t", 1)[1] for ln in changed}
-    evals = [p for p in touched if p.startswith("qat/eval-runs/")]
+    # only added or modified files count as a recorded run; deleting an old run records nothing
+    evals = [path for status, path in (ln.split("\t", 1) for ln in changed)
+             if status in ("A", "M") and path.startswith("qat/eval-runs/")]
     for ln in changed:
         status, path = ln.split("\t", 1)
         m = re.fullmatch(r"qat/tools/([a-z0-9-]+)\.(skill|qat)\.md", path)

@@ -123,6 +123,21 @@ class SkillsTests(unittest.TestCase):
         code, out = self.run_skills("check", "--base", "base")
         self.assertIn("EVAL_NOT_RECORDED qat/tools/legal-ease.skill.md", out)
 
+    def test_deleted_eval_run_does_not_count(self):
+        run = self.repo / "qat/eval-runs/2026-12-01/legal-ease/RESULTS.md"
+        run.parent.mkdir(parents=True)
+        run.write_text("old run\n")
+        self.commit()
+        sh(self.repo, "git", "tag", "-f", "base")
+        self.edit("qat/tools/legal-ease.skill.md", "version: 1.0.0", "version: 1.1.0")
+        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("1.1.0\n")
+        run.unlink()
+        self.run_skills("build")
+        self.commit()
+        code, out = self.run_skills("check", "--base", "base")
+        self.assertEqual(code, 1, out)
+        self.assertIn("EVAL_NOT_RECORDED qat/tools/legal-ease.skill.md", out)
+
     def test_gate_applies_to_qat_specs(self):
         self.edit("qat/tools/stress-test.qat.md", "Constructive", "Constructive,")
         (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("1.0.1\n")
