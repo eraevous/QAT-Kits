@@ -30,4 +30,4 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" --title "QAT-Kit skills $GITHUB_REF_NAME" \
             --notes "Generated Claude skills, bundle $(cat qat/runtimes/claude/BUNDLE_VERSION). Versions and source hashes: skills.lock.json. Install: qat/runtimes/claude/README.md." \
-            dist/qat-kit-*.zip dist/skills/*.zip dist/skills.lock.json dist/SHA256SUMS
+            dist/*.zip dist/skills.lock.json dist/SHA256SUMS

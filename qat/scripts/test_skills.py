@@ -35,6 +35,12 @@ class SkillsTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.repo = Path(self.tmp.name)
         shutil.copytree(QAT, self.repo / "qat", ignore=shutil.ignore_patterns("__pycache__"))
+        # Stable synthetic fixtures, so the tests don't depend on any real skill's version, cases or
+        # wording, or on the real bundle version.
+        (self.repo / "qat/tools/zz-fixture.skill.md").write_text(
+            '---\nname: "zz-fixture"\nversion: 1.0.0\ndescription: "Synthetic test skill."\n---\n\n# FixtureWord\n')
+        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("5.0.0\n")
+        sh(self.repo, sys.executable, "-I", "qat/scripts/skills.py", "build")
         for args in (["init", "-q"], ["config", "user.email", "t@example.invalid"], ["config", "user.name", "t"],
                      ["add", "-A"], ["commit", "-qm", "base"], ["tag", "base"]):
             sh(self.repo, "git", *args)
@@ -52,6 +58,10 @@ class SkillsTests(unittest.TestCase):
         self.assertIn(old, text)
         p.write_text(text.replace(old, new, 1))
 
+    def append(self, rel, text):
+        p = self.repo / rel
+        p.write_text(p.read_text() + text)
+
     def commit(self):
         sh(self.repo, "git", "add", "-A")
         sh(self.repo, "git", "commit", "-qm", "change")
@@ -61,22 +71,22 @@ class SkillsTests(unittest.TestCase):
         self.assertEqual(code, 0, out)
 
     def test_stamp(self):
-        src = self.repo / "qat/tools/legal-ease.skill.md"
-        gen = (self.repo / "qat/runtimes/claude/legal-ease/SKILL.md").read_text()
+        src = self.repo / "qat/tools/zz-fixture.skill.md"
+        gen = (self.repo / "qat/runtimes/claude/zz-fixture/SKILL.md").read_text()
         self.assertTrue(gen.startswith("---\nname:"))
         self.assertNotIn("\nversion:", gen.split("\n---\n", 1)[0])   # frontmatter stays name + description
-        self.assertIn("from qat/tools/legal-ease.skill.md", gen)
+        self.assertIn("from qat/tools/zz-fixture.skill.md", gen)
         self.assertIn("version: 1.0.0", gen)
         self.assertIn(hashlib.sha256(src.read_bytes()).hexdigest(), gen)
 
     def test_hand_edit_is_stale(self):
-        self.edit("qat/runtimes/claude/legal-ease/SKILL.md", "LegalEase", "LegalEasy")
+        self.edit("qat/runtimes/claude/zz-fixture/SKILL.md", "FixtureWord", "FixtureWordX")
         code, out = self.run_skills("check")
         self.assertEqual(code, 1)
-        self.assertIn("STALE qat/runtimes/claude/legal-ease/SKILL.md", out)
+        self.assertIn("STALE qat/runtimes/claude/zz-fixture/SKILL.md", out)
 
     def test_source_edit_without_build_is_stale_then_build_fixes(self):
-        self.edit("qat/tools/legal-ease.skill.md", "LegalEase", "LegalEasy")
+        self.edit("qat/tools/zz-fixture.skill.md", "FixtureWord", "FixtureWordX")
         code, out = self.run_skills("check")
         self.assertEqual(code, 1)
         self.assertIn("STALE", out)
@@ -84,27 +94,27 @@ class SkillsTests(unittest.TestCase):
         self.assertEqual(self.run_skills("check")[0], 0)
 
     def test_runner_file_change_is_stale(self):
-        self.edit("qat/tools/stress-test.qat.md", "Constructive", "Constructive,")
+        self.append("qat/tools/stress-test.qat.md", "\nTest-only line.\n")
         code, out = self.run_skills("check")
         self.assertEqual(code, 1)
         self.assertIn("STALE qat/runtimes/claude/qat/tools/stress-test.qat.md", out)
 
     def test_gate_requires_version_bump_and_eval(self):
-        self.edit("qat/tools/legal-ease.skill.md", "LegalEase", "LegalEasy")
+        self.edit("qat/tools/zz-fixture.skill.md", "FixtureWord", "FixtureWordX")
         self.run_skills("build")
         self.commit()
         code, out = self.run_skills("check", "--base", "base")
         self.assertEqual(code, 1)
-        self.assertIn("VERSION_NOT_BUMPED qat/tools/legal-ease.skill.md", out)
-        self.assertIn("EVAL_NOT_RECORDED qat/tools/legal-ease.skill.md", out)
+        self.assertIn("VERSION_NOT_BUMPED qat/tools/zz-fixture.skill.md", out)
+        self.assertIn("EVAL_NOT_RECORDED qat/tools/zz-fixture.skill.md", out)
         self.assertIn("has no cases yet", out)
         self.assertIn("BUNDLE_NOT_BUMPED", out)
 
     def test_gate_passes_with_bump_and_recorded_eval(self):
-        self.edit("qat/tools/legal-ease.skill.md", "LegalEase", "LegalEasy")
-        self.edit("qat/tools/legal-ease.skill.md", "version: 1.0.0", "version: 1.1.0")
-        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("1.1.0\n")
-        run = self.repo / "qat/eval-runs/2026-12-01/legal-ease/RESULTS.md"
+        self.edit("qat/tools/zz-fixture.skill.md", "FixtureWord", "FixtureWordX")
+        self.edit("qat/tools/zz-fixture.skill.md", "version: 1.0.0", "version: 1.1.0")
+        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("5.1.0\n")
+        run = self.repo / "qat/eval-runs/2026-12-01/zz-fixture/RESULTS.md"
         run.parent.mkdir(parents=True)
         run.write_text("synthetic case: PASS\n")
         self.run_skills("build")
@@ -113,34 +123,34 @@ class SkillsTests(unittest.TestCase):
         self.assertEqual(code, 0, out)
 
     def test_eval_for_another_tool_does_not_count(self):
-        self.edit("qat/tools/legal-ease.skill.md", "version: 1.0.0", "version: 1.1.0")
-        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("1.1.0\n")
+        self.edit("qat/tools/zz-fixture.skill.md", "version: 1.0.0", "version: 1.1.0")
+        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("5.1.0\n")
         run = self.repo / "qat/eval-runs/2026-12-01/truth-weight/RESULTS.md"
         run.parent.mkdir(parents=True)
         run.write_text("x\n")
         self.run_skills("build")
         self.commit()
         code, out = self.run_skills("check", "--base", "base")
-        self.assertIn("EVAL_NOT_RECORDED qat/tools/legal-ease.skill.md", out)
+        self.assertIn("EVAL_NOT_RECORDED qat/tools/zz-fixture.skill.md", out)
 
     def test_deleted_eval_run_does_not_count(self):
-        run = self.repo / "qat/eval-runs/2026-12-01/legal-ease/RESULTS.md"
+        run = self.repo / "qat/eval-runs/2026-12-01/zz-fixture/RESULTS.md"
         run.parent.mkdir(parents=True)
         run.write_text("old run\n")
         self.commit()
         sh(self.repo, "git", "tag", "-f", "base")
-        self.edit("qat/tools/legal-ease.skill.md", "version: 1.0.0", "version: 1.1.0")
-        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("1.1.0\n")
+        self.edit("qat/tools/zz-fixture.skill.md", "version: 1.0.0", "version: 1.1.0")
+        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("5.1.0\n")
         run.unlink()
         self.run_skills("build")
         self.commit()
         code, out = self.run_skills("check", "--base", "base")
         self.assertEqual(code, 1, out)
-        self.assertIn("EVAL_NOT_RECORDED qat/tools/legal-ease.skill.md", out)
+        self.assertIn("EVAL_NOT_RECORDED qat/tools/zz-fixture.skill.md", out)
 
     def test_gate_applies_to_qat_specs(self):
-        self.edit("qat/tools/stress-test.qat.md", "Constructive", "Constructive,")
-        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("1.0.1\n")
+        self.append("qat/tools/stress-test.qat.md", "\nTest-only line.\n")
+        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("5.0.1\n")
         self.run_skills("build")
         self.commit()
         code, out = self.run_skills("check", "--base", "base")
@@ -149,15 +159,15 @@ class SkillsTests(unittest.TestCase):
         self.assertIn("qat.py eval", out)
 
     def test_removed_source_drops_generated_dir(self):
-        (self.repo / "qat/tools/legal-ease.skill.md").unlink()
+        (self.repo / "qat/tools/zz-fixture.skill.md").unlink()
         self.assertEqual(self.run_skills("check")[0], 1)
         self.run_skills("build")
-        self.assertFalse((self.repo / "qat/runtimes/claude/legal-ease").exists())
+        self.assertFalse((self.repo / "qat/runtimes/claude/zz-fixture").exists())
         self.assertTrue((self.repo / "qat/runtimes/claude/kind-check/SKILL.md").exists())  # hand-written, untouched
         self.assertEqual(self.run_skills("check")[0], 0)
 
     def test_invalid_version_refused(self):
-        self.edit("qat/tools/legal-ease.skill.md", "version: 1.0.0", "version: one")
+        self.edit("qat/tools/zz-fixture.skill.md", "version: 1.0.0", "version: one")
         code, out = self.run_skills("check")
         self.assertEqual(code, 1)
         self.assertIn("SPEC_INVALID", out)
@@ -195,11 +205,27 @@ class SkillsTests(unittest.TestCase):
         self.assertEqual(manifest["version"], bundle)
         self.assertIn("skills/truth-weight/SKILL.md", names)
         self.assertIn("skills/qat/scripts/qat.py", names)
-        with zipfile.ZipFile(self.repo / "dist0/skills/legal-ease-1.0.0.zip") as z:
-            self.assertEqual(z.namelist(), ["legal-ease/SKILL.md"])
+        with zipfile.ZipFile(self.repo / "dist0/zz-fixture-1.0.0.zip") as z:
+            self.assertEqual(z.namelist(), ["zz-fixture/SKILL.md"])
+
+    def test_package_refuses_nonempty_out_dir(self):
+        d = self.repo / "dist"
+        d.mkdir()
+        (d / "old-1.0.0.zip").write_bytes(b"stale")
+        code, out = self.run_skills("package", str(d))
+        self.assertEqual(code, 1)
+        self.assertIn("not empty", out)
+
+    def test_checksums_match_release_asset_names(self):
+        d = self.repo / "dist"
+        self.assertEqual(self.run_skills("package", str(d))[0], 0)
+        for line in (d / "SHA256SUMS").read_text().splitlines():
+            name = line.split("  ", 1)[1]
+            self.assertNotIn("/", name)            # release assets are flat; `sha256sum -c` must work on them
+            self.assertTrue((d / name).is_file())
 
     def test_package_refuses_stale(self):
-        self.edit("qat/tools/legal-ease.skill.md", "LegalEase", "LegalEasy")
+        self.edit("qat/tools/zz-fixture.skill.md", "FixtureWord", "FixtureWordX")
         code, out = self.run_skills("package", str(self.repo / "dist"))
         self.assertEqual(code, 1)
         self.assertFalse((self.repo / "dist").exists())

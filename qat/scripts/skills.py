@@ -209,10 +209,15 @@ def gate(base: str, errors: list):
         recorded = [p for p in evals if any(c == name or c.startswith(name + ".") or c.startswith(name + "-")
                                             for c in p.split("/")[2:])]
         if not recorded:
-            has_cases = (QAT / "cases" / f"{name}.eval.yaml").exists()
-            hint = ("run its cases with `qat.py eval` and commit the outputs and RESULTS under "
-                    f"qat/eval-runs/<date>/{name}/" if has_cases else
-                    f"it has no cases yet: add qat/cases/{name}.eval.yaml, run it, and record the run "
+            if m.group(2) == "qat":
+                cases = QAT / "cases" / f"{name}.eval.yaml"
+                how = "run its cases with `qat.py eval`"
+            else:
+                cases = QAT / "cases" / f"{name}.cases.md"
+                how = "run its cases by hand and grade them (CONTRIBUTING.md, standalone skills)"
+            hint = (f"{how} and commit the outputs and RESULTS.md under qat/eval-runs/<date>/{name}/"
+                    if cases.exists() else
+                    f"it has no cases yet: add {rel(cases)}, run it, and record the run "
                     f"under qat/eval-runs/<date>/{name}/")
             errors.append(f"EVAL_NOT_RECORDED {path}: changed with no eval run recorded in this change; {hint}")
     old_lock = at_base(base, rel(LOCK))
@@ -261,6 +266,9 @@ def write_zip(path: Path, entries: dict):
 
 
 def package(out: Path) -> int:
+    if out.exists() and any(out.iterdir()):
+        print(f"package: {out} is not empty; use a new directory so old archives can't enter SHA256SUMS")
+        return 1
     if check(None):
         print("package: refusing to package stale skills")
         return 1
@@ -276,15 +284,15 @@ def package(out: Path) -> int:
             b = files[rel(OUT / name / inner)]
             plugin[f"skills/{name}/{inner}"] = b
             single[f"{name}/{inner}"] = b
-        write_zip(out / "skills" / f"{name}-{entry['version']}.zip", single)
+        write_zip(out / f"{name}-{entry['version']}.zip", single)   # flat: same names as the release assets
     for inner, b in plugin.items():
         f = out / PLUGIN / inner
         f.parent.mkdir(parents=True, exist_ok=True)
         f.write_bytes(b)
     write_zip(out / f"{PLUGIN}-{bundle}.zip", plugin)
     (out / "skills.lock.json").write_bytes(files[rel(LOCK)])
-    sums = sorted(p for p in out.rglob("*.zip"))
-    (out / "SHA256SUMS").write_text("".join(f"{sha(p.read_bytes())}  {p.relative_to(out).as_posix()}\n" for p in sums))
+    sums = sorted(out.glob("*.zip"))
+    (out / "SHA256SUMS").write_text("".join(f"{sha(p.read_bytes())}  {p.name}\n" for p in sums))
     print(f"packaged {PLUGIN} {bundle}: {out / f'{PLUGIN}-{bundle}.zip'} and {len(lock['skills'])} skill zips")
     return 0
 

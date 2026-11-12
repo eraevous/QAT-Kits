@@ -20,7 +20,7 @@ Each generated `SKILL.md` keeps the frontmatter Claude reads (`name`, `descripti
     python3 -I qat/scripts/skills.py build                 # regenerate after editing a source
     python3 -I qat/scripts/skills.py check                 # stale generated files?
     python3 -I qat/scripts/skills.py check --base origin/main   # plus the version and eval gates
-    python3 -I qat/scripts/skills.py package dist          # build the release bundle locally
+    python3 -I qat/scripts/skills.py package dist          # build the release bundle locally (dist must be new or empty)
 
 ## Version scheme
 
@@ -34,8 +34,8 @@ Each generated `SKILL.md` keeps the frontmatter Claude reads (`name`, `descripti
 2. Tag that commit `qat-skills-v<version>` and push the tag.
 3. `.github/workflows/qat-skills-release.yml` checks that the tag matches `BUNDLE_VERSION` and is on `main`. It then packages and attaches these files to a GitHub release:
    - `qat-kit-<version>.zip`: one Claude plugin (`.claude-plugin/plugin.json` plus `skills/<name>/…`);
-   - `skills/<name>-<skill version>.zip`: one zip per skill (a `<name>/` folder with its `SKILL.md`), for apps that take single skills;
-   - `skills.lock.json` and `SHA256SUMS`.
+   - `<name>-<skill version>.zip`: one zip per skill (a `<name>/` folder with its `SKILL.md`), for apps that take single skills;
+   - `skills.lock.json` and `SHA256SUMS` (asset names as published, so `sha256sum -c SHA256SUMS` works in a folder of downloaded assets).
 
 ## Installing, updating, rolling back (Claude app)
 
