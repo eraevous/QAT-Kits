@@ -5,13 +5,13 @@
   "skills": {
     "auto-eda": {
       "files": {
-        "SKILL.md": "46ae3d973bb96d37c44266b8e39ca4010a29881cf3c8d2fdac59cf995e10bd27",
-        "scripts/auto_eda.py": "30b150e0ca03201b5556b0e7829006453d5f2c3ff25824cd96ba367c61e0da2e",
+        "SKILL.md": "8c400b7da25ddf2edbe62ba1efcbe7dd2116a6d43fa90039deca51d4aed90f9e",
+        "scripts/auto_eda.py": "d354388b038647f91e2665fd1b1cee706d2b6e55e7e0f34913d43ea5bae39ade",
         "scripts/plugins/example_donut.py": "be7434a5f582b8504312a6668ee43c0201ac225920af87fe2c4ece442df976c8"
       },
       "kind": "skill",
       "source": "qat/tools/auto-eda.skill.md",
-      "source_sha256": "5a36276510fc9fae0f7082dbef38a0b362939001d97c32d4e68e65e25a568822",
+      "source_sha256": "2ce5b99dfba1bf8073b7a99df1dded0d15a199e984d25a74326310a4ca277026",
       "version": "1.1.0"
     },
     "braided-explanations": {

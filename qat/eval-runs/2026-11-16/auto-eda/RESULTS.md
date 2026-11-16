@@ -30,3 +30,9 @@
 Note for AE-03, not a failure: the runner said, rightly, that the 0-29 counter `a` is charted as numeric. That is the known integer-ID behaviour recorded in the cases file under AE-01.
 
 **Observation (not a failure).** AE-04 shows a limit of the list-as-text choice. `["a","b"]` and `["b","a"]` count as different values. The runner noticed, said so, and gave its own unordered count, labelled as its own. Whether lists should be profiled order-free (sorted, or exploded per element) is a design choice for a later version. It is left as is here.
+
+## Follow-up: category percentages (Codex 4592993932 on ef5c867)
+
+- **Bug:** categorical `stats.top` percentages used non-null rows as the denominator. The bar chart uses all rows and shows a "(missing)" bar. With 90 missing values, 6 A and 4 B, the summary said A was 60% while the chart showed 6%.
+- **Fix:** `pct` is now a share of all rows. Low-cardinality and boolean columns list "(missing)" as a value, as their chart does. High-cardinality columns carry `missing_count`. Each categorical `stats` says `"pct_of": "all rows"`. A new test pins the 6% case.
+- **Rerun not needed:** none of the four cases has missing values in a categorical column. Their recorded outputs and grades hold as they are; the only differences are the added `pct_of` field and `(missing)` rows that would have a count of 0.

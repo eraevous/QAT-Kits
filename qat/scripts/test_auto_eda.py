@@ -59,8 +59,17 @@ class AutoEdaTest(unittest.TestCase):
         self.assertEqual(prof["x"]["stats"]["max"], 60)
         top = prof["region"]["stats"]["top"]
         self.assertEqual((top[0]["value"], top[0]["count"], top[0]["pct"]), ("N", 40, 66.7))
+        self.assertEqual(prof["region"]["stats"]["pct_of"], "all rows")
         self.assertEqual(summary["correlations"][0]["a"], "x")
         self.assertGreater(summary["correlations"][0]["r"], 0.99)
+
+    def test_category_pct_matches_chart_denominator(self):
+        # Codex 4592993932: 90 missing, 6 A, 4 B -> A is 6% of rows (as the bar chart shows), not 60%.
+        vals = [""] * 90 + ["A"] * 6 + ["B"] * 4
+        summary = self.run_on("m.csv", "g,n\n" + "\n".join(f"{v},{i}" for i, v in enumerate(vals)))
+        top = {d["value"]: d for d in next(p for p in summary["profiles"] if p["name"] == "g")["stats"]["top"]}
+        self.assertEqual(top["A"]["pct"], 6.0)
+        self.assertEqual(top["(missing)"]["count"], 90)
 
 
 if __name__ == "__main__":

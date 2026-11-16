@@ -313,14 +313,22 @@ def column_stats(s: pd.Series, p: Profile) -> dict:
                 "min": _num(x.min()), "p25": _num(x.quantile(.25)), "median": _num(x.median()),
                 "p75": _num(x.quantile(.75)), "max": _num(x.max()), "skew": _num(x.skew())}
     if p.kind in ("low_cat", "boolean", "high_cat"):
-        counts = s.astype("string").value_counts()
-        total = int(counts.sum())
-        k = CFG["top_n"] if p.kind == "high_cat" else len(counts)
+        # Same basis as the charts: pct is of all rows, missing included. Low-cardinality and
+        # boolean charts show a "(missing)" bar, so it is listed here as a value too.
+        total = len(s)
+        if p.kind == "high_cat":
+            counts = s.astype("string").value_counts()
+            k = CFG["top_n"]
+        else:
+            counts = s.astype("string").fillna("(missing)").value_counts()
+            k = len(counts)
         top = [{"value": str(v), "count": int(c), "pct": round(100 * c / total, 1)}
                for v, c in counts.head(k).items()]
-        out = {"top": top}
+        out = {"pct_of": "all rows", "top": top}
         if len(counts) > k:
             out["other_count"] = int(counts.iloc[k:].sum())
+        if p.kind == "high_cat" and p.n_null:
+            out["missing_count"] = p.n_null
         return out
     if p.kind == "datetime":
         t = pd.to_datetime(s, errors="coerce").dropna()

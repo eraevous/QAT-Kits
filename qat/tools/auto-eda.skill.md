@@ -33,7 +33,7 @@ Produces a repeatable EDA file for a dataset by running `scripts/auto_eda.py`. T
    ```
    The script prints a JSON line with the output paths, row/column counts, and how many columns fell into each kind.
 3. **Deliver** `eda_out/<stem>_eda.html` with SendUserFile (display: render). Keep `<stem>_eda.json` for your own follow-up reasoning; send it only if asked.
-4. **Reply briefly**: the 2–4 most notable things the report shows (a dominant category, heavy missingness, a skewed numeric, a strong correlation) — read them from the JSON summary, not by guessing. Each profile there carries `stats` (numeric: count, mean, std, min, p25, median, p75, max, skew; categorical: `top` values with count and %; datetime: min and max), and `correlations` lists Pearson r for numeric pairs, strongest first. Don't describe every chart.
+4. **Reply briefly**: the 2–4 most notable things the report shows (a dominant category, heavy missingness, a skewed numeric, a strong correlation) — read them from the JSON summary, not by guessing. Each profile there carries `stats` (numeric: count, mean, std, min, p25, median, p75, max, skew; categorical: `top` values with count and % of all rows, missing included, as in the charts; datetime: min and max), and `correlations` lists Pearson r for numeric pairs, strongest first. Don't describe every chart.
 
 Respect a threshold the user states ("use 12 categories") via `--max-cats`.
 
