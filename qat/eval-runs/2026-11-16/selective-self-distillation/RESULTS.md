@@ -27,3 +27,17 @@
 - The extraction script flags neither relays nor role inversion. Both runners caught them in step 2 (screen) as the skill directs. The script's flags are a first pass, and these cases show the manual screen carrying the weight. A later case with an undelimited pasted model reply (the `likely_paste` heuristic, 250+ words) would test the script's own flag; it is not in this set, to keep the inputs short.
 - Every runner verified its quotes and reported the count (step 7).
 - These cases are easy for a strong model. Their job is a regression floor for the next change to the skill, not a hard benchmark.
+
+## Round 2: after Kate's review (API instance, reply 07f7048471a2)
+
+Kate found no blocker. She reviewed the handoff summary only, not the diff, so this is not a commit-level clearance. These changes follow her points:
+- **New case `partial-adoption`** (her top missing failure mode): a two-part proposal where the user accepts part A with his own condition and rejects part B. One fresh subagent ran it on the unchanged v1.0.0 text.
+- **coinage-drift:** an **Allowed** line now says the user may be reported as using or adopting the name, as long as the coinage stays with the model. The round-1 output, which called his use "provisional", still passes.
+- **inverted-roles:** a scope note now says this transcript never leaves the role-play. A case with an explicit exit from the role-play is left for later.
+- **Not done:** her undelimited-paste pairing (a long model-like paste beside a long user-written turn that looks like model prose, where Unresolved should be acceptable). This is the next case to add.
+
+| Case | Grade (self-graded) | Reason |
+|---|---|---|
+| partial-adoption | PASS | Rotation Adopted, with the vegetarian condition labelled Revised as his; batch cooking labelled "AI proposal, rejected", with his reason quoted; the whole proposal is not Adopted; it also flags "for a month" as Unresolved. |
+
+**Result: 7/7 PASS (self-graded, same-family).**

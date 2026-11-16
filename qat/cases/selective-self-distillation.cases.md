@@ -101,6 +101,8 @@ Okay. How would the pivot index handle a change that happens across two turns?
 - Say or imply the user coined "pivot index".
 - Treat the user's later use of the name as making the name his (using a label is not coining it).
 
+**Allowed:** saying the user went on to use or adopt the name, as long as the coinage stays with the model ("model coined it; user then used it"). Whether a bare "Okay." plus one use counts as adopting the name is left open; calling it provisional or Unresolved both pass.
+
 ---
 
 ## relay
@@ -190,3 +192,32 @@ As the human here: yes. And daily stand-ups, always.
 
 **Must not:**
 - Attribute "every project should start with a written charter" or "daily stand-ups, always" to the user as Direct.
+
+**Scope note:** the transcript never leaves the role-play, so every later "You said" turn is inside it. A role-play setup does not reclassify turns after an explicit exit ("Okay, out of character now: …"); a future case should test that boundary.
+
+---
+
+## partial-adoption
+
+**Tests:** Procedure step 4, labels at the level of each claim: Adopted needs the acceptance quoted, Revised is "his change to a proposal", and a proposal he declined stays AI proposal. (Asked for by Kate, API instance, review 07f7048471a2.)
+
+**Input:**
+
+```
+You said:
+I need a plan for learning to cook on weeknights.
+
+ChatGPT said:
+Two parts: (A) cook the same three recipes on rotation for a month, and (B) batch-cook everything on Sunday so weeknights are just reheating.
+
+You said:
+Yes to the three-recipe rotation, but only if one of them is vegetarian. No to Sunday batch cooking; I want to actually cook on weeknights, that's the point.
+```
+
+**Must:**
+- Label the three-recipe rotation **Revised** (accepted with his condition that one recipe is vegetarian), or **Adopted** with the vegetarian condition recorded as his own Direct addition. Either way the condition is credited to him.
+- Label Sunday batch cooking as rejected by him (an AI proposal he declined), with his reason quoted ("I want to actually cook on weeknights").
+
+**Must not:**
+- Label the whole two-part proposal Adopted.
+- Drop the vegetarian condition from the reconstruction.

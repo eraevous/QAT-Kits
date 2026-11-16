@@ -60,7 +60,7 @@
         "cases/fixtures/seed-library.thread.md": "c8f8bb9d950691a293bf54fd557439f487c3b4316d1ed912220e24ba7113644b",
         "cases/kind-check.eval.yaml": "7cff41183cc8046ea8bcab551b0f24f580cc1fc3529715fcffa9621dc93a3b36",
         "cases/real-problem.eval.yaml": "7ecbcac7b5c84fb4d209a0136f57dd9cf44b3c5f179dd2e8308062e1daa7624f",
-        "cases/selective-self-distillation.cases.md": "dc5e52dc132a6882d41bb26fedc005f18fe25d98c6c517401ce3d5edbe1217a3",
+        "cases/selective-self-distillation.cases.md": "1df55f0a2a5318d79f5a3a97bcefffc6ba9d7e0064255ce4b8bdc77cb9159aad",
         "cases/stress-test.eval.yaml": "1707478e32ef4568817dac71761d7b7974de1f9973eeab348e8637dd44da57ca",
         "cases/thread-distill.eval.yaml": "db790c4ff18025407c0fadcc2e97b4c3213047f61ca19502e9d74af133dfcdf6",
         "cases/truth-weight.eval.yaml": "c38a83ca14fb75c5a42a51a71eb38ab019db3f4e785afff167db80a8b4fa5571",
