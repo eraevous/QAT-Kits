@@ -1,7 +1,7 @@
 ---
 tool: auto-eda
 spec: qat/tools/auto-eda.skill.md
-version: 1.0.0
+version: 1.1.0
 ---
 
 # auto-eda: cases
@@ -61,3 +61,29 @@ with 30 synthetic records, and "What's in this data?"
 **Must:**
 - Write the payload to a file first, then run the script on it (nested fields flattened).
 - Treat the request as an EDA request even though no chart was asked for.
+
+## AE-04: Nested JSONL (load path; added in 1.1.0)
+
+**Input:** a JSONL file made by
+
+```python
+import json, random
+random.seed(1)
+with open("events.jsonl", "w") as f:
+    for i in range(40):
+        f.write(json.dumps({"id": f"E{i:03d}", "kind": random.choice(["view", "click"]),
+                            "user": {"plan": random.choice(["free", "pro", "team"])},
+                            "tags": random.sample(["a", "b", "c"], 2)}) + "\n")
+```
+
+and "Run auto-eda on events.jsonl."
+
+**Must:**
+- Produce the report (no crash). `user.plan` appears as its own flattened column, as it would from `.json`.
+- Name a dominant category, or say none dominates, using the counts in the JSON summary's `stats.top`.
+
+**Must not:**
+- Rewrite the file to CSV or hand-flatten it to get around the loader.
+
+(Under 1.0.0 this input crashed with `TypeError: unhashable type: 'dict'` before any report was written:
+Codex finding 4592443369 and Copilot finding 4592762498 on #20.)
