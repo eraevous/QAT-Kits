@@ -49,6 +49,14 @@ Distill and compress a conversation into a layered distillate (hook, abstract, s
 - **modules:** segment, relay-attribution
 - **hands off to** `stress-test` when the user wants to probe what the thread concluded
 
+## thread-map v0.1.0 — ok
+
+Segment a conversation into a navigable map (segments, pivots, continuity warnings) and list what a successor thread must carry forward, with every warning and carried item traceable to the turns behind it.
+
+- **file:** `tools/thread-map.qat.md`
+- **inputs:** thread (text), objective (text, optional)
+- **outputs:** segments (scorecard), narrative (text), warnings (claims), carry (claims)
+
 ## toolsmith v0.1.0 — ok
 
 Turn a tool idea into a small, testable QAT tool package (a .qat.md spec, an eval stub with planted cases, a DESIGN.md when choices were made, and runtime adaptation notes), smallest workable thing first.
