@@ -102,10 +102,12 @@ cases:
         pattern: "^\\s*[-*]\\s(?![^\\n]*\\bT\\d+[ua])[^\\n]*$"
         why: a carried item without a pointer is unusable to thread-seed's spot-check
       - section: carry
-        pattern: "^\\s*[-*]\\s(?![^\\n]*(decided \\(user\\)|wanted \\(user\\)|agreed \\(models\\)|\\bproposed\\b|\\bopen\\b))[^\\n]*$"
+        pattern: "^\\s*[-*]\\s(?![^\\n]*;\\s*(decided \\(user\\)|wanted \\(user\\)|agreed \\(models\\)|proposed\\b|open\\b))[^\\n]*$"
+        # Copilot review 4592570535: the status must be the field after a semicolon, not a word in the description
         why: a carried item without a status (Codex review 4592342398; the compatibility note claims status and pointer per item)
       - section: carry
-        pattern: "sensor(?![^\\n]*(park|next year|not now|defer|later))[^\\n]*decided"
+        pattern: "^(?![^\\n]*(park|next year|not now|defer|later))[^\\n]*sensor[^\\n]*decided"
+        # Copilot review 4592570615: parking wording anywhere in the line, so "Park soil moisture sensors; decided (user)" passes
         why: the sensors were parked ("Maybe next year. Not now."); deciding to park is the user's, adopting them is not
         # revised 2026-11-16 after the v0.1 cold run: the first pattern also failed "parked until next year;
         # decided (user)", which is a correct reading. Recorded in eval-runs/2026-11-16/thread-map/RESULTS.md.

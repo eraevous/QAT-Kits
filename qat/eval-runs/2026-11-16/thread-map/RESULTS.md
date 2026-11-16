@@ -64,3 +64,11 @@ Codex's review of a3e3d76 raised two P2 findings against the cases. Both were ve
 - **4592342398.** carry-statuses checked a pointer on every item but not a status, although the compatibility note claims both. A per-item status check was added.
 
 Both recorded runs (`v0.1/`, `v0.1-r2/`) were re-graded on the fixed cases: 4/4 PASS each. Neither recorded output had a line the old patterns misjudged. So these fixes tighten the cases without changing any result.
+
+## Case fixes after Copilot review (no spec change, no new run)
+
+Copilot's review raised two medium findings against the cases. Both were verified and fixed:
+- **4592570535.** The per-item status check matched a status word anywhere in the line. So "- No login: open a link and tap a name; T2u" passed because it contains "open". The check now requires the status as a semicolon-delimited field.
+- **4592570615.** The sensors exclusion looked for parking wording only after "sensor". So it would have failed "- Park soil moisture sensors; decided (user); T5u". The check now looks across the whole line.
+
+Both recorded runs (`v0.1/`, `v0.1-r2/`) were re-graded: 4/4 PASS each, so no result changed.
