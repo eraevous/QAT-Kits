@@ -241,6 +241,77 @@ class SkillsTests(unittest.TestCase):
             self.assertNotIn("/", name)            # release assets are flat; `sha256sum -c` must work on them
             self.assertTrue((d / name).is_file())
 
+    # Companion files (qat/tools/<name>.files/): a skill that needs scripts or tables beside SKILL.md.
+
+    def add_companion(self, text="print('v1')\n"):
+        p = self.repo / "qat/tools/zz-fixture.files/scripts/tool.py"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text)
+        return p
+
+    def test_companion_files_are_carried_and_packaged(self):
+        self.add_companion()
+        self.assertEqual(self.run_skills("build")[0], 0)
+        gen = self.repo / "qat/runtimes/claude/zz-fixture/scripts/tool.py"
+        self.assertEqual(gen.read_text(), "print('v1')\n")
+        lock = json.loads((self.repo / "qat/runtimes/claude/skills.lock.json").read_text())
+        self.assertIn("scripts/tool.py", lock["skills"]["zz-fixture"]["files"])
+        d = self.repo / "dist"
+        self.assertEqual(self.run_skills("package", str(d))[0], 0)
+        with zipfile.ZipFile(d / "zz-fixture-1.0.0.zip") as z:
+            self.assertEqual(sorted(z.namelist()), ["zz-fixture/SKILL.md", "zz-fixture/scripts/tool.py"])
+
+    def test_companion_edit_without_build_is_stale(self):
+        p = self.add_companion()
+        self.run_skills("build")
+        p.write_text("print('v2')\n")
+        code, out = self.run_skills("check")
+        self.assertEqual(code, 1)
+        self.assertIn("STALE qat/runtimes/claude/zz-fixture/scripts/tool.py", out)
+
+    def test_removed_companion_file_is_dropped(self):
+        p = self.add_companion()
+        self.run_skills("build")
+        p.unlink()
+        self.run_skills("build")
+        self.assertFalse((self.repo / "qat/runtimes/claude/zz-fixture/scripts/tool.py").exists())
+        self.assertEqual(self.run_skills("check")[0], 0)
+
+    def test_companion_change_is_gated_like_the_skill_text(self):
+        p = self.add_companion()
+        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("5.0.1\n")
+        self.run_skills("build")
+        self.commit()
+        sh(self.repo, "git", "tag", "-f", "base")
+        p.write_text("print('v2')\n")
+        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("5.0.2\n")
+        self.run_skills("build")
+        self.commit()
+        code, out = self.run_skills("check", "--base", "base")
+        self.assertEqual(code, 1, out)
+        self.assertIn("VERSION_NOT_BUMPED qat/tools/zz-fixture.skill.md", out)
+        self.assertIn("EVAL_NOT_RECORDED qat/tools/zz-fixture.skill.md", out)
+
+    def test_new_skill_with_companion_is_not_gated(self):
+        src = self.repo / "qat/tools/zz-new.skill.md"
+        src.write_text('---\nname: "zz-new"\nversion: 1.0.0\ndescription: "Synthetic new skill."\n---\n\nNew.\n')
+        p = self.repo / "qat/tools/zz-new.files/data.txt"
+        p.parent.mkdir(parents=True)
+        p.write_text("x\n")
+        (self.repo / "qat/runtimes/claude/BUNDLE_VERSION").write_text("5.1.0\n")
+        self.run_skills("build")
+        self.commit()
+        code, out = self.run_skills("check", "--base", "base")
+        self.assertEqual(code, 0, out)
+
+    def test_companion_may_not_shadow_skill_md(self):
+        p = self.repo / "qat/tools/zz-fixture.files/SKILL.md"
+        p.parent.mkdir(parents=True)
+        p.write_text("shadow\n")
+        code, out = self.run_skills("check")
+        self.assertEqual(code, 1)
+        self.assertIn("SPEC_INVALID", out)
+
     def test_package_refuses_stale(self):
         self.edit("qat/tools/zz-fixture.skill.md", "FixtureWord", "FixtureWordX")
         code, out = self.run_skills("package", str(self.repo / "dist"))

@@ -5,6 +5,7 @@ This repository is the source of record for the QAT skills Claude runs (DEC-192,
 | What | Where |
 |---|---|
 | Source of each skill (edit this) | `qat/tools/<name>.skill.md`: frontmatter `name`, `version`, `description` (plus `kind: runner` for `qat`), then the skill text |
+| Files a skill carries besides SKILL.md (scripts, tables) | `qat/tools/<name>.files/`, copied into the skill at the same relative paths (auto-eda's `scripts/`). Part of the skill's spec: changing one is gated like the skill text |
 | Runner contracts (the `qat` skill carries them) | `qat/tools/*.qat.md`, `qat/cases/`, `qat/scripts/qat.py`, `qat/INDEX.md`, and the runtime texts in `qat/runtimes/chatgpt/*.md` (effort-cost's lookup tables live there) |
 | Generated skill (never edit) | `qat/runtimes/claude/<name>/SKILL.md` (and, for `qat`, the runner files beside it) |
 | Versions and hashes of everything generated | `qat/runtimes/claude/skills.lock.json` (generated) |
