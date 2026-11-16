@@ -10,6 +10,11 @@ The user's turns use the "You said:" header, the model's use "ChatGPT said:"; th
 Every case runs as "a pasted single conversation" (skill, Inputs): the runner applies the method to the
 transcript given, and may skip the corpus file (Output item 6) since there are no files.
 
+**Scope of a PASS.** These cases grade attribution only: the labels, the reconstruction, changes of mind and
+unresolved items (Procedure steps 2-6, Output items 1-3 and 5). They do not grade compliance with step 1
+(running `extract_turns.py`) or Output item 6 (the `turns.json` corpus file); runners may skip both, and a
+PASS says nothing about them. Testing the script and the corpus needs file-based cases, which are not in this set.
+
 ---
 
 ## paste-delimiter
@@ -215,7 +220,8 @@ Yes to the three-recipe rotation, but only if one of them is vegetarian. No to S
 ```
 
 **Must:**
-- Label the three-recipe rotation **Revised** (accepted with his condition that one recipe is vegetarian), or **Adopted** with the vegetarian condition recorded as his own Direct addition. Either way the condition is credited to him.
+- Label the three-recipe rotation **Revised** (accepted with his condition that one recipe is vegetarian), or **Adopted** with the vegetarian condition recorded as his own, labelled Direct or Revised (the skill defines Revised as "his change to a proposal"). Either way the condition is credited to him.
+  *(Revised 2026-11-16 after the first run: the original wording allowed only Direct for the condition. See RESULTS.md, round 3.)*
 - Label Sunday batch cooking as rejected by him (an AI proposal he declined), with his reason quoted ("I want to actually cook on weeknights").
 
 **Must not:**

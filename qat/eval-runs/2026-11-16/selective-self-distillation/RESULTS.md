@@ -41,3 +41,26 @@ Kate found no blocker. She reviewed the handoff summary only, not the diff, so t
 | partial-adoption | PASS | Rotation Adopted, with the vegetarian condition labelled Revised as his; batch cooking labelled "AI proposal, rejected", with his reason quoted; the whole proposal is not Adopted; it also flags "for a month" as Unresolved. |
 
 **Result: 7/7 PASS (self-graded, same-family).**
+
+## Round 3: corrections after Copilot's review (review 5929052127)
+
+No output was rerun or edited. `v1.0.0/partial-adoption.md` is the raw output from round 2.
+
+**partial-adoption, re-graded against the criterion as it was written in round 2: FAIL (strict).**
+- The written Must line allowed two labellings: the rotation **Revised**, or the rotation **Adopted** with the vegetarian condition labelled **Direct**.
+- The output labels the rotation Adopted and the condition **Revised**, which matches neither.
+- My round-2 PASS graded the spirit ("the condition is credited to him") and not the letter. That was wrong to report as a plain PASS.
+
+**Criterion revision, recorded separately.** The Must line now also accepts Revised for the condition. The skill defines Revised as "his change to a proposal", and his condition is exactly that, so the original wording was narrower than the skill. Under the revised criterion the same raw output passes. The revision is marked in the cases file.
+
+**Defect disclosed, not graded by any Must line:**
+- The output contradicts itself on the duration. The evidence row "Cook three recipes on rotation for a month" is labelled Adopted, and the reconstruction says his "yes" adopts the one-month length.
+- Yet section 5 lists whether he accepts "for a month" as Unresolved.
+- Section 5 is the correct reading: his words name the rotation, not its length. No Must line catches this. A future case could require that a detail left Unresolved is not also counted as Adopted.
+
+**Scope.** The PASS grades in every round cover attribution only. Extraction (step 1, `extract_turns.py`) and the corpus file (Output item 6) were skipped by design and are not graded. The cases file now says so.
+
+**Totals:**
+- Against the criteria as written in round 2: 6/7 PASS, 1 strict FAIL (partial-adoption).
+- Against the revised criterion: 7/7 PASS.
+- All grades are self-graded and same-family.
