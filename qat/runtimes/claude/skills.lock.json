@@ -63,7 +63,7 @@
         "cases/real-problem.eval.yaml": "7ecbcac7b5c84fb4d209a0136f57dd9cf44b3c5f179dd2e8308062e1daa7624f",
         "cases/stress-test.eval.yaml": "1707478e32ef4568817dac71761d7b7974de1f9973eeab348e8637dd44da57ca",
         "cases/thread-distill.eval.yaml": "db790c4ff18025407c0fadcc2e97b4c3213047f61ca19502e9d74af133dfcdf6",
-        "cases/thread-map.eval.yaml": "d2fc4e77b65f7e0726f9aa183f3136be38d212f09efecaad7cd202fbc6e2b391",
+        "cases/thread-map.eval.yaml": "8dfa3d43bc6e4b8abf2d991140b7643fa05c28f303c719b617f167b5b5faf02b",
         "cases/truth-weight.eval.yaml": "c38a83ca14fb75c5a42a51a71eb38ab019db3f4e785afff167db80a8b4fa5571",
         "runtimes/chatgpt/effort-cost.card.md": "f0e07d814369274a9865b9151d7e9da79558a5fcde45f5c592906543dee5f635",
         "runtimes/chatgpt/effort-cost.paste.md": "21e591eefd3e60b84139f192598fc85172c61eb75f1c0666ce6d0ad4c0599507",

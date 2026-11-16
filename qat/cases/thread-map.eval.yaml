@@ -59,10 +59,12 @@ cases:
         why: the replacement carries its pointer
     must_avoid:
       - section: warnings
-        pattern: "^\\W*(evidence|speculative):[^\\n]*\\bweekly\\b(?![^\\n]*(replac|supersed|revis))"
+        pattern: "^\\W*(evidence|speculative):(?![^\\n]*(replac|supersed|revis))[^\\n]*\\bweekly\\b"
+        # Codex review 4592342386: replacement wording is looked for across the whole line, not only after "weekly"
         why: the weekly rule was replaced on purpose; its absence from the design is not loss
       - section: carry
-        pattern: "^\\W*[^\\n]*\\bweekly\\b(?![^\\n]*(replac|supersed))[^\\n]*decided"
+        pattern: "^(?![^\\n]*(replac|supersed))[^\\n]*\\bweekly\\b[^\\n]*decided"
+        # Codex review 4592342386: "Fortnightly rota replaces weekly fixed days [T3u]; decided (user); T6u" must pass
         why: the old rule carried as still decided
 
   # 3. Negative control: a short single-topic exchange gets one segment and no warnings.
@@ -99,6 +101,9 @@ cases:
       - section: carry
         pattern: "^\\s*[-*]\\s(?![^\\n]*\\bT\\d+[ua])[^\\n]*$"
         why: a carried item without a pointer is unusable to thread-seed's spot-check
+      - section: carry
+        pattern: "^\\s*[-*]\\s(?![^\\n]*(decided \\(user\\)|wanted \\(user\\)|agreed \\(models\\)|\\bproposed\\b|\\bopen\\b))[^\\n]*$"
+        why: a carried item without a status (Codex review 4592342398; the compatibility note claims status and pointer per item)
       - section: carry
         pattern: "sensor(?![^\\n]*(park|next year|not now|defer|later))[^\\n]*decided"
         why: the sensors were parked ("Maybe next year. Not now."); deciding to park is the user's, adopting them is not

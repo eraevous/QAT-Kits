@@ -56,3 +56,11 @@ All four outputs pass `qat.py audit`. No case was edited after this run. Ambigui
 - a contiguous Turns column after a return from an aside;
 - the pointer range format;
 - how much an objective may change.
+
+## Case fixes after Codex review (no spec change, no new run)
+
+Codex's review of a3e3d76 raised two P2 findings against the cases. Both were verified and fixed:
+- **4592342386.** The "weekly carried as decided" exclusion looked for replacement wording only *after* "weekly". So it would have failed a valid line such as "Fortnightly rota replaces weekly fixed days [T3u]; decided (user); T6u". The same flaw was in the matching warnings exclusion. Both now look across the whole line.
+- **4592342398.** carry-statuses checked a pointer on every item but not a status, although the compatibility note claims both. A per-item status check was added.
+
+Both recorded runs (`v0.1/`, `v0.1-r2/`) were re-graded on the fixed cases: 4/4 PASS each. Neither recorded output had a line the old patterns misjudged. So these fixes tighten the cases without changing any result.
