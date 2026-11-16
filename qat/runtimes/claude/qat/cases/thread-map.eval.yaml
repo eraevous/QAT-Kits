@@ -34,7 +34,8 @@ cases:
       - section: warnings
         pattern: "remind"
         why: the reminder question was never answered
-      - judge: the segments table has three segments (rota, sensors, rota again), not one per turn
+      - judge: the segments cover the thread in order, each boundary marks a real change of purpose (the rota, the sensors aside, the return to the rota), the pivots inside a topic (the switch to fortnightly, the deferred reminder question) are named, and the table is not one segment per turn. The exact count is not graded.
+        # revised 2026-11-16 after Kate's review (reply 9580bf77e377): was "three segments (rota, sensors, rota again)".
     must_avoid:
       - section: warnings
         pattern: "^\\W*evidence:(?![^\\n]*T\\d+[ua][^\\n]*T\\d+[ua])[^\\n]*$"

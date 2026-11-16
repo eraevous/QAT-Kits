@@ -28,3 +28,31 @@
    - Whether a trailing model design with no user reply is `proposed` or `agreed (models)`.
    - Whether one contradiction of two set items is one warning or two.
 4. The three garden-rota outputs are nearly identical whatever the objective. The spec gives `objective` little to change. That fits "tilts emphasis, never hides a warning", but it also means the objective is barely tested.
+
+## Round 2: after Kate's review (`v0.1-r2/`), reported separately
+
+Kate (API instance, reply 9580bf77e377) found two blocking problems and asked for a looser segmentation check. The spec version stays 0.1.0, because the spec is new and unmerged. Changes:
+- **Authority for revisions.** `revision-is-not-loss` now requires authority over the original commitment. A model's change to a user's commitment is a proposal, not a revision, until the user accepts it.
+- **Status rules.** `continuing-is-not-adopting` reserves user statuses for the user's own words. `agreed (models)` now needs models explicitly agreeing with each other.
+- **Evidence of omission.** An `evidence:` warning now needs a later passage that created the expectation: a design meant to meet the requirement, a recap presented as complete, or a promised return. Otherwise the item is carried as `open`. Procedure step 3 was changed to match.
+- **Segmentation.** By default a reversal or deferred question stays inside its segment. The judge criterion no longer grades the exact count. It checks ordered coverage, real boundaries, named pivots and no fragmentation. (It previously expected three segments.)
+- **Compatibility note.** It now says "candidate translation, subject to transcript verification" instead of "map directly". It also states that `carry-statuses` checks structure, not semantic compatibility.
+
+A new cold run on the final text by a fresh subagent, which saw only the spec and the inputs:
+
+| Case | Deterministic | Judge (self-graded) |
+|---|---|---|
+| dropped-requirement | PASS | PASS: 3 segments (rota / sensors aside / rota revised and design). The switch to fortnightly and the deferred reminder question are named as pivots in the narrative. |
+| revision-not-loss | PASS | – |
+| single-topic | PASS | – |
+| carry-statuses | PASS | – |
+
+All four outputs pass `qat.py audit`. No case was edited after this run. Ambiguities the runner reported that are still open (v0.2 candidates):
+- the line between `decided (user)` and `wanted (user)`;
+- no status for "parked";
+- implicit acceptance ("Fine with that" vs "OK, sketch it");
+- whether every model proposal is carried;
+- whether an item can be both warned and carried as open;
+- a contiguous Turns column after a return from an aside;
+- the pointer range format;
+- how much an objective may change.
