@@ -9,6 +9,12 @@ sha256 and a "generated from" line, and records everything in
 `qat/runtimes/claude/skills.lock.json`. The `qat` runner skill (`kind: runner`) also
 gets the runner files: scripts/qat.py, INDEX.md, tools/*.qat.md and cases/.
 
+A skill that needs files besides SKILL.md (scripts, reference tables) keeps them in a
+companion folder, `qat/tools/<name>.files/`. Every file in it is copied into the skill
+at the same relative path (`qat/tools/auto-eda.files/scripts/auto_eda.py` becomes
+`auto-eda/scripts/auto_eda.py`). Companion files are part of the skill's spec: changing
+one needs the same version bump and recorded eval run as changing the skill text.
+
     python3 -I qat/scripts/skills.py build               # regenerate everything
     python3 -I qat/scripts/skills.py check [--base REF]  # CI: stale files, version and eval gates
     python3 -I qat/scripts/skills.py package OUT_DIR     # release bundle (plugin + per-skill zips)
@@ -110,6 +116,24 @@ def runner_files():
     return out
 
 
+def companion_files(name: str):
+    """Files a skill carries from its companion folder: {path inside skill: source path}.
+
+    Empty when `qat/tools/<name>.files/` doesn't exist. SKILL.md is reserved for the
+    generated text, so a companion file may not use that name at the folder's top level."""
+    folder = TOOLS / f"{name}.files"
+    if not folder.is_dir():
+        return {}
+    out = {}
+    for p in sorted(folder.rglob("*")):
+        if p.is_file() and "__pycache__" not in p.parts:
+            inner = p.relative_to(folder).as_posix()
+            if inner == "SKILL.md":
+                raise ValueError(f"{rel(p)}: SKILL.md is generated from {name}.skill.md; rename this file")
+            out[inner] = p
+    return out
+
+
 def render():
     """Everything `build` writes: {repo-relative path: bytes}, plus the lock dict."""
     files, skills = {}, {}
@@ -126,6 +150,8 @@ def render():
         entry = {"version": meta["version"], "source": rel(p), "source_sha256": sha(raw),
                  "kind": meta.get("kind", "skill"), "files": {}}
         payload = {"SKILL.md": skill_md}
+        for inner, src in companion_files(meta["name"]).items():
+            payload[inner] = src.read_bytes()
         if meta.get("kind") == "runner":
             for inner, src in runner_files().items():
                 payload[inner] = src.read_bytes()
@@ -193,12 +219,19 @@ def gate(base: str, errors: list):
     # only added or modified files count as a recorded run; deleting an old run records nothing
     evals = [path for status, path in (ln.split("\t", 1) for ln in changed)
              if status in ("A", "M") and path.startswith("qat/eval-runs/")]
+    specs = {}                                        # spec path -> (tool name, "skill" | "qat")
     for ln in changed:
         status, path = ln.split("\t", 1)
         m = re.fullmatch(r"qat/tools/([a-z0-9-]+)\.(skill|qat)\.md", path)
-        if not m or status != "M":
-            continue                                  # new specs have no prior version to gate against
-        name = m.group(1)
+        if m and status == "M":                       # new specs have no prior version to gate against
+            specs[path] = (m.group(1), m.group(2))
+        # a companion file added, changed or removed changes its skill (see module docstring)
+        c = re.fullmatch(r"qat/tools/([a-z0-9-]+)\.files/.+", path)
+        if c:
+            src = f"qat/tools/{c.group(1)}.skill.md"
+            if at_base(base, src) is not None and (REPO / src).exists():
+                specs[src] = (c.group(1), "skill")
+    for path, (name, kind) in sorted(specs.items()):
         old, new = at_base(base, path), (REPO / path).read_text(encoding="utf-8")
         try:
             vo, vn = spec_version(old, f"{base}:{path}"), spec_version(new, path)
@@ -209,7 +242,7 @@ def gate(base: str, errors: list):
         # a run is recorded only under qat/eval-runs/<date>/<name>/ (exact tool directory)
         recorded = [p for p in evals if len(p.split("/")) >= 5 and p.split("/")[3] == name]
         if not recorded:
-            if m.group(2) == "qat":
+            if kind == "qat":
                 cases = QAT / "cases" / f"{name}.eval.yaml"
                 how = "run its cases with `qat.py eval`"
             else:

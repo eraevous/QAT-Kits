@@ -1,0 +1,310 @@
+---
+name: "mtg-deck-lab"
+version: 1.0.0
+description: "Build, evaluate, refine, or pilot Magic: The Gathering (esp. Commander) decks using Zach's Interaction Ontology, Evaluation Protocol, and Kairos–GATE doctrine, including from his owned-card inventory workbook."
+---
+
+# MTG Deck Lab
+
+A working compilation of Zach's layered MTG system:
+
+| Layer | Source doc | Question it answers |
+|---|---|---|
+| Interaction Ontology | MTG Deck Interaction Ontology v3 (namespace `mtg-dio`): v3.0.1, or the v3.1.0 compact edition, which is the same model with merged record types. Supersedes v2.0.0 + v2.1 Addendum, whose records remain readable | What does each ability/card/module require, produce, consume, and connect to? Which operation actually does it, what must be true at once, what persists through a change, and where do connections fail? |
+| Evaluation Protocol | MTG Deck Building & Evaluation Protocol v1.0.0 + v1.1 Addendum (namespace `mtg-dbep`) | Which structures are useful, reliable, supported, resilient, and right for *this* deck? |
+| Portfolio Allocation | Protocol v1.2 Addendum: Portfolio Allocation & Trade Requests (namespace `mtg-dbep-portfolio`) | Where should each scarce physical card live across all the decks Zach maintains? |
+| Deck Doctrine Compiler | Kairos–GATE: Magic: The Gathering | What are this deck's win routes, gates, scarce roles, state investments, failure states, and execution burdens? |
+| Kairos–GATE Cockpit | same | Given this board and moment, what should I actually do? |
+
+This file is a condensed operational version. If Zach supplies the full PDFs/MD in a thread, they govern where this summary is silent or ambiguous.
+
+**Governing standard:** clearer, more accurate, more useful decisions — not elegance, graph density, or netdeck conformity. A deck is not good because it has many interactions; a card is not bad because it has few.
+
+---
+
+## 0. Pick the path first
+
+| Situation | Path |
+|---|---|
+| Commander fixed, or refining an existing deck | Commander-first (§2.10) or Refine (§2.11) |
+| "What can I build from what I own?" / mechanic thesis / several plausible commanders | Inventory-first (§2.9) — do NOT choose a commander before the module census |
+| Evaluate a list (own, precon, netdeck) | Full evaluation (§2.8) or Minimum Useful Analysis (§2.12) |
+| Quick card or swap question | Compact output (§2.13) |
+| A card wanted by two decks, a raid, a swap between decks, "which decks collide", a rebalance, a shared package, an event loadout | Portfolio allocation (§2.15) |
+| How to play a deck / a specific game state / postgame review | Kairos–GATE (§3) |
+
+If the request is vague ("make it filthy"), fill the DeckRequirementsProfile gaps with at most 3–4 targeted questions (player count & table power; combo/stax/MLD tolerance; free-only vs raid other decks and which are off-limits; target pace). If the user is away, state assumptions at the top and proceed.
+
+---
+
+## 1. Interaction Ontology (descriptive layer, v3)
+
+Four layers: **InteractionUnits** expose **Hooks**; **Operations** connect qualified hooks; an **ObjectSemanticsProfile** is added when continuity, copying, or stored state matters; connections and modules compose the result. The ontology describes capability and connectivity. It never scores a card.
+
+### 1.1 Core model
+- The unit is **InteractionUnit**, not Card. Levels: `effect_bundle → ability → card → package → subsystem → deck`. Structure is a directed typed hypergraph, not a tree; units may belong to multiple modules.
+- Record per unit (only what matters): `evidence` (exact Oracle text, source, date, confidence), `interface` (accepts, exposes, requirements, qualifiers), `operations`, `relations`, `viability` (requires, disrupted_by, competes_for, dead_without, recovers_via, vulnerable_domains), internal_routes, emergent_outputs, decomposition, alternatives.
+- **Seven primitive relations (unchanged):** PRODUCES, OBSERVES, CONSUMES, TRANSFORMS, MODIFIES, PERMITS, PREVENTS. Decompose a new mechanic into existing hooks, relations, operations and transitions before inventing vocabulary; "Irma liability laundering" is a derived route, not a primitive.
+- **Derived contextual roles** (computed from the current deck graph, never universal card properties): generator/source, listener, sink, converter, enabler, multiplier, repeater, resetter/reloader, bridge, payoff, protector, cycle closer, interaction. Finer derived labels when useful: interface opener/closer, reclassifier, state interpreter, initializer, liability canceller, residue generator, capacity amplifier.
+- Multiplier classes: quantity_multiplier, magnitude_modifier, event_repeater, trigger_multiplier, ability_copy, spell_copy, generator_population, capacity_multiplier, cost_efficiency_modifier, scaling_input_modifier. Say which stage is multiplied: doubling a trigger is not doubling the event; reducing a cost is not making mana.
+- Resources: fungible (mana, life, cards), object-backed (permanents, tokens, cards in zones), marker-backed (counters — keep type, bearer, whether removal is payment), capacity (untapped permanents, land plays, activations, attack eligibility, combats), permissions (may be finite and expire), designations (prepared, monarch, max speed…), information. **Population is both resource and state:** sacrificing tokens feeds death payoffs and depletes go-wide payoffs — mixed composition, not a false connection.
+
+### 1.2 Hooks and the qualifier discipline
+Two hooks connect only when the producer's output satisfies the receiver's kind, identifier, AND qualifiers (controller, zone, token/nontoken, card/noncard, timing, cardinality, type/name). **Similar nouns do not establish compatibility.** Identifiers are lower-case dotted names from the core vocabulary (`battlefield.enter`, `spell.cast`, `permanent.sacrifice`, `token.create`, `counter.put`, `object.becomes_copy`, `threshold.crossed`…). Mandatory distinctions:
+- creature entered vs creature spell cast; entered from spell vs reanimated
+- left the battlefield vs died; sacrifice vs destroy; mill vs death; graveyard entry vs death
+- card entered hand vs card drawn (dredge/replacement ⇒ no draw event; a replaced event did not occur)
+- attacking vs declared as attacker (sneak/ninjutsu/"enters attacking")
+- entered tapped vs became tapped
+- token created vs token entered by another route
+- spell copied vs spell cast; triggering again vs copying a trigger
+- cost paid vs effect resolved (a sacrifice or bounce paid as a cost is a real event before resolution)
+- **one event vs several events** (simultaneous combat damage from many creatures to one player is ONE damage event for "whenever [player] is dealt damage")
+- **one event with several facets:** an artifact creature land entering is one entry that satisfies artifact-, creature- and land-entry listeners; never count it as three entries. Departures use the characteristics just before leaving.
+- **threshold state vs threshold crossing:** "has N" is not "went from N−1 to N" (chapter abilities need the crossing)
+- **damage vs life loss vs net life change**
+- current vs trigger-time vs last-known value; greatest value vs the object(s) having it; each opponent vs all opponents pooled
+- controller-sensitive typal entry; changeling expands type membership but creates no event
+- **Implication runs one way:** `creature.enters_battlefield` satisfies a `battlefield.enter` listener; `spell.copied` does not imply `spell.cast`; `token.enters_battlefield` does not imply `token.create`.
+
+### 1.3 Operations (the unit of connection)
+Connections run **operation to operation**, not card to card. An Operation is the smallest executable contract and owns its timing, cost, permission, choice, ordered steps and capacity.
+- **Requirement groups are AND-of-OR.** Every group must be satisfied; within a group any one alternative is enough. The alternative events of one trigger ("whenever this or another artifact enters") are ONE group with two alternatives. Each cost component, target class and condition is its own group. Mark groups the card cannot satisfy from itself ("sacrifice *another* creature").
+- **Amplifiers are not requirements.** Mana into X, extra bodies for a "for each" payoff, and extra counters scale a result without gating it. A supplier of an amplifier is not a dependency and not a route (record as latent/conditional + MODIFIES). If the operation does nothing at zero, the first unit is a requirement and the rest is amplifier.
+- **Three checks before calling a connection verified:** (1) *same operation* — the input reaches the ability that holds the payoff (Omnath, Locus of the Roil's landfall feeds its counter/draw trigger; its damage is on the entry trigger); (2) *requirement, not amplifier*; (3) *qualified, not similar* (Leonardo's pump needs a token to enter, not any creature). In the MeshLab runs these three errors made 25–46% of card-level routes in the looser decks non-executable.
+- **Requirement classes** for diagnosis: access, cost, timing, eligibility, assembly, state, history, information. "Don't have it" ≠ "can't pay" ≠ "window closed" ≠ "target no longer a creature" ≠ "the other piece is missing". Note the checkpoint a condition is tested at (trigger, payment, resolution, entry, state check); a condition true once is not assumed true later.
+- **Timing** = when it may be initiated (turn scope, phase/step, speed, delay, expiry). **Capacity window** = how many times and when that renews (tap capacity, land plays, "once each turn" renews every turn incl. opponents'; "only during your turn" is a window with no count). Untap effects replenish capacity (Umbral Mantle is capacity amplification, not "untap synergy").
+- **Costs** are first-class: base, alternative (not combinable with another alternative), additional (still apply under an alternative cost), reductions (not mana), restricted mana (not fungible), "without paying its mana cost" (a cost method; other requirements remain, X is normally 0). Costs can expose sacrifice/departure/bounce hooks and consume tap capacity before anything resolves.
+- **Permissions** (cast from exile/graveyard, extra land play, unusual timing, alternate payment) carry actor, zone, uses, expiry and what they are linked to. **Choices** carry chooser, time, legal set and *scope*: ten separate triggers may choose ten different objects; one shared choice forces one result.
+- **Replacement = event rewrite:** the proposed event did not happen; record lost and gained hooks.
+
+### 1.4 Object semantics (open only when continuity, copying or stored state matters)
+Keep three strata apart: the **object** (physical card or token, and whether it is still the same game object) · its **characteristics** (current, each with a source; a subset is copiable) · its **state** (everything else it carries: counters, tapped, damage, attachments, designations, links, tracked/delayed effects, capacities, permissions, chosen values, history). v3.0.1 lists these as seven strata; the content is the same. First question on any line: does the same object continue?
+- **Same object** (state kept, no entry or departure): characteristic change, becoming a copy, transform, phasing. **New object** (object-bound state gone, entry hooks fire): blink/direct return and reanimation (no cast), bounce + recast (real cast), token-copy creation (additional new object). Tokens that leave may not come back.
+- **Copies see only the copiable profile:** printed values as modified by earlier copy effects (their "except…" clauses become copiable — heritable phenotype). Not copied: counters, tapped status, attachments, ordinary buffs, type-changing animation, delayed effects, history, designations.
+- **Entering as a copy / token copy** performs the copied card's entry (enters-with counters, as-enters choices, ETBs). **An existing permanent becoming a copy** performs none of it: text is present, initialization state is absent.
+- **Absence has a sign.** Skipping initialization avoids a liability driven by the state's presence (vanishing: no time counters, never sacrificed) and incurs one driven by its absence (fading: "remove a fade counter; if you can't, sacrifice").
+- **Persistence defaults** (override only with evidence): state on a continuing object survives characteristic change, copying, transform, phasing and control change; it does not survive a zone change or new object; it is not copiable. A zone change makes counters cease to exist — that is not a `counter.remove` event.
+- **State reinterpretation:** state stays on the object, the abilities reading it change, the same counters mean something else (lore counters under a different Saga text; +1/+1 counters inert on a noncreature).
+- **Linkage:** "when this leaves, return the exiled card" does nothing if this object never performed the entry that exiled it. Filter borrowed leave-abilities for death-only, graveyard-only and linked wording.
+- **Tracked effects** bind to one object: a delayed sacrifice/exile on the seed token is not inherited by tokens that later become copies of it.
+- **Characteristic provenance:** when two effects support the same predicate (two animations), one expiring does not end it. **Interface transitions:** a type change opens or closes selectors (animated land becomes copyable/sacrificeable as a creature; a creature turned noncreature land leaves a creature sweeper; Equipment falls off, but a buff its trigger already created lasts its own duration).
+- **Forms:** a copied back face does not make the copier double-faced; a borrowed Adventure half vanishes when the copy effect ends on a zone change.
+
+### 1.5 Connection record
+`from_unit / from_operation / output_hook → to_unit / to_operation / input_or_requirement`
+`status`: verified | conditional | candidate | incompatible | unknown
+`strength`: direct | conditional | package_dependent | latent | broken
+`polarity`: positive | negative | mixed | context_dependent, with benefits, costs_or_losses, affected_state, break_even.
+Validity (does it work?) ≠ polarity (what does it do to the rest of the deck?). Keep broken/negative edges when they prevent repeat false inferences.
+
+### 1.6 Modules
+Module contract: *"Given these qualified inputs, permissions, costs, timing conditions and state assumptions, this module can produce these outputs at this cadence, with these limits."* Fields: purpose, accepts, guarantees, may_produce, exposes, required_operations, startup, timing_requirements, cost_requirements, cadence, limiting_resource, footprint, emergent_outputs, failure_points, vulnerable_domains, decomposition, alternative_implementations. Reason through the contract; reopen the internals only when a qualifier, replacement, contention, multiplier stage, timing, cost, object state, or loop closure matters. A module whose cost group has many alternatives (any body for a sacrifice outlet) is wide; one whose groups each have a single alternative (Twinning Glass: same-name cast this turn AND matching card in hand AND {1} AND untapped Glass) is narrow.
+
+Composition types: serial, parallel, convergent, divergent, feedback, redundant, competitive, inhibitory, conditional. Redundancy has two questions: do several implementations reach the same output, and do they fail to the same condition (shared failure domain: graveyard, creature board, artifacts, activated abilities, stack, combat, tokens, counters, lands, commander access)?
+Module-to-module relations: feeds, amplifies, reloads, protects, reenables, completes, bridges, competes, depletes, resets beneficially/harmfully, cancels liability, imposes tempo, creates opponent reuse.
+
+**Maturity ladder:** fragment → conditional_package → complete_package → repeatable_engine → self_feeding_engine → closed_loop_candidate → verified_loop → payoff_complete_engine → resilient_engine. Maturity is contextual to the current list. A loop is verified only when costs, capacities, timing, state restoration and termination all close, not when the graph returns to its start.
+
+Footprint: total slots, unique required roles, narrow cards, independently useful cards, commander-supplied roles, interchangeable slots. Broadly useful members = lower practical burden.
+
+### 1.7 Route templates (use them to compress reasoning)
+- **Sacrifice:** expendable permanent → sacrifice (cost or effect) → leaves battlefield → destination → maybe dies/enters graveyard → listeners.
+- **Token-sacrifice:** generator → token entry → expendable supply → outlet → sacrifice/death hooks → payoff → possible replenishment.
+- **Blink / reinstantiation:** exile → return as NEW object → entry hooks; no cast; charge lost state and broken links; ordinary tokens don't return.
+- **Bounce & recast:** hand access only, then real cost and a real cast.
+- **Recursion:** graveyard → hand/battlefield/exile/stack; not all recursion is reanimation or casting.
+- **Reset family:** *reinstantiation* (entry hooks, NO spell.cast, cast-dependent choices not made — a Room returns with both doors locked) vs *recast* (real cast, cast triggers, replay cost). Phasing = state-preserving displacement, not a reset. **Offensive reset** uses the same accounting and can reload an opponent's ETBs.
+- **Copy family — never merge:** spell copy on the stack (no cast) · copy a card and cast it (real cast) · ability copy · token copy (new object, real entry) · enters as a copy (new object, entry applies) · existing permanent becomes a copy (same object, no entry).
+- **Evoke, Prepared, Sneak, Warp** each expose different hooks. Prepared is a designation with a linked spell copy; it is not copied and is not created by becoming a copy of a prepare card. Sneak's returned attacker is a real bounce paid as a cost before a real cast.
+- **Temporary-deployment laundering:** Warp/Evoke/unearth-like liability → new-object transition before it collects → fresh permanent stays (verify exact text). **Same-object liability decoupling:** acquire the text by becoming a copy, never perform the initialization — check the sign (§1.4).
+- **Face-down conversion:** blinking a face-down permanent card returns it face up without a turn-face-up event.
+- **Land reset/replay:** return land → spend future land drop → re-enter → repeat ETB/choice/entry counters/landfall. Charge tapped-land tempo and land-drop cost.
+- **Eligibility bridge:** a temporary type change exists only to make an object targetable by another operation (animate a land so creature-copy effects can see it; the copy gets the land, not the animation). **Reclassification defense / refuge form:** change type before a hostile effect checks.
+- **Heritable phenotype:** copy-effect additions become copiable, so later copies inherit them. **State-gate recharge:** remove the state that blocks a permission (persist's −1/−1 counter). **Harvest → transition → redeploy:** tap a body for value before sacrificing or bouncing it. **Departure → residue:** a leave-trigger turns the departure into new stock.
+
+### 1.8 Parsimony and field authority
+- The precision layers (Timing, Cost, Permission, Choice, ObjectSemantics, Transition) open only when they change the answer. A vanilla creature, plain removal, an ordinary mana rock or a basic ETB creature needs none of them.
+- One home per fact: what an operation produces or needs lives on the Operation (unit-level relations are a roll-up); use limits live in a capacity window, not in timing; survival across transitions lives in one persistence profile.
+- Useful corpus queries the model supports: leave-listeners that do not require death, graveyard or a prior link; effects that grant a predicate another owned operation selects on; state that survives a type change and has more than one interpreter; objects with a non-destructive use before a destructive one; modules whose redundancy shares one failure domain; outputs with many producers and few receivers.
+- Rules claims carry a status: checked against rules text (cite the rule), standard but unchecked, Oracle-checked, release-notes-checked, or needs an instance check. Do not present an unchecked claim as established.
+
+---
+
+## 2. Evaluation Protocol (evaluative layer)
+
+### 2.1 Operating principles
+Usefulness over elaboration · separate description from evaluation · recognize straightforward power (a 2-mana 5/5 can beat an engine fragment) · preserve multirole value · don't confuse activity with advantage · account for dependency · don't double-count shared resources · let synergy supply fundamentals · state discipline (proposed ≠ completed swap; track copies, not names) · preserve uncertainty.
+
+### 2.2 DeckState & DeckRequirementsProfile
+DeckState: commander/partner/companion, format, version date, status (concept|provisional|assembled|frozen|testing|retired), authoritative list & counts, constraints (identity, legality, owned_only, budget, protected cards), change control (confirmed / proposed / rejected / unresolved), evidence confidence. **Resolve list integrity before count-dependent claims.**
+
+DeckRequirementsProfile headings: identity (commander plan, primary/secondary patterns, win routes, architecture preference, signature mechanics) · environment (player count, expected power, game length, interaction level, common threats) · pacing (first action, commander turn, engine turn, closing window, setup tolerance) · construction (owned_only, budget, locked cards, theme, acquisition) · experience (feel, complexity, variance, aggression, disliked patterns, combo/loop tolerance) · functional targets · module targets (core/optional/prohibited, footprint, redundancy, acceptable single points of failure) · evaluation priorities (ordinal, no invented weights).
+
+### 2.3 Architecture
+Tall (concentrated core + tutors/protection; high ceiling, excision risk) · Mesh (distributed overlapping routes; removal-resistant, slower/diffuse) · Hybrid. Don't reward density or netdeck resemblance for its own sake.
+
+### 2.4 CardValueProfile — two independent dimensions
+**A. Individual effectiveness:** mana efficiency, card efficiency, immediate impact (immediate / needs untap / combat / another event / another permanent / future only), standalone floor, tempo, reliability, resilience, flexibility, role contribution, ceiling (never without probability and cost), drawbacks.
+**B. Contextual contribution:** verified connections, modules entered/completed, hooks added, bridge value, redundancy, bottlenecks relieved, payoffs supported, commander interaction, dead-draw conditions. Graph degree alone is not value — weight edges by validity, relevance, scarcity, activation probability, output quality.
+**Costs:** dependency burden, opportunity cost (slot, mana, timing, board, information, architecture, contention, **allocation — does using it here weaken another owned deck?**), color intensity, vulnerability.
+**Stored-state block (v1.1, only when relevant):** state_investment, reset_upside, reset_exposure, population_dependency, replay_value/burden, temporary_liability, liability_bypass_value, reload_value, opponent_reset_value.
+
+**Dependency tax** — how many specific things must be true, how many cards satisfy each, ordering, must survive together, commander-supplied?, partners independently useful?, opponent-controlled?, recoverable? → burden low | moderate | high | extreme.
+
+### 2.5 Modules, coverage, density
+- ModuleValueProfile: maturity, components, required roles, footprint, operation, activation band, outcomes, robustness, contention, value (floor/expected/ceiling). Evaluate the verified module as one unit; don't re-award internal edges. v1.1 `state_economy`: stored state created/consumed/destroyed/reloaded, population created/consumed, liabilities created/bypassed.
+- **Activation bands:** very high · high · moderate · low · very low · unknown.
+- **Functional coverage** (grade each 0 Absent / 1 Fragile / 2 Adequate / 3 Strong / 4 Excellent-or-excessive, with reason and confidence): mana development, color fixing (count sources by turn and permitted use; restricted mana ≠ general), card access, interaction, board presence, protection & recovery, closing power. Credit synergy cards for ordinary functions they genuinely supply.
+- **Effective density:** a card counts strongly only if it supplies the exact qualified hook, is castable in time, is independently playable, doesn't draw on an overloaded resource, and aligns on zone/controller/timing. Report raw vs effective counts.
+- **Bottlenecks:** too few generators, too many sinks for one event, no activity→payoff conversion, card access, color, timing, tap capacity, sacrifice fodder, recursion destination mismatch, token/nontoken mismatch, controller mismatch, lack of targets, commander dependence, too many high-MV or setup-only cards, weak post-wipe recovery, can't close through blockers. A bottleneck-relieving bridge can beat another payoff on an oversupplied sink.
+- **Redundancy types:** textual, functional, route, structural, protective, inventory.
+
+### 2.6 Checks that must run before recommending
+**Anti-cleverness** (before recommending a connected card/package): material advantage or just triggers? how often are requirements present? partners independently useful? what if one piece is removed? several vulnerable permanents? consumes resources needed elsewhere? improves an actual weak function? payoff proportional to footprint? would a plain threat/removal/draw do more? false event equivalence? compared with a real alternative?
+**Before rejecting a straightforward card:** unusual raw rate? efficient pressure/defense? feeds comparisons? improves curve/reliability? reduces dependency? survives disruption? does the deck have too much machinery and too little material?
+**Activity-to-outcome:** trace each engine until it produces cards, mana, material board, damage/life loss, opponent resource loss, protection, recovery, access, inevitability, or a win. "More counters/triggers/zone changes" is not an endpoint.
+**Reset tradeoff test (v1.1):** what state is forfeited? what is refreshed? what hooks regenerate? what resource/tempo is paid? what liability is avoided? what other module loses? better target available?
+**Anti-synergy audit (v1.1):** sacrifice vs population payoffs; blink erasing counters; bounce reloading opponent ETBs; recursion competing for the same graveyard targets; token conversion removing needed blockers/attackers; tap-cost collisions; land replay eating land drops; resets clearing designations/attachments; phasing preserving state you wanted erased; cost workarounds losing later payoffs.
+**Bounce tempo model:** value (board, state erased, attachments, combat removal, fizzle, sorcery-speed delay, recast cost, hand size/cleanup pressure) vs downside (opponent ETB/cast reload, commander to hand not command zone, protection from worse removal, modal re-choice). Opponent chooses cleanup discards.
+
+### 2.7 Testing (choose tests that can change a decision)
+Opening-hand review, goldfish sequencing, commander timing, **mana Monte Carlo**, **engine-availability Monte Carlo**, removal/wipe/graveyard-hate scenarios, mulligan & color-source sensitivity, **card/module/commander ablation**, swap comparison, game logs.
+Monte Carlo must model: commander outside library, 99-card library, mulligan policy, ETB-tapped and conditional lands (e.g., "tapped unless you control a basic"), color production, restricted mana, ramp with summoning sickness, cost reducers only for eligible spells, sequencing policy. Report assumptions; separate measured from inferred. Define engines by **roles** (≥1 generator + ≥1 converter + required permanent + mana + timing), not specific cards. Useful outputs: P(land/color thresholds by turn), P(commander by target turn), P(complete package by turn), P(after removing a central card), P(narrow card drawn without support).
+
+Minimal simulation skeleton (adapt per deck):
+```python
+import random
+def sim(deck, n=20000, turns=6, keep=lambda h:2<=sum(c['land'] for c in h)<=5):
+    # deck: list of dicts {name, land:bool, tapped:bool, colors:set, ramp:int, mv:int, roles:set}
+    out=[]
+    for _ in range(n):
+        lib=deck[:]; random.shuffle(lib); hand=lib[:7]; lib=lib[7:]
+        if not keep(hand):  # one free mulligan to 7 then keep; refine as needed
+            lib=deck[:]; random.shuffle(lib); hand=lib[:7]; lib=lib[7:]
+        # play loop: draw (on the play skip T1), play best land (untapped first if it enables a spell), cast ramp, track mana/colors/roles by turn
+        state = {}  # fill per turn: lands, mana, colors, roles online, commander cast
+        out.append(state)
+    return out
+```
+
+### 2.8 Full evaluation — phases and standard output
+Phases: 1 authoritative state → 2 requirements → 3 structural audit (curve, types, lands/MDFCs, colors, threat density, instant density, subtype densities, graveyard reliance, commander dependence, high-cost concentration) → 4 mana audit → 5 card profiling (full for commander, module pieces, candidates, questionable & high-impact cards; abbreviated for routine lands/role players) → 6 graph construction (reject mismatches, keep negative edges, find outputs with no beneficiaries and receivers with too few generators) → 7 module detection → 8 functional audit → 9 risk & contention (single points of failure, commander removal, wipes, graveyard hate, exile, counters, hand disruption, artifact/enchantment removal, timing/mana/tap/sacrifice conflicts, stranded narrow cards, opponent-dependent cards, competing modules) → 10 play-pattern model (early, first board, commander, first module, midgame conversion, recovery, closing, stalls, best/worst draws; routine vs ceiling) → 11 candidate comparison → 12 testing → 13 recommendations.
+
+**Standard output A–J:** A Deck snapshot · B Deck thesis (pace, win routes, architecture) · C Structural & mana audit · D Functional coverage (0–4) · E Card findings (core, rate, multirole, bridges, payoffs, narrow dependencies, liabilities) · F Module map (contract, components, hooks, maturity, footprint, activation band, contention, failure points, payoff) · G Graph diagnosis (scarce inputs, oversupplied sinks, bottlenecks, fragments, single points of failure, alternative routes) · H Expected play pattern · I Candidate changes (exact OUT/IN, net effects, ownership, confidence) · J Testing priorities.
+
+**Candidate comparison fields:** outgoing, incoming, list_status, deltas for intrinsic rate / functional coverage / mana / modules / redundancy / dependency / resilience / contention / closing power / experience / inventory-or-cost, confidence, verdict.
+
+**Recommendation classes:** KEEP — Core · KEEP — Multirole · KEEP — Rate · KEEP — Redundancy · TEST · PACKAGE-DEPENDENT · FLEX SLOT · CUT — Low floor · CUT — Dependency burden · CUT — Redundant sink · CUT — Activity without outcome · CUT — Mana or tempo · CUT — Role failure · CUT — Better allocation.
+**Evidence standard:** Strong (verified Oracle, counts, requirements, module effects, clear alternative) · Moderate · Tentative · None. No fake decimal precision.
+**Expected contribution (reasoning frame only):** standalone value + P(support) × contextual gain + scarcity bonus + resilience/flexibility − dependency − opportunity cost − contention − reliability penalties. Module: P(operational) × consequential output × cadence × relevance − footprint − narrow burden − setup/tempo − disruption risk − contention. A lower-ceiling module of independently useful cards that comes online routinely can be superior.
+
+### 2.9 Inventory-first path (v1.1) — required before any 100-card list
+Thesis → authoritative inventory & allocation → search generators/receivers/resetters/repeaters/sinks/payoffs/bridges/protection/ordinary functional cards → **module census** (per module: name, purpose, minimum_core, optional_amplifiers, inputs, outputs, exposed_hooks, color_identity, mana/timing requirements, standalone_floor, maturity, limiting_resource, failure_modes, antagonisms, alternatives, current_allocation, free_owned_copies, missing_role, confidence) → separate complete modules / fragments / theory → footprint & floor → overlap/antagonism/contention → **color topology** (which colors hold the generator density, payoffs, scarce bridges; does an added color bring a whole subsystem or just shiny cards? smallest shell preserving the ecology) → commander that reinforces the cluster → fill mana, access, interaction, board, protection, recovery, closing → add high-rate standalone cards where the mesh is too dependent → mana base from real requirements → mana & module-availability tests → goldfish incl. disrupted states → only then the list.
+
+Return first: **A** Mechanical thesis · **B** Inventory scope & confidence · **C** Module census · **D** Module relationship map · **E** Color topology · **F** Strongest clusters · **G** Important fragments & missing roles · **H** Anti-synergies & contention · **I** Commander/shell candidates · **J** What to test before list construction. *A full list is premature until a coherent ecology is identified.*
+
+### 2.10 Commander-first build
+Requirements → commander hooks & constraints → functional requirements & pace → candidate core modules → contracts/footprint/overlap → prefer independently useful implementations → fill ordinary functions with module-serving cards where possible → add high-rate cards for material presence → mana base → bottleneck/contention/SPOF audit → fill by scarcity and expected contribution → goldfish/simulate → record provisional list → test → revise from evidence.
+
+### 2.11 Refining an existing deck
+Freeze & label version → record successes, stalls, losses → compare to requirements → locate failure (mana, speed, access, disruption, assembly, payoff) → find the graph bottleneck → compare swap deltas → change the fewest cards that test the hypothesis → keep proposed vs completed separate → rerun only affected analyses → promote after confirmation.
+
+### 2.12 Minimum useful analysis
+1 Verify list & constraints · 2 State thesis & architecture · 3 Audit mana + seven functions · 4 Identify the three most important modules/fragments · 5 Recommend only changes backed by a clear expected-contribution comparison.
+
+### 2.13 Compact swap output
+`individual_effectiveness · contextual_contribution · functional_change · module_change · mana_and_tempo · dependency_and_risk · experiential_change · ownership · verdict · confidence`
+
+### 2.14 Thread working rules
+Establish the current list before modifying it · physical/confirmed swaps are authoritative; proposals stay queued · never silently import cards from another deck · check copy counts before calling a card unavailable · preserve commander/companion/color/format constraints · verify Oracle text for pivotal interactions · show simulation assumptions · distinguish current-deck from hypothetical unrestricted builds · explain corrections and propagate them · don't recommend acquisition outside scope · aesthetic and fun constraints are real requirements · don't optimize away from the desired play pattern.
+
+### 2.15 Portfolio allocation and trade requests (v1.2)
+Use whenever a card is wanted by more than one deck. Deck evaluation (§2.1–2.14) stays deck-local; this layer sits above it and works on **physical copies**, not card names. The allocation graph (custody and substitution) is separate from the interaction graph — never merge them. The objective is not the strongest single deck, or the highest total strength: it is the best collection of decks Zach actually wants to keep, within ownership, coexistence, identity, play-experience and preservation constraints.
+
+**CLAIM → REPLACE → CASCADE → CONSTRAIN → COMPARE → ALLOCATE**
+
+- **Set up first.** Authoritative inventory (no exact allocation work while ownership or deck location is materially uncertain) · active **configurations** (one deck may have independent, powered and experimental forms; each is its own allocation object) · **regime**: *simultaneous* (all must be playable at once; one copy lives in one deck), *exclusive* (only one is built at a time, so sharing is a configuration dependency, not a collision), *protected*, *experimental*, or a hybrid · **locks**: hard (commander, sentimental, pristine precon, identity-defining; explicit override only), soft (substantial gain only), preference, free · a **deck floor** for every maintained deck (minimum functional coverage, identity, required modules, play pattern, resilience, mana).
+- **Central quantity — replacement-adjusted loss.** Not "what does the source lose if X leaves" but "what does it lose after its best feasible repair". Portfolio delta ≈ target improvement − replacement-adjusted source loss − cascade costs. A reasoning frame, not arithmetic; use bands: transformative / large / meaningful / small gain · neutral · small / meaningful / large loss · structural damage.
+- **Claim record:** requested role and modules, bottleneck targeted, the card that leaves the target, target gain, source loss without replacement, replacement set, replacement-adjusted loss, classification, confidence. A claim is **stronger** when the card completes a critical module, relieves a real bottleneck, the target lacks alternatives, the source has good ones, it fills several scarce roles, and source identity is untouched. **Weaker** when it is another payoff on an oversupplied role, replacements exist, synergy is high but activation is low, or the source depends on it structurally. Custody goes to the deck that loses more irreplaceable function without this copy — never to the one with more graph edges, and not to "it's one of the strongest cards there". A contingent claim (only good if card B also arrives) justifies nothing until that other change is approved.
+- **Replacement search, in order:** free pool → unused copies → functional replacements held by other decks → swaps → short exchange cycles → replacement cascades (don't stop because the first good substitute is itself allocated) → shared module. Prefer preserving function and route over identical wording. Judge swaps, cycles and cascades by the **final joint state**, not edge by edge; a locally negative step can belong to a good cycle. Prefer the simplest structure when benefits are similar.
+- **Three-stage standard:** (1) hard constraints — ownership, legality, color identity, singleton, companion, hard locks, coexistence; (2) deck floors — reject or escalate; (3) only then improve the portfolio (bottleneck coverage, module completeness, route redundancy, card quality, resilience, mana, differentiation, intended experience).
+- **Classes:** PARETO IMPROVEMENT (someone gains, no maintained deck is meaningfully worse after replacement — the strongest recommendation) · COMPENSATED IMPROVEMENT (a small loss above the floor buys a larger gain — surface it for Zach's judgment, never auto-execute) · REDISTRIBUTIVE (power-neutral, but better differentiation, identity or simplicity) · NEUTRAL (avoid the churn) · HARMFUL (reject) · UNCERTAIN (test first).
+- **Also weigh:** identity diversity (two strong but similar decks can be a worse portfolio) · power concentration (one flagship and several hollow shells) · transaction complexity tax (decks touched, cards moved, lands changed, bookkeeping, error risk; simple Pareto > complex Pareto > complex marginal) · allocation stability (move only on a real trigger: a new card, changed requirements, a discovered bottleneck, a test result, a clearly better replacement, a deliberate reprioritisation) · **shared modules** for exclusive configurations (the package moves as a unit; count cards moved and restored, mana-base changes and error risk) · acquisition only when the scope allows it.
+- **Checks.** *Anti-gutting:* is the source still coherent; did it lose a signature module, a unique function, its redundancy, its mana, its floor; does the replacement really preserve the function; is it being harvested merely because it is the weaker deck? *Anti-hoarding:* current or historical custody is not entitlement. *Anti-synergy-count:* usefulness × activation likelihood × scarcity × module consequence × replacement scarcity, not number of interactions. *Ablations:* copy (which decks degrade if this copy vanished — finds globally scarce cards), deck (what stops being contested if one deck sits out — event loadouts), shared module. A portfolio bottleneck is not a deck bottleneck: each deck can have enough removal while the collection cannot supply four decks at once.
+- **Local vs global:** the best theoretical version of every deck is not a physically realizable portfolio. Distinguish the unrestricted deck optimum from the physical portfolio optimum.
+- **State discipline:** proposed · approved · physically_completed · rejected · reverted · experimental. Change the workbook only after Zach confirms the physical move, then re-evaluate the affected decks only.
+- **Request types:** claim · transfer · replacement · collision · rebalance · shared-module · portfolio optimization · event loadout.
+- **Full output A–J:** A Portfolio snapshot (inventory version, active configurations, regime, protected decks, free-pool confidence) · B Current collisions · C High-value claims · D Replacement map · E Transaction options · F Deck-floor checks · G Portfolio effect (class) · H Physical movement plan (exact OUT/IN, source/destination, copy, configuration) · I State status · J Remaining questions.
+- **Compact trade output:** `requested_card · source · destination · regime · destination_gain · source_replacement · replacement_adjusted_source_loss · portfolio_effect · deck_floor_status · identity_effect · complexity · classification · confidence`
+- **Minimum useful portfolio analysis:** 1 establish the regime · 2 verify the contested physical copies · 3 compare each claimant's marginal contribution · 4 find the source's best realistic replacement · 5 reject constraint and floor violations · 6 recommend only clear replacement-adjusted improvements.
+- **Workbook mapping.** The workbook records counts per card name, not copy IDs, regimes, locks or floors. Find collisions by summing `Current deck` quantities per card across decks on the Deck Allocations sheet and comparing with Known Qty (the Availability text flags these as "copy short"). Known Qty is a minimum, so an apparent collision may be an uncounted second copy — say so. Treat the ten sleeved decks as one simultaneous regime unless Zach names an exclusive pair or an event loadout. Commanders and companions are hard-locked. Ask before harvesting the near-stock precon decks (First Flight, Limit Break, Counter Blitz); do not assume they are either protected or free. State any floor you assume.
+
+---
+
+## 3. Kairos–GATE (doctrine and piloting layer)
+
+Concern is **conversion**: engine activity → advantage → access → conversion → victory. *Optimize access to winning states, not activity.*
+
+### 3.1 Gate taxonomy (analysis)
+Access · Mana (colors, taxes, restrictions, and interaction afterward) · Timing · Eligibility · Assembly · Resistance · Information · Conversion · Horizon. Field form: **"What is actually stopping this line from mattering?"** then **"Can I remove that gate — or am I solving the wrong problem?"** Before accepting "I can't," check for permission; before trusting "they can't," check their exceptions. Know which rules your deck is allowed to cheat.
+
+### 3.2 Deck Doctrine Compiler (produce this after a list is settled)
+For the deck, write a short doctrine: actual win routes and what each needs · the binding gates each route usually faces · scarce roles (which cards perform jobs nothing else does) · stored state the deck builds and how it's exposed to resets/wipes · reset trades the deck performs (what each destroys) · dangerous failure states (lines whose failure leaves you tapped out/exposed) · response envelopes for key commits · multiplayer externalities (whom your threats pressure; what you should make others answer) · recurring execution burdens and the physical reminders to externalize them · a mulligan/keep heuristic.
+
+### 3.3 Leverage patterns
+Binding Gate · Gate Override · Role Attack (hit the scarce job, not the impressive card; ask "who inherits the job?") · Load Transfer · Reconstruction Tax · Horizon Kill ("back eventually is not back in time") · Threshold Discipline · Response-Envelope Shaping · Refusal-Proof Pressure · Information Extraction · Tail Selection (ahead: protect the floor; behind: keep real outs) · Simplicity Dominance · Exploit-or-Don't-Create · State Reset Accounting · Externality Control.
+
+Evaluate uncertain commits as **success state + failure state**, not probability alone (combo attempts, alpha strikes, tutors, graveyard commits, sacrifice lines, tapping out, early protection).
+Commander externalities: "Dangerous to whom, by when, and who should pay to answer it?" · "If I start this fight, who is strongest when it ends?"
+
+Operational cycle: **Preserve → Shape → Isolate → Commit → Exploit → Reset.** Untapped mana is an option; unused mana is eventually waste.
+
+### 3.4 Live cockpit (the only thing to use at the table)
+**CLOCK** — can anyone win or lock the game before I act again? · **GATE** — what stops my best consequential line? · **JOB** — which card performs the scarce job now? · **REPLY** — strongest credible responses? · **CONVERT** — if it works, what do I get before they rebuild? · **RESET** — did something just invalidate my plan?
+Turn rhythm: Update → Preserve/Develop → Shape → Commit → Convert → Pass with intention.
+Emergency: *Can they win? Can I win? What stops either? What answer must I keep? Act.*
+
+### 3.5 Postgame diagnosis and human execution
+Classify each loss/stall as: deck architecture · information · evaluation · search · sequencing · recall · execution · commitment · updating. Missed triggers are execution problems, not card-quality evidence. Stable, important, easy-to-forget facts get **externalized** (commander ability reminder, upkeep-trigger markers, token inventory, once-per-turn reminders, alternate-cost and mana-restriction notes, commander-tax counter, a tiny deck-specific cockpit card). Feed diagnosis back into §2.11.
+
+---
+
+## 4. Zach's inventory workbook
+
+File is named like `MTG_Master_Deck_Building_Inventory_YYYYMMDD.xlsx` (re-uploaded each thread; always use the newest). Since 2026-10-05 it is a lean five-sheet workbook: Overview, Collection, Deck Allocations, Review Queue, Guide. A separate `MTG_Master_Deck_Building_Inventory_ARCHIVE_20261005_full_history.xlsx` holds the old 63-sheet version (photo-intake and reconciliation logs, per-card Source Groups and Notes, deck cut and swap history, official precon stock lists, Role Index, Lands, Mechanic Profile/Cards). Open the archive only for provenance or history questions; an older-layout file may still be uploaded, so read columns by header name, never by position.
+- **Collection** sheet: header on row 4 (`pd.read_excel(path, sheet_name='Collection', header=3)`), one row per card name, sorted by name. Columns: Card Name, Known Qty (min), Availability, Current Deck(s), Mana Cost, Mana Value, Color Identity (WUBRG order, `C` = colorless), Type Line, Rarity, Roles (`; `-separated), Oracle Text, Power, Toughness, Keywords, Produces, ETB Tapped, Commander Legal (`Legal` / `Not legal`; older files also use `Yes`), Can Be Commander, Recorded / Printed Alias, Scryfall URL, Ownership (`Yes`, or `Uncertain` for one card). There are no per-deck Status columns, Notes, or Source Groups in the lean file.
+- **Names:** two-part cards carry the full Scryfall name (`Front // Back`, including MDFCs, adventures, omens and prepare cards). The alias column holds front-face-only names, alternate printed names (e.g., TMNT sleeve names) and earlier misreadings — match user-supplied names against both columns.
+- **Known Qty (min)** is a confirmed minimum, not a full count: a card pictured again is not counted again; rows are raised only to the number of copies seen together or to a count Zach states. An "extra copies" pass is still open.
+- **Free copy** test: `Availability` contains "Free" or "free" (covers "Free / unassigned" and "Allocated + N free copies"). Everything else is allocated. Ownership must be `Yes`.
+- **Deck Allocations** sheet (the only place deck lists live): Card Name, Deck, Status, Quantity, Section. `Current deck` rows (plus `Companion`) are the sleeved lists and sum to 100 per deck; Section is Commander / Companion / Nonland / Land (for TMNT, Land means a land-designated slot). Every other Status is a bench, reserve or candidate pool recorded when the deck was last tuned.
+- **Lands and roles:** there is no Lands sheet or Role Index. Lands = Collection rows whose Type Line matches `\bLand\b`. For roles, split `Roles` on `;` and strip — never substring-match (Counters/Counterspell, Land/Landfall/Lands matter/MDFC land, Ramp/Trample, Graveyard/Graveyard hate, Animation/Artifact animation). Role tags are rule-based search aids, not evaluations, and under-tag bounce and library-tuck effects as Removal.
+- **Other sheets:** Overview (live formula counts by rarity, color identity, deck and role — it depends on the table names CollectionTable and AllocationsTable), Review Queue (open questions only), Guide (field meanings, conventions, change log). When the workbook is edited, extend the table ranges and add a Guide change-log line.
+- **Rows to exclude from card pools:** `______` (placeholder land), Counters (theme card), Elemental (token), Finch Formation, Rust-Shield Rampager, Thornplate Intimidator (token copies) — owned objects, not deck-legal cards.
+- **Rarity** is that of the recorded printing; timeshifted "Special" printings are recorded as Rare. A Scryfall URL of the form `/search?q=` means the printing was never identified, so that row's rarity is only the default printing's.
+- **Catalogue status:** on 2026-10-05 Zach reported that every unique spell he owns is believed recorded, and non-basic lands were reviewed the same day. Treat later additions as new cards or extra copies, not backfill.
+- Assembled decks (ten, as of 2026-10-05): Dina, Ashling (+ Jegantha companion), Sharuum, TMNT (Leonardo + Splinter), Rootha, Brigid, Necrobloom (The Necrobloom), First Flight, Limit Break, Counter Blitz. Treat any raid from these as an allocation cost to that deck. Zach estimates the collection supports roughly 9–12 decks at decent mana infrastructure (cheap mana rocks are the binding constraint), so a new deck usually means retiring or rotating one.
+- **Basics:** basic lands are not catalogued. Zach owns many uncounted basics, so treat them as unlimited when building — do not flag basics as scarce or needed.
+- Color-identity filter: `set(ci.replace('C','')) <= set(commander_identity)`. Remember rules-text mana symbols count (e.g., Timeless Lotus is WUBRG identity), as do hybrid costs and the second part of a two-part card.
+- Dump candidate pools with Oracle text to scratch files and read them fully before selecting; don't select from names alone.
+
+## 5. Deliverables and checks
+- **Banned list:** check current Commander banned list via web search before finalizing (sources: WotC B&R announcements, AetherHub/EDHREC ban pages).
+- **Import file:** plain text, `1 Card Name` per line, front-face names for MDFCs/adventures/rooms (the workbook stores full two-part names, so cut each at ` // `), commander first as `1 Name *CMDR*`, basics as `N Forest`. Verify total = 100 with code.
+- **Validation script:** confirm every name exists, is owned, is free (or explicitly flagged as a raid), is within color identity, and is Commander-legal; print curve and land/nonland counts.
+- **Raid table:** Pull in · From deck · Cut · why · the source deck's replacement · replacement-adjusted loss — and note which source deck is hurt most. Anything beyond a single uncontested pull goes through §2.15.
+- Keep claims honest: label every connection verified / conditional / candidate; report measured vs inferred; send files via SendUserFile.
+
+## 6. Rules pitfalls already caught (keep adding)
+- "Whenever [player] is dealt damage" (e.g., Grievous Wound) triggers once per simultaneous combat-damage event, not once per attacking creature; life loss (drain) doesn't trigger damage listeners.
+- Earthbend: the land returns tapped when it dies/is exiled (landfall fires), but returns as a new object — no counters, not a creature. One extra landfall per earthbend, not a loop.
+- Dredge replaces a draw: no card.draw event occurs; each draw is a choice between a card and a dredged land (contention).
+- A land sacrificed as a cost is already in the graveyard when a "draw a card" effect resolves, so it can dredge itself back.
+- Tokens are not "creature cards" for card-based selectors; blinked tokens don't return.
+- "Whenever this or another X enters" is one trigger with two alternative events, not two requirements (Pactdoll Terror fires on its own entry alone).
+- A permanent that becomes a copy while on the battlefield does not enter: no ETB, no "enters with" counters, no "as this enters" choice. Irma, Part-Time Mutant keeps her name and her copy ability, gains a +1/+1 counter each time, and keeps every counter she already had.
+- Copy effects do not copy counters, animation or other type-changing effects: Irma copying an animated or earthbent land becomes the plain land (still named Irma, still with her ability).
+- Sagas: a chapter triggers only when a lore counter is put on and the count crosses that chapter's number; the counter is added as the precombat main phase begins, so a beginning-of-combat copy change is too late to dodge it. A permanent already holding lore counters at or above the final chapter number is sacrificed as soon as it becomes a Saga with no chapter ability of its own on the stack.
+- Vanishing with no time counters never sacrifices; fading with no fade counters is sacrificed at the next upkeep.
+- Prepared: the spell copy is created in exile when the creature becomes prepared and lasts while that permanent stays on the battlefield and prepared; it survives the permanent becoming a noncreature or a copy; being prepared is not copied, and "enters prepared" does nothing for an object that merely becomes a copy.
+- An X-spell's mana source amplifies it; it is not a second route to the finisher.
