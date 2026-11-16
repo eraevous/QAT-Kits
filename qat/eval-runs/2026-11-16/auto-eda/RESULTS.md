@@ -20,6 +20,13 @@
 | AE-01 | PASS | Ran the script. `order_id` was profiled as an ID; `constant_flag` was flagged as constant. Missingness (22.2%) and the right skew of `amount` (skew 4.07, median 18.28 vs mean 29.28) come from the summary's new `stats`, which 1.0.0 could not support. Four findings were given. One extra "Also" line restates the rest of the profile: borderline against "2-4 findings", but not a chart-by-chart walk. |
 | AE-04 | PASS | No crash. `user.plan` is its own flattened column. The dominant category (team 50%) is read from `stats.top`. No CSV rewrite. |
 
-**Not run here:** AE-02 (passing a stated threshold) and AE-03 (pasted connector JSON). Neither path changed in this commit.
+| AE-02 | PASS | Passed `--max-cats 12` to the script. It also said, correctly, that the cutoff changed no classification here (`region` has 4 values; `qty` has 39). Findings come from `stats` and `correlations`. |
+| AE-03 | PASS | Wrote the pasted payload to a file before running the script. `{"data": [...]}` was unwrapped and `b` flattened to `b.c`, which passes through the new `make_hashable` step unharmed. Treated "What's in this data?" as an EDA request. |
+
+**AE-02 and AE-03 were added after Codex's review** (finding 4592970450 on #21). The first commit left them out on the grounds that their paths were unchanged. That did not hold: both pass through the changed summary code, and AE-03 also goes through `make_hashable`. A second fresh subagent ran them against the same built skill, with the same blind setup.
+
+**Result: 4/4 PASS (self-graded, same-family).**
+
+Note for AE-03, not a failure: the runner said, rightly, that the 0-29 counter `a` is charted as numeric. That is the known integer-ID behaviour recorded in the cases file under AE-01.
 
 **Observation (not a failure).** AE-04 shows a limit of the list-as-text choice. `["a","b"]` and `["b","a"]` count as different values. The runner noticed, said so, and gave its own unordered count, labelled as its own. Whether lists should be profiled order-free (sorted, or exploded per element) is a design choice for a later version. It is left as is here.
