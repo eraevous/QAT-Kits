@@ -1,0 +1,116 @@
+# Eval cases for thread-map. Output files go in OUTPUT_DIR/<id>.md.
+# Pattern checks: regex (case-insensitive, multiline), optionally scoped to one output section.
+# Judge checks: graded by a model, one line each.
+#
+# Fixture: cases/fixtures/garden-rota.thread.md (constructed; never a real conversation in this public repo).
+# What the fixture plants (the key; do not show this to the model under test):
+#   dropped requirement:  "no login or account" [T2u], contradicted by the email sign-in in the design [T8a]
+#   unanswered question:  who gets the reminder text [T7u]; deferred at T7a, not answered in the design [T8a]
+#   revision, not loss:   weekly rota [T3u] explicitly replaced by fortnightly [T6u]; the design [T8a] says
+#                         fortnightly only, which is correct and must not be warned about
+#   parked proposal:      moisture sensors [T4a]; Zach: "Maybe next year. Not now." [T5u]; parking is decided, adopting is not
+#   segments:             rota (T1-T3), sensors (T4-T5), rota again (T6-T8)
+#
+# All cases: written by claude:qat#01GZK2Knvfahze6u4SnM9Ysf (design-time, 2026-11-16). Case revision-not-loss
+# was asked for by Kate (API instance, 2026-11-16, reply 9d21b6daf0c4). No independent cases yet; an
+# independent author should add at least two before v0.2.
+#
+# input.thread names a fixture for the cold-run actor to read and supply to the model;
+# qat.py eval only grades saved outputs and does not resolve file: references.
+tool: thread-map
+cases:
+  # 1. The dropped requirement and the unanswered question come back as evidence, with both pointers.
+  - id: dropped-requirement
+    # tests reflexes: evidence-or-speculative, pointers-or-nothing
+    input:
+      thread: "file: cases/fixtures/garden-rota.thread.md"
+    must_include:
+      - section: warnings
+        pattern: "^\\W*evidence:.*(login|account|sign).*"
+        why: the no-login requirement is contradicted by the design
+      - section: warnings
+        pattern: "^\\W*evidence:[^\\n]*T2u[^\\n]*T8a|^\\W*evidence:[^\\n]*T8a[^\\n]*T2u"
+        why: the warning cites where the requirement was set and where it was dropped
+      - section: warnings
+        pattern: "remind"
+        why: the reminder question was never answered
+      - judge: the segments cover the thread in order, each boundary marks a real change of purpose (the rota, the sensors aside, the return to the rota), the pivots inside a topic (the switch to fortnightly, the deferred reminder question) are named, and the table is not one segment per turn. The exact count is not graded.
+        # revised 2026-11-16 after Kate's review (reply 9580bf77e377): was "three segments (rota, sensors, rota again)".
+    must_avoid:
+      - section: warnings
+        pattern: "^\\W*evidence:(?![^\\n]*T\\d+[ua][^\\n]*T\\d+[ua])[^\\n]*$"
+        why: an evidence warning without two pointers
+      - section: warnings
+        pattern: "^(?!\\W*speculative:)[^\\n]*\\b(fade|faded|fading|memory loss|context loss)\\b"
+        why: fade or memory loss reported as anything but speculative
+
+  # 2. Kate's case: an explicit revision is not a dropped requirement.
+  - id: revision-not-loss
+    # tests reflex: revision-is-not-loss
+    input:
+      thread: "file: cases/fixtures/garden-rota.thread.md"
+      objective: "prepare a handoff to a thread that will build the rota page"
+    must_include:
+      - section: carry
+        pattern: "fortnight[^\\n]*(replac|supersed)[^\\n]*weekly"
+        why: the final rota rule is carried once, naming what it replaces
+      - section: carry
+        pattern: "fortnight[^\\n]*T6u"
+        why: the replacement carries its pointer
+    must_avoid:
+      - section: warnings
+        pattern: "^\\W*(evidence|speculative):(?![^\\n]*(replac|supersed|revis))[^\\n]*\\bweekly\\b"
+        # Codex review 4592342386: replacement wording is looked for across the whole line, not only after "weekly"
+        why: the weekly rule was replaced on purpose; its absence from the design is not loss
+      - section: carry
+        pattern: "^(?![^\\n]*(replac|supersed))[^\\n]*\\bweekly\\b[^\\n]*decided"
+        # Codex review 4592342386: "Fortnightly rota replaces weekly fixed days [T3u]; decided (user); T6u" must pass
+        why: the old rule carried as still decided
+
+  # 3. Negative control: a short single-topic exchange gets one segment and no warnings.
+  - id: single-topic
+    # tests reflex: no-manufactured-warnings
+    input:
+      thread: "T1u: Should the garden's tool shed padlock be a combination lock or a key lock? T1a: A combination lock: thirty volunteers can't share keys, and you change the code each season. T2u: Combination it is."
+    must_include:
+      - section: warnings
+        pattern: "^\\W*none\\b"
+        why: nothing was dropped or contradicted
+      - section: carry
+        pattern: "combination[^\\n]*decided \\(user\\)"
+        why: the user's own words decided it
+    must_avoid:
+      - section: segments
+        pattern: "^\\|\\s*(2|S2|seg(ment)?\\s*2)\\s*\\|"
+        why: a one-topic exchange split into several segments
+
+  # 4. Compatibility with thread-seed: every carried item has a status and a pointer; parked is not decided.
+  - id: carry-statuses
+    # tests reflexes: continuing-is-not-adopting, pointers-or-nothing; acceptance check for the thread-seed note
+    input:
+      thread: "file: cases/fixtures/garden-rota.thread.md"
+      objective: "prepare a handoff to a successor thread (thread-seed will write its opening message)"
+    must_include:
+      - section: carry
+        pattern: "(login|account)[^\\n]*decided \\(user\\)[^\\n]*T2u"
+        why: the no-login requirement is still the user's decision and must be carried
+      - section: carry
+        pattern: "remind[^\\n]*\\bopen\\b"
+        why: the reminder question is open
+    must_avoid:
+      - section: carry
+        pattern: "^\\s*[-*]\\s(?![^\\n]*\\bT\\d+[ua])[^\\n]*$"
+        why: a carried item without a pointer is unusable to thread-seed's spot-check
+      - section: carry
+        pattern: "^\\s*[-*]\\s(?![^\\n]*;\\s*(decided \\(user\\)|wanted \\(user\\)|agreed \\(models\\)|proposed\\b|open\\b))[^\\n]*$"
+        # Copilot review 4592570535: the status must be the field after a semicolon, not a word in the description
+        why: a carried item without a status (Codex review 4592342398; the compatibility note claims status and pointer per item)
+      - section: carry
+        pattern: "^(?![^\\n]*(park|next year|not now|defer|later))[^\\n]*sensor[^\\n]*decided"
+        # Copilot review 4592570615: parking wording anywhere in the line, so "Park soil moisture sensors; decided (user)" passes
+        why: the sensors were parked ("Maybe next year. Not now."); deciding to park is the user's, adopting them is not
+        # revised 2026-11-16 after the v0.1 cold run: the first pattern also failed "parked until next year;
+        # decided (user)", which is a correct reading. Recorded in eval-runs/2026-11-16/thread-map/RESULTS.md.
+      - section: carry
+        pattern: "email sign-?in[^\\n]*decided"
+        why: the email sign-in is the model's design, never accepted
