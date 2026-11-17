@@ -13,9 +13,21 @@ Commands
   validate SPEC                          validate one spec file
   audit    TOOL OUTPUT.md [--json OUT]   check an output against TOOL's output contract
   handoff  FROM TO OUTPUT.md [--json OUT]  map FROM's audited output onto TO's inputs
-  eval     EVAL.yaml OUTPUT_DIR          run must_include / must_avoid checks per case
+  eval     EVAL.yaml OUTPUT_DIR [--judgments FILE]
+                                         run must_include / must_avoid checks per case;
+                                         judged checks are graded only from FILE
 
-Exit code 0 = no errors (warnings allowed), 1 = errors, 2 = usage problem.
+Exit code 0 = no errors (warnings allowed), 1 = errors, 2 = usage or configuration
+problem (bad arguments, unreadable eval file, malformed judgments file), 3 = incomplete
+eval (no errors, but not everything was checked: no cases, a case SKIPped because its
+output is missing, or a judged check with no valid recorded judgment). A known failure
+wins: a run with an error exits 1 even if it is also incomplete, and says so.
+
+Judgments file (JSON): {"judgments": [{"case": ID, "kind": "must_include"|"must_avoid",
+  "check": N (1-based, as printed), "verdict": "PASS"|"FAIL", "reason": TEXT,
+  "grader": TEXT, "grader_is_author": BOOL, "output_sha256": HEX}]}
+  output_sha256 binds the judgment to the exact output file graded; a judgment whose
+  hash doesn't match the current output is stale and counts as missing.
 
 Error codes (typed, so a caller can branch on them)
   SPEC_INVALID      spec frontmatter fails the schema
@@ -26,11 +38,13 @@ Error codes (typed, so a caller can branch on them)
   UNKNOWN_FIELD     output has a section the contract doesn't declare (warning: the
                     "model invented a field" failure)
   BROKEN_HANDOFF    handoff target or mapped field doesn't exist, or types can't coerce
-  EVAL_FAIL         a deterministic eval check failed
+  EVAL_FAIL         a deterministic eval check failed, or a judged check was graded FAIL
+  EVAL_INCOMPLETE   (incomplete, exit 3) a case or judged check was not graded
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -185,10 +199,15 @@ SPEC_SCHEMA = {
 VALIDATOR = Draft202012Validator(SPEC_SCHEMA)
 
 
+class ConfigError(Exception):
+    """A usage or configuration problem (exit 2), kept apart from failed or incomplete evals."""
+
+
 @dataclass
 class Report:
     errors: list[tuple[str, str]] = field(default_factory=list)
     warnings: list[tuple[str, str]] = field(default_factory=list)
+    incomplete: list[tuple[str, str]] = field(default_factory=list)
 
     def err(self, code, msg):
         self.errors.append((code, msg))
@@ -196,21 +215,34 @@ class Report:
     def warn(self, code, msg):
         self.warnings.append((code, msg))
 
+    def gap(self, code, msg):
+        """Something that should have been checked wasn't (exit 3 unless there are errors)."""
+        self.incomplete.append((code, msg))
+
     def extend(self, other: "Report", prefix=""):
         self.errors += [(c, prefix + m) for c, m in other.errors]
         self.warnings += [(c, prefix + m) for c, m in other.warnings]
+        self.incomplete += [(c, prefix + m) for c, m in other.incomplete]
 
     def print(self):
         for c, m in self.errors:
             print(f"ERROR   {c:<18} {m}")
+        for c, m in self.incomplete:
+            print(f"INCOMPL {c:<18} {m}")
         for c, m in self.warnings:
             print(f"WARN    {c:<18} {m}")
-        if not self.errors and not self.warnings:
+        if self.errors and self.incomplete:
+            print(f"FAILED, and also INCOMPLETE: {len(self.incomplete)} item(s) not graded")
+        elif self.incomplete:
+            print(f"INCOMPLETE: no errors, but {len(self.incomplete)} item(s) not graded; not a pass")
+        elif not self.errors and not self.warnings:
             print("OK")
 
     @property
     def code(self):
-        return 1 if self.errors else 0
+        if self.errors:
+            return 1
+        return 3 if self.incomplete else 0
 
 
 @dataclass
@@ -379,28 +411,90 @@ def build_handoff(src: Spec, tgt: Spec, md: str, registry) -> tuple[Report, dict
 # ---------------------------------------------------------------------------
 # Evals
 # ---------------------------------------------------------------------------
-def run_eval(eval_path: Path, out_dir: Path, registry) -> Report:
-    cfg = yaml.safe_load(eval_path.read_text())
+JUDGMENT_KEYS = {"case", "kind", "check", "verdict", "reason", "grader", "grader_is_author", "output_sha256"}
+
+
+def load_judgments(path: Path | None) -> dict[tuple[str, str, int], dict]:
+    """Read a judgments file into {(case, kind, check): judgment}. Raises ConfigError if malformed."""
+    if path is None:
+        return {}
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError) as e:
+        raise ConfigError(f"judgments file {path}: {e}")
+    items = data.get("judgments") if isinstance(data, dict) else None
+    if not isinstance(items, list):
+        raise ConfigError(f"judgments file {path}: expected an object with a 'judgments' list")
+    out = {}
+    for i, j in enumerate(items):
+        where = f"judgments file {path}, item {i + 1}"
+        if not isinstance(j, dict) or set(j) != JUDGMENT_KEYS:
+            got = sorted(j) if isinstance(j, dict) else type(j).__name__
+            raise ConfigError(f"{where}: needs exactly the keys {sorted(JUDGMENT_KEYS)}, got {got}")
+        if j["kind"] not in ("must_include", "must_avoid"):
+            raise ConfigError(f"{where}: kind must be must_include or must_avoid")
+        if not isinstance(j["check"], int) or isinstance(j["check"], bool) or j["check"] < 1:
+            raise ConfigError(f"{where}: check must be a positive integer (1-based, as printed)")
+        if j["verdict"] not in ("PASS", "FAIL"):
+            raise ConfigError(f"{where}: verdict must be PASS or FAIL")
+        if not isinstance(j["grader_is_author"], bool):
+            raise ConfigError(f"{where}: grader_is_author must be true or false")
+        for k in ("case", "reason", "grader"):
+            if not isinstance(j[k], str) or not j[k].strip():
+                raise ConfigError(f"{where}: {k} must be a non-empty string")
+        if not isinstance(j["output_sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", j["output_sha256"]):
+            raise ConfigError(f"{where}: output_sha256 must be 64 lowercase hex digits")
+        key = (j["case"], j["kind"], j["check"])
+        if key in out:
+            raise ConfigError(f"{where}: duplicate judgment for {key[0]} {key[1]}#{key[2]}")
+        out[key] = j
+    return out
+
+
+def run_eval(eval_path: Path, out_dir: Path, registry, judgments_path: Path | None = None) -> Report:
+    try:
+        cfg = yaml.safe_load(eval_path.read_text())
+    except (OSError, yaml.YAMLError) as e:
+        raise ConfigError(f"eval file {eval_path}: {e}")
+    if not isinstance(cfg, dict) or not isinstance(cfg.get("cases", []), list):
+        raise ConfigError(f"eval file {eval_path}: expected a mapping with 'tool' and a 'cases' list")
+    if cfg.get("tool") not in registry:
+        raise ConfigError(f"eval file {eval_path}: unknown tool {cfg.get('tool')!r}; known: {', '.join(registry)}")
     spec = registry[cfg["tool"]]
+    judgments = load_judgments(judgments_path)
     r = Report()
     judge = []
     rows = []
-    for case in cfg["cases"]:
+    known = set()                                # (case, kind, check) that exist in this eval
+    cases = cfg.get("cases") or []
+    if not cases:
+        r.gap("EVAL_INCOMPLETE", f"{eval_path.name}: no cases selected")
+    for case in cases:
         cid = case["id"]
         f = out_dir / f"{cid}.md"
+        n = {"must_include": 0, "must_avoid": 0}
+        judged_here = []
+        for kind in ("must_include", "must_avoid"):
+            for chk in case.get(kind, []):
+                if "judge" in chk:
+                    n[kind] += 1
+                    known.add((cid, kind, n[kind]))
+                    judged_here.append((kind, n[kind], chk["judge"]))
         if not f.exists():
-            r.warn("EVAL_FAIL", f"{cid}: no output file {f.name}; skipped")
-            rows.append((cid, "SKIP", ""))
+            r.gap("EVAL_INCOMPLETE", f"{cid}: no output file {f.name}; skipped")
+            rows.append((cid, "SKIP"))
             continue
-        md = f.read_text()
+        raw = f.read_bytes()
+        digest = hashlib.sha256(raw).hexdigest()
+        md = raw.decode("utf-8")
         ar, payload = audit_output(spec, md)
         r.extend(ar, prefix=f"{cid}: ")
         fails = len(ar.errors)
+        ungraded = 0
         sections = {_norm(h): b for h, b in split_sections(md).items()}
         for kind in ("must_include", "must_avoid"):
             for chk in case.get(kind, []):
                 if "judge" in chk:
-                    judge.append((cid, kind, chk["judge"]))
                     continue
                 scope = md
                 if "section" in chk:
@@ -412,14 +506,44 @@ def run_eval(eval_path: Path, out_dir: Path, registry) -> Report:
                     where = f" in {chk['section']}" if "section" in chk else ""
                     verb = "missing" if kind == "must_include" else "present"
                     r.err("EVAL_FAIL", f"{cid}: /{chk['pattern']}/ {verb}{where} — {chk.get('why', '')}".rstrip(" —"))
-        rows.append((cid, "PASS" if fails == 0 else f"FAIL ({fails})", ""))
+        for kind, i, text in judged_here:
+            label = f"{cid} {kind}#{i}"
+            j = judgments.get((cid, kind, i))
+            if j is None:
+                ungraded += 1
+                judge.append((label, text, None))
+                r.gap("EVAL_INCOMPLETE", f"{label}: judged check has no recorded judgment")
+            elif j["output_sha256"] != digest:
+                ungraded += 1
+                judge.append((label, text, None))
+                r.gap("EVAL_INCOMPLETE", f"{label}: judgment is for a different output "
+                      f"(sha256 {j['output_sha256'][:12]}, file is {digest[:12]}); regrade it")
+            else:
+                own = " (grader is the output's author)" if j["grader_is_author"] else ""
+                judge.append((label, text, f"{j['verdict']} by {j['grader']}{own}: {j['reason']}"))
+                if j["verdict"] == "FAIL":
+                    fails += 1
+                    r.err("EVAL_FAIL", f"{label}: judged FAIL by {j['grader']}{own} — {j['reason']}")
+        status = f"FAIL ({fails})" if fails else "PASS"
+        if ungraded:
+            status += f", {ungraded} judged ungraded"
+        rows.append((cid, status))
+    for key in sorted(set(judgments) - known):
+        raise ConfigError(f"judgments file {judgments_path}: no judged check {key[0]} {key[1]}#{key[2]} in {eval_path.name}")
     print(f"Eval: {cfg['tool']} — {eval_path.name}")
-    for cid, status, _ in rows:
+    for cid, status in rows:
         print(f"  {cid:<28} {status}")
-    if judge:
-        print("\nNeeds model judgment (grade each PASS/FAIL with a one-line reason):")
-        for cid, kind, text in judge:
-            print(f"  [{cid}] {kind}: {text}")
+    pending = [(label, text) for label, text, got in judge if got is None]
+    graded = [(label, got) for label, _, got in judge if got is not None]
+    if graded:
+        print("\nJudged checks (from the judgments file):")
+        for label, got in graded:
+            print(f"  [{label}] {got}")
+    if pending:
+        print("\nNeeds model judgment (record PASS/FAIL with a one-line reason in a judgments file;"
+              " until then the run is incomplete):")
+        for label, text in pending:
+            print(f"  [{label}] {text}")
     print()
     return r
 
@@ -459,6 +583,7 @@ def main():
     a = sub.add_parser("audit"); a.add_argument("tool"); a.add_argument("output", type=Path); a.add_argument("--json", type=Path)
     h = sub.add_parser("handoff"); h.add_argument("src"); h.add_argument("dst"); h.add_argument("output", type=Path); h.add_argument("--json", type=Path)
     e = sub.add_parser("eval"); e.add_argument("eval", type=Path); e.add_argument("outputs", type=Path)
+    e.add_argument("--judgments", type=Path, help="JSON file of recorded judgments for the judged checks")
     args = ap.parse_args()
 
     registry = load_all(args.tools)
@@ -482,7 +607,11 @@ def main():
         else:
             print(json.dumps(payload, indent=2))
     else:
-        r = run_eval(args.eval, args.outputs, registry)
+        try:
+            r = run_eval(args.eval, args.outputs, registry, args.judgments)
+        except ConfigError as e:
+            print(f"ERROR   {'CONFIG':<18} {e}", file=sys.stderr)
+            sys.exit(2)
     r.print()
     sys.exit(r.code)
 

@@ -48,8 +48,8 @@ Body rules:
 - **Inputs and outputs:** the same typed fields the runner already validates (`text`, `claims`, `verdict`, `scorecard` …). A tool without a contract still names its output sections so a case can check them.
 - **Cases:** `qat/cases/<name>.cases.md` (or `.eval.yaml` for contract tools), unchanged, but each case says which runtimes it applies to (default: all).
 - **Eval gate (DEC-193, unchanged):** a spec change bumps the version and records a run. New: the run names the runtime it ran on (`eval-runs/<date>/<name>/<runtime>/`). A change to the neutral core needs a run on at least one runtime; a change to one adapter needs a run on that runtime.
-- **Runner exit codes (proposed with this contract):** `0` every deterministic check ran and passed, `1` errors, `2` usage, `3` incomplete (any case SKIP). Today a run with every output missing exits 0 (INVENTORY §2).
-- **Judged checks aren't graded by the runner.** Today `qat.py eval` prints the `judge:` criteria under "Needs model judgment" and records no judgment (`run_eval`, the `judge` list). So exit `0` means "deterministic checks passed", never "fully graded eval". Proposed: a run with judged checks reports `deterministic: pass, judged: N ungraded` and stays `3` (incomplete) unless a judgments file is supplied (`--judgments <file>`: case id, check, PASS/FAIL, one-line reason, grader, and whether the grader is the output's author). A recorded run under `eval-runs/` says which of the two it is.
+- **Runner exit codes (implemented in the runner fix PR, migration step 1):** `0` every case and every check graded and passed, `1` a known failure (wins over incomplete, and the incompleteness is still reported), `2` usage or configuration (including a malformed judgments file), `3` incomplete (no cases, any case SKIP, or a judged check without a valid recorded judgment). Before the fix, a run with every output missing exited 0 (INVENTORY §2). Precedence and the configuration/incomplete split follow API Kate's reply 5f71f098c5b4.
+- **Judged checks aren't graded by the runner.** Before the fix, `qat.py eval` printed the `judge:` criteria under "Needs model judgment" and recorded no judgment, so exit `0` meant only "deterministic checks passed". Now a judged check counts as graded only from `--judgments <file>` (JSON: case id, kind, 1-based check number as printed, PASS/FAIL, one-line reason, grader, whether the grader is the output's author, and the sha256 of the exact output graded). A judgment whose hash doesn't match the current output is stale and counts as missing; a judged FAIL is a failure. Without the file, a run with judged checks exits `3`. A recorded run under `eval-runs/` says which of the two it is.
 
 ## 3. Packaging and installation targets
 
@@ -85,7 +85,7 @@ Failed and blocked attempts are recorded too. No credentials or personal data in
 
 ## 4. Migration (proposed order, each its own PR)
 
-1. Add the runner's `incomplete` exit code with a regression test (small, independent); report ungraded judged checks as incomplete (§2).
+1. ~~Add the runner's `incomplete` exit code with a regression test; report ungraded judged checks as incomplete (§2).~~ Done in the runner fix PR (bundle 1.2.1).
 2. Fix ThreadSeed's `verify()` defects upstream with the three regression cases (spec change, eval-gated).
 3. Add `.tool.md` support to `skills.py` beside `.skill.md`, emitting the existing Claude output byte-for-byte for a tool with no adapter blocks (so the bundle doesn't change).
 4. Add the `chatgpt-skill`, `chatgpt-gpt` and `paste` emitters; regenerate `kind-check` and `real-problem` ChatGPT texts from source and retire the hand-adapted copies.
