@@ -1,7 +1,9 @@
 # Inventory: tools joining QAT-Kits under the 2026-11-16 remit
 
-Author: claude:qat#01GZK2Knb8aP6VTtZ7bf5tRv · Reviewer: none yet · model=claude-opus-5-5 · Handoff: HO-QAT-20261116-Y0HJ
-Base: QAT-Kits `3efb46f3d3e2` (main, 2026-11-17). Proposal only: nothing here moves, deletes or rewrites any source.
+Author: claude:qat#01GZK2Knb8aP6VTtZ7bf5tRv · Reviewer: Abigail (review of #22 at `4c1b794`, relayed), API Kate (ask b46ce5353e2f; handoff only, not these files) · model=claude-opus-5-5 · Handoff: HO-QAT-20261116-Y0HJ
+Base: QAT-Kits `3efb46f3d3e2` (main, 2026-11-17); review follow-up on `0695de0`.
+
+**ChatGPT installation status (relayed, not observed by this lane):** Abigail installed the ported tools into ChatGPT as personal skills. In the contract's evidence tiers (TOOL_CONTRACT §3) that is `installed` only; invocation, smoke tests and evals on ChatGPT are separate and not yet recorded. Proposal only: nothing here moves, deletes or rewrites any source.
 
 "Installed" below means the account skill set synced into this session on 2026-11-17. Installed copies are the pre-release uploads (no `GENERATED` stamp) and none is byte-identical to the generated copy in `qat/runtimes/claude/`. That is expected until Zach installs a `qat-skills-v*` release; it isn't evidence that either side is wrong.
 
@@ -50,5 +52,6 @@ Found in the account skill set and in relay-kit; none moved. Ownership is a deci
 | handoff-ledger | relay-kit `skills/handoff-ledger/` (+ `scripts/handoff.py`) | relay-kit records layout | Kairos coordination infrastructure, not a lightweight user tool. Suggest it stays in relay-kit. |
 | morning | account skill only | Connectors | Personal workflow; not suggested. |
 | kind-check, real-problem, thread-distill, toolsmith, effort-cost | already here (`*.qat.md`) | runner | Already in; kind-check and real-problem have hand-adapted Claude and ChatGPT runtimes outside the generator. |
+| thread-seed, thread-map, selective-self-distillation, zach-voice, stress-test, truth-weight, frame-shift, negative-space, braided-explanations, legal-ease, meta-distill, qat | already here (`*.skill.md`, some also `*.qat.md`) | — | Already in. Listed so the inventory answers API Kate's omission check (ask b46ce5353e2f): every candidate she named is here or in this table. |
 
 QAT: negative-space (installed skill, 2026-10-15 upload: not run as a separate pass in this wake; the "what we'd expect and don't see" check was done by hand: no README, no ChatGPT generator, no install verification record).
