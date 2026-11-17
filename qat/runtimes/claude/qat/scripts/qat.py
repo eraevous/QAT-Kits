@@ -458,14 +458,50 @@ def load_judgments(path: Path | None) -> dict[tuple[str, str, int], dict]:
     return out
 
 
+def validate_eval(cfg, eval_path: Path) -> None:
+    """Check an eval file's shape before any case runs. Raises ConfigError (exit 2) if malformed."""
+    where = f"eval file {eval_path}"
+    if not isinstance(cfg, dict) or not isinstance(cfg.get("tool"), str):
+        raise ConfigError(f"{where}: expected a mapping with a string 'tool'")
+    cases = cfg.get("cases", [])
+    if cases is not None and not isinstance(cases, list):
+        raise ConfigError(f"{where}: 'cases' must be a list")
+    seen = set()
+    for n, case in enumerate(cases or [], 1):
+        if not isinstance(case, dict) or not isinstance(case.get("id"), str) or not case["id"].strip():
+            raise ConfigError(f"{where}: case {n} needs a string 'id'")
+        if case["id"] in seen or "/" in case["id"] or case["id"] in (".", ".."):
+            raise ConfigError(f"{where}: case id {case['id']!r} is duplicated or not a plain file name")
+        seen.add(case["id"])
+        for kind in ("must_include", "must_avoid"):
+            checks = case.get(kind, [])
+            if not isinstance(checks, list):
+                raise ConfigError(f"{where}: {case['id']}: {kind} must be a list")
+            for i, chk in enumerate(checks, 1):
+                at = f"{where}: {case['id']} {kind} item {i}"
+                if not isinstance(chk, dict):
+                    raise ConfigError(f"{at}: must be a mapping")
+                if "judge" in chk:
+                    if not isinstance(chk["judge"], str) or not chk["judge"].strip():
+                        raise ConfigError(f"{at}: judge must be non-empty text")
+                    continue
+                if not isinstance(chk.get("pattern"), str):
+                    raise ConfigError(f"{at}: needs a string 'pattern' or 'judge'")
+                if "section" in chk and not isinstance(chk["section"], str):
+                    raise ConfigError(f"{at}: section must be a string")
+                try:
+                    re.compile(chk["pattern"])
+                except re.error as e:
+                    raise ConfigError(f"{at}: bad pattern ({e})")
+
+
 def run_eval(eval_path: Path, out_dir: Path, registry, judgments_path: Path | None = None) -> Report:
     try:
         cfg = yaml.safe_load(eval_path.read_text())
     except (OSError, yaml.YAMLError) as e:
         raise ConfigError(f"eval file {eval_path}: {e}")
-    if not isinstance(cfg, dict) or not isinstance(cfg.get("cases", []), list):
-        raise ConfigError(f"eval file {eval_path}: expected a mapping with 'tool' and a 'cases' list")
-    if cfg.get("tool") not in registry:
+    validate_eval(cfg, eval_path)
+    if cfg["tool"] not in registry:
         raise ConfigError(f"eval file {eval_path}: unknown tool {cfg.get('tool')!r}; known: {', '.join(registry)}")
     spec = registry[cfg["tool"]]
     judgments = load_judgments(judgments_path)
@@ -493,7 +529,11 @@ def run_eval(eval_path: Path, out_dir: Path, registry, judgments_path: Path | No
             continue
         raw = f.read_bytes()
         digest = hashlib.sha256(raw).hexdigest()
-        md = raw.decode("utf-8")
+        try:
+            # hash the bytes as saved; check the text with universal newlines, as read_text() did
+            md = raw.decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
+        except UnicodeDecodeError as e:
+            raise ConfigError(f"{f}: not UTF-8 ({e})")
         ar, payload = audit_output(spec, md)
         r.extend(ar, prefix=f"{cid}: ")
         fails = len(ar.errors)

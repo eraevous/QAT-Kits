@@ -311,6 +311,26 @@ class EvalExitTest(unittest.TestCase):
         r = self.run_eval([self.judgment("0" * 64, verdict="FAIL", reason="rude")])
         self.assertEqual((r.errors, r.code), ([], 3))
 
+    def test_crlf_output_is_checked_with_universal_newlines(self):
+        # Copilot review on #24: decoding raw bytes dropped read_text()'s newline normalisation
+        self.write_eval({"tool": "tgt", "cases": [
+            {"id": "b", "must_include": [{"pattern": "^hello$"}], "must_avoid": [{"pattern": "\\r"}]}]})
+        (self.out / "b.md").write_bytes(b"## Out\r\nhello\r\n")
+        self.assertEqual(self.run_eval().code, 0)
+
+    def test_malformed_evals_are_config_errors(self):
+        # Copilot review on #24: these raised TypeError/KeyError (exit 1) instead of exit 2
+        bad = [{"tool": []}, {"tool": "tgt", "cases": [{}]}, {"tool": "tgt", "cases": "x"},
+               {"tool": "tgt", "cases": [{"id": "a"}, {"id": "a"}]},
+               {"tool": "tgt", "cases": [{"id": "a", "must_include": [{"section": "out"}]}]},
+               {"tool": "tgt", "cases": [{"id": "a", "must_include": [{"pattern": "("}]}]},
+               {"tool": "tgt", "cases": [{"id": "a", "must_avoid": "hello"}]},
+               {"tool": "nope", "cases": []}, ["not", "a", "mapping"]]
+        for cfg in bad:
+            self.write_eval(cfg)
+            with self.subTest(cfg=cfg), self.assertRaises(qat.ConfigError):
+                self.run_eval()
+
     def test_malformed_judgments_are_config_errors(self):
         sha = self.output("a"); self.output("b")
         bad = [[self.judgment(sha, verdict="ok")],          # not PASS/FAIL
@@ -345,6 +365,8 @@ class EvalExitTest(unittest.TestCase):
         self.assertEqual(run("--judgments", str(jp)).returncode, 0)
         jp.write_text("not json")
         self.assertEqual(run("--judgments", str(jp)).returncode, 2)
+        self.write_eval({"tool": "tgt", "cases": [{}]})
+        self.assertEqual(run().returncode, 2)
 
 
 if __name__ == "__main__":
