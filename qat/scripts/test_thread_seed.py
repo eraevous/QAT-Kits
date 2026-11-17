@@ -117,6 +117,17 @@ class VerifyTest(unittest.TestCase):
         code, out = self.verify('"keep the seed short and cite every claim" [T1a]\n')
         self.assertEqual(code, 1, out)
 
+    # API Kate's coverage asks (reply 18acfb147f91 on HO-QAT-20261116-Y0HJ).
+    def test_ref_to_missing_reply_fails(self):
+        code, out = self.verify("See [T3a2].\n")  # exchange 3 has one reply
+        self.assertEqual(code, 1, out)
+        self.assertIn("FAIL ref T3a2", out)
+
+    def test_reply_text_cited_as_user_fails(self):
+        code, out = self.verify('"the budget stays at three pages for the successor" [T1u]\n')
+        self.assertEqual(code, 1, out)
+        self.assertIn("FAIL quote", out)
+
 
 if __name__ == "__main__":
     unittest.main()
