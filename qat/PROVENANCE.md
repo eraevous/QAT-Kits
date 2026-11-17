@@ -51,4 +51,5 @@ The generated `runtimes/claude/<name>/SKILL.md` also gains one stamp line at the
 **Runner bundle differs from the installed runner.** The generated `qat` skill carries this repo's runner files, not the installed ones. This changes what the installed runner does in two ways:
 
 - `scripts/qat.py` includes the fence-aware output parsing from aa69a89. The installed copy predates it.
+- `scripts/qat.py` `eval` exits `3` (incomplete) when a case is SKIPped, no cases ran, or a judged check has no recorded judgment, and grades judged checks only from `--judgments` (2026-11-17, bundle 1.2.1; HO-QAT-20261116-Y0HJ). The installed copy exits 0 in all of those cases.
 - `tools/` and `cases/` hold every spec in this repo: kind-check, real-problem, effort-cost, thread-distill and toolsmith, as well as stress-test and truth-weight. The installed runner has only the last two. The stress-test and truth-weight specs and `cases/stress-test.eval.yaml` are byte-identical to the installed ones.

@@ -9,7 +9,13 @@ split_sections, the coercion table, spec validation, handoff checks and the outp
 They build specs in memory and never touch qat/tools/, so they don't depend on any tool's
 current text."""
 
+import contextlib
+import hashlib
+import io
+import json
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -204,6 +210,163 @@ class AuditAndBuildTest(unittest.TestCase):
     def test_build_handoff_undeclared(self):
         r, out = qat.build_handoff(TGT, SRC, "## Out\nx", REGISTRY)
         self.assertEqual((codes(r)[0], out), (["BROKEN_HANDOFF"], {}))
+
+
+class EvalExitTest(unittest.TestCase):
+    """Exit status of `eval` (ChatGPT port finding, HO-QAT-20261116-Y0HJ): a run where nothing was graded
+    used to exit 0 with every case SKIP, and judged checks were printed but never recorded. Now
+    1 = a known failure (wins over incomplete), 3 = incomplete, 2 = configuration, 0 = everything graded."""
+
+    EVAL = {"tool": "tgt", "cases": [
+        {"id": "a", "must_include": [{"pattern": "hello"}, {"judge": "it is polite"}]},
+        {"id": "b", "must_include": [{"pattern": "hello"}]}]}
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.out = self.tmp / "out"
+        self.out.mkdir()
+        self.write_eval(self.EVAL)
+
+    def write_eval(self, cfg):
+        import yaml
+        (self.tmp / "tgt.eval.yaml").write_text(yaml.safe_dump(cfg))
+
+    def output(self, cid, text="## Out\nhello there\n"):
+        (self.out / f"{cid}.md").write_text(text)
+        return hashlib.sha256(text.encode()).hexdigest()
+
+    def judgment(self, sha, **over):
+        j = {"case": "a", "kind": "must_include", "check": 1, "verdict": "PASS", "reason": "polite",
+             "grader": "test", "grader_is_author": False, "output_sha256": sha,
+             "criterion_sha256": hashlib.sha256("it is polite".encode()).hexdigest()}
+        j.update(over)
+        return j
+
+    def run_eval(self, judgments=None):
+        jp = None
+        if judgments is not None:
+            jp = self.tmp / "judgments.json"
+            jp.write_text(json.dumps({"judgments": judgments}))
+        with contextlib.redirect_stdout(io.StringIO()):
+            return qat.run_eval(self.tmp / "tgt.eval.yaml", self.out, REGISTRY, jp)
+
+    def test_all_outputs_missing_is_incomplete_not_success(self):
+        r = self.run_eval()
+        self.assertEqual((r.errors, r.code), ([], 3))
+        self.assertEqual(len([c for c, _ in r.incomplete if c == "EVAL_INCOMPLETE"]), 2)  # one per SKIPped case
+
+    def test_zero_cases_is_incomplete(self):
+        self.write_eval({"tool": "tgt", "cases": []})
+        self.assertEqual(self.run_eval().code, 3)
+
+    def test_ungraded_judged_check_is_incomplete(self):
+        self.output("a"); self.output("b")
+        r = self.run_eval()
+        self.assertEqual((r.errors, r.code), ([], 3))
+        self.assertIn("a must_include#1", r.incomplete[0][1])
+
+    def test_all_graded_is_success(self):
+        sha = self.output("a"); self.output("b")
+        self.assertEqual(self.run_eval([self.judgment(sha)]).code, 0)
+
+    def test_failure_wins_over_incomplete(self):
+        self.output("a", "## Out\ngoodbye\n")           # deterministic fail; b missing; judged ungraded
+        r = self.run_eval()
+        self.assertEqual(r.code, 1)
+        self.assertTrue(r.incomplete)                     # still reported alongside the failure
+
+    def test_judged_fail_is_failure(self):
+        sha = self.output("a"); self.output("b")
+        r = self.run_eval([self.judgment(sha, verdict="FAIL", reason="rude")])
+        self.assertEqual(r.code, 1)
+        self.assertIn("judged FAIL", r.errors[0][1])
+
+    def test_judgment_for_other_output_is_stale(self):
+        self.output("a"); self.output("b")
+        r = self.run_eval([self.judgment("0" * 64)])
+        self.assertEqual(r.code, 3)
+        self.assertIn("different output", r.incomplete[0][1])
+
+    def test_judgment_for_changed_criterion_is_stale(self):
+        # Codex review on #24: a judgment must not carry over when the judge text changes or checks reorder
+        sha = self.output("a"); self.output("b")
+        cfg = json.loads(json.dumps(self.EVAL))
+        cfg["cases"][0]["must_include"][1] = {"judge": "it says goodbye"}
+        self.write_eval(cfg)
+        r = self.run_eval([self.judgment(sha)])
+        self.assertEqual(r.code, 3)
+        self.assertIn("different criterion", r.incomplete[0][1])
+
+    def test_author_pass_is_provisional_author_fail_is_failure(self):
+        # API Kate, reply 040807c4b8af, and QAT-R-create: an author's own grades stay provisional
+        sha = self.output("a"); self.output("b")
+        r = self.run_eval([self.judgment(sha, grader_is_author=True)])
+        self.assertEqual(r.code, 3)
+        self.assertIn("provisional", r.incomplete[0][1])
+        r = self.run_eval([self.judgment(sha, grader_is_author=True, verdict="FAIL", reason="rude")])
+        self.assertEqual(r.code, 1)
+
+    def test_stale_fail_is_missing_not_failure(self):
+        self.output("a"); self.output("b")
+        r = self.run_eval([self.judgment("0" * 64, verdict="FAIL", reason="rude")])
+        self.assertEqual((r.errors, r.code), ([], 3))
+
+    def test_crlf_output_is_checked_with_universal_newlines(self):
+        # Copilot review on #24: decoding raw bytes dropped read_text()'s newline normalisation
+        self.write_eval({"tool": "tgt", "cases": [
+            {"id": "b", "must_include": [{"pattern": "^hello$"}], "must_avoid": [{"pattern": "\\r"}]}]})
+        (self.out / "b.md").write_bytes(b"## Out\r\nhello\r\n")
+        self.assertEqual(self.run_eval().code, 0)
+
+    def test_malformed_evals_are_config_errors(self):
+        # Copilot review on #24: these raised TypeError/KeyError (exit 1) instead of exit 2
+        bad = [{"tool": []}, {"tool": "tgt", "cases": [{}]}, {"tool": "tgt", "cases": "x"},
+               {"tool": "tgt", "cases": [{"id": "a"}, {"id": "a"}]},
+               {"tool": "tgt", "cases": [{"id": "a", "must_include": [{"section": "out"}]}]},
+               {"tool": "tgt", "cases": [{"id": "a", "must_include": [{"pattern": "("}]}]},
+               {"tool": "tgt", "cases": [{"id": "a", "must_avoid": "hello"}]},
+               {"tool": "nope", "cases": []}, ["not", "a", "mapping"]]
+        for cfg in bad:
+            self.write_eval(cfg)
+            with self.subTest(cfg=cfg), self.assertRaises(qat.ConfigError):
+                self.run_eval()
+
+    def test_malformed_judgments_are_config_errors(self):
+        sha = self.output("a"); self.output("b")
+        bad = [[self.judgment(sha, verdict="ok")],          # not PASS/FAIL
+               [self.judgment(sha, reason="")],             # empty reason
+               [self.judgment(sha, criterion_sha256="x")],  # bad criterion hash
+               [self.judgment(sha, grader_is_author="no")], # non-boolean attestation
+               [self.judgment(sha, check=0)],               # invalid check number
+               [{"case": "a", "verdict": "PASS"}],          # missing keys
+               [self.judgment(sha), self.judgment(sha)],    # duplicate
+               [self.judgment(sha, check=2)]]               # no such judged check
+        for judgments in bad:
+            with self.subTest(judgments=judgments), self.assertRaises(qat.ConfigError):
+                self.run_eval(judgments)
+
+    def test_cli_exit_codes(self):
+        script = Path(qat.__file__)
+        tools = self.tmp / "tools"
+        tools.mkdir()
+        (tools / "tgt.qat.md").write_text(
+            "---\nname: tgt\nversion: 1.0.0\ndescription: A test tool used only by test_qat.py fixtures.\n"
+            "inputs:\n  summary: {type: text}\noutputs:\n  out: {type: text, heading: Out}\n---\nBody.\n")
+        def run(*extra):
+            return subprocess.run([sys.executable, "-I", str(script), "--tools", str(tools), "eval",
+                                   str(self.tmp / "tgt.eval.yaml"), str(self.out), *extra],
+                                  capture_output=True, text=True)
+        p = run()
+        self.assertEqual(p.returncode, 3, p.stdout + p.stderr)
+        self.assertIn("INCOMPLETE", p.stdout)
+        sha = self.output("a"); self.output("b")
+        jp = self.tmp / "j.json"
+        jp.write_text(json.dumps({"judgments": [self.judgment(sha)]}))
+        self.assertEqual(run("--judgments", str(jp)).returncode, 0)
+        jp.write_text("not json")
+        self.assertEqual(run("--judgments", str(jp)).returncode, 2)
+        self.write_eval({"tool": "tgt", "cases": [{}]})
+        self.assertEqual(run().returncode, 2)
 
 
 if __name__ == "__main__":
