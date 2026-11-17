@@ -29,6 +29,10 @@ Judgments file (JSON): {"judgments": [{"case": ID, "kind": "must_include"|"must_
   output_sha256 binds the judgment to the exact output file graded, and criterion_sha256
   (sha256 of the judge: text, as UTF-8) to the exact criterion; a judgment whose hashes
   don't match the current output and criterion is stale and counts as missing.
+  A PASS whose grader_is_author is true stays provisional (QAT-R-create: an author's own
+  judge grades stay provisional until independently graded), so it keeps the run at exit 3;
+  an author's FAIL is still a failure. To supersede it, replace the entry with an
+  independent grader's judgment (one judgment per check).
 
 Error codes (typed, so a caller can branch on them)
   SPEC_INVALID      spec frontmatter fails the schema
@@ -527,11 +531,15 @@ def run_eval(eval_path: Path, out_dir: Path, registry, judgments_path: Path | No
                 r.gap("EVAL_INCOMPLETE", f"{label}: judgment is for a different criterion "
                       f"(the judge: text changed or the checks were reordered); regrade it")
             else:
-                own = " (grader is the output's author)" if j["grader_is_author"] else ""
+                own = " (grader is the output's author; provisional)" if j["grader_is_author"] else ""
                 judge.append((label, text, f"{j['verdict']} by {j['grader']}{own}: {j['reason']}"))
                 if j["verdict"] == "FAIL":
                     fails += 1
                     r.err("EVAL_FAIL", f"{label}: judged FAIL by {j['grader']}{own} — {j['reason']}")
+                elif j["grader_is_author"]:
+                    ungraded += 1
+                    r.gap("EVAL_INCOMPLETE", f"{label}: PASS by the output's author is provisional; "
+                          "needs an independent grader")
         status = f"FAIL ({fails})" if fails else "PASS"
         if ungraded:
             status += f", {ungraded} judged ungraded"

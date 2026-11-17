@@ -297,11 +297,27 @@ class EvalExitTest(unittest.TestCase):
         self.assertEqual(r.code, 3)
         self.assertIn("different criterion", r.incomplete[0][1])
 
+    def test_author_pass_is_provisional_author_fail_is_failure(self):
+        # API Kate, reply 040807c4b8af, and QAT-R-create: an author's own grades stay provisional
+        sha = self.output("a"); self.output("b")
+        r = self.run_eval([self.judgment(sha, grader_is_author=True)])
+        self.assertEqual(r.code, 3)
+        self.assertIn("provisional", r.incomplete[0][1])
+        r = self.run_eval([self.judgment(sha, grader_is_author=True, verdict="FAIL", reason="rude")])
+        self.assertEqual(r.code, 1)
+
+    def test_stale_fail_is_missing_not_failure(self):
+        self.output("a"); self.output("b")
+        r = self.run_eval([self.judgment("0" * 64, verdict="FAIL", reason="rude")])
+        self.assertEqual((r.errors, r.code), ([], 3))
+
     def test_malformed_judgments_are_config_errors(self):
         sha = self.output("a"); self.output("b")
         bad = [[self.judgment(sha, verdict="ok")],          # not PASS/FAIL
                [self.judgment(sha, reason="")],             # empty reason
                [self.judgment(sha, criterion_sha256="x")],  # bad criterion hash
+               [self.judgment(sha, grader_is_author="no")], # non-boolean attestation
+               [self.judgment(sha, check=0)],               # invalid check number
                [{"case": "a", "verdict": "PASS"}],          # missing keys
                [self.judgment(sha), self.judgment(sha)],    # duplicate
                [self.judgment(sha, check=2)]]               # no such judged check
