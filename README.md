@@ -2,7 +2,7 @@
 
 Lightweight tools that can be invoked as, or by, chat threads, kept provider-neutral: one source per tool, with installations for Claude and ChatGPT at a minimum, and more platforms as they turn up.
 
-> **Status: proposed remit, provisional.** This README states the remit Zach set on 2026-11-16 (quoted below, relayed by Abigail). The purpose record that carries it (`P0@3` in `.aec/records.jsonl`) stays provisional until Zach commits it. Where this file and an accepted record disagree, the record wins.
+> **Status: remit authorized; wording and implementation provisional.** Zach set this remit on 2026-11-16 (quoted below, relayed verbatim by Abigail), and it replaces the earlier "only for thread and chat tools" rule. That retired rule takes precedence nowhere, including in older handoffs, prompts and roadmaps that still quote it. What stays provisional is the purpose record's wording (`P0@3` in `.aec/records.jsonl`, until Zach commits it) and everything under [docs/remit/](docs/remit/), which is proposals.
 
 Zach's words (Slack #kairos, 2026-11-16 16:17 CT, relayed verbatim by Abigail):
 
@@ -11,7 +11,8 @@ Zach's words (Slack #kairos, 2026-11-16 16:17 CT, relayed verbatim by Abigail):
 ## What belongs here
 
 - **In:** a tool that a chat thread can run itself (a prompt tool such as StressTest or ThreadMap), or that a thread can call (a small script a thread runs, such as AutoEDA's report generator or ThreadSeed's index helper).
-- **Out:** general development tooling and Python packages that stand on their own. Those follow Zach's standing rule (Telosmith-instantiated). Where the line falls between the two is open: see [docs/remit/FOR_ZACH.md](docs/remit/FOR_ZACH.md).
+- **Also in (proposed reading, not yet decided):** a bounded function a thread calls through an explicit, versioned adapter, even when it ships a CLI wrapper, a small local state file or declared, versioned dependencies. Packaging alone doesn't disqualify a tool.
+- **Separate projects that QAT integrates rather than holds:** independently useful applications, maintained libraries and persistent services (eraevous/mtg's `mtgtools`, for example). Those follow Zach's standing rule (Telosmith-instantiated); a QAT adapter may point at them. Where exactly the line falls is Zach's call: see [docs/remit/FOR_ZACH.md](docs/remit/FOR_ZACH.md) item 2.
 - **Unchanged:** each tool stays optional (DEC-193). Nothing here requires another Kairos repository, and nothing outside requires these tools.
 
 ## Where things are
