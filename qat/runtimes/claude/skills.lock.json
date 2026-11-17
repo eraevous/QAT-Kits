@@ -6,7 +6,7 @@
     "auto-eda": {
       "files": {
         "SKILL.md": "8c400b7da25ddf2edbe62ba1efcbe7dd2116a6d43fa90039deca51d4aed90f9e",
-        "scripts/auto_eda.py": "d354388b038647f91e2665fd1b1cee706d2b6e55e7e0f34913d43ea5bae39ade",
+        "scripts/auto_eda.py": "ab74eef5a22f54e59f0de1eaa9229b90634427770cad703e0b40eb38223e3303",
         "scripts/plugins/example_donut.py": "be7434a5f582b8504312a6668ee43c0201ac225920af87fe2c4ece442df976c8"
       },
       "kind": "skill",

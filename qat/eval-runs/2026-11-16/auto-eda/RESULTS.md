@@ -36,3 +36,10 @@ Note for AE-03, not a failure: the runner said, rightly, that the 0-29 counter `
 - **Bug:** categorical `stats.top` percentages used non-null rows as the denominator. The bar chart uses all rows and shows a "(missing)" bar. With 90 missing values, 6 A and 4 B, the summary said A was 60% while the chart showed 6%.
 - **Fix:** `pct` is now a share of all rows. Low-cardinality and boolean columns list "(missing)" as a value, as their chart does. High-cardinality columns carry `missing_count`. Each categorical `stats` says `"pct_of": "all rows"`. A new test pins the 6% case.
 - **Rerun not needed:** none of the four cases has missing values in a categorical column. Their recorded outputs and grades hold as they are; the only differences are the added `pct_of` field and `(missing)` rows that would have a count of 0.
+
+## Follow-up: non-finite statistics (Copilot 4593532067)
+
+- **Bug:** `inf` in a numeric column, or a finite value that overflows when rounded to 4 significant figures (`1.7976931348623157e308`), reached the summary as a bare `Infinity` token. Strict JSON parsers reject that token.
+- **Fix:** rounded statistics that are not finite are now written as `null`.
+- **Test:** a new test parses the summary strictly. It failed before the fix and passes after it.
+- **Rerun not needed:** none of the four cases has non-finite values, so their outputs and grades hold.

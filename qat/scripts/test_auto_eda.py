@@ -71,6 +71,17 @@ class AutoEdaTest(unittest.TestCase):
         self.assertEqual(top["A"]["pct"], 6.0)
         self.assertEqual(top["(missing)"]["count"], 90)
 
+    def test_summary_is_strict_json_with_infinite_values(self):
+        # Copilot 4593532067: inf, and a finite max that overflows when rounded, must not
+        # reach the file as bare Infinity tokens.
+        rows = ["v,w"] + [f"{i},{i}" for i in range(20)] + ["inf,1.7976931348623157e308"]
+        self.run_on("inf.csv", "\n".join(rows))
+        text = (self.tmp / "out" / "inf_eda.json").read_text()
+        json.loads(text, parse_constant=lambda c: self.fail(f"non-finite token {c} in summary"))
+        stats = {p["name"]: p["stats"] for p in json.loads(text)["profiles"]}
+        self.assertIsNone(stats["v"]["max"])
+        self.assertIsNone(stats["w"]["max"])
+
 
 if __name__ == "__main__":
     unittest.main()
