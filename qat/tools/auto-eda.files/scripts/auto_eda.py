@@ -302,7 +302,8 @@ def _num(v):
     """Round a statistic for the JSON summary (4 significant figures); NaN becomes None."""
     if v is None or pd.isna(v):
         return None
-    return float(f"{float(v):.4g}")
+    rounded = float(f"{float(v):.4g}")
+    return rounded if -float("inf") < rounded < float("inf") else None
 
 
 def column_stats(s: pd.Series, p: Profile) -> dict:
