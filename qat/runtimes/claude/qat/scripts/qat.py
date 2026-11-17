@@ -25,9 +25,10 @@ wins: a run with an error exits 1 even if it is also incomplete, and says so.
 
 Judgments file (JSON): {"judgments": [{"case": ID, "kind": "must_include"|"must_avoid",
   "check": N (1-based, as printed), "verdict": "PASS"|"FAIL", "reason": TEXT,
-  "grader": TEXT, "grader_is_author": BOOL, "output_sha256": HEX}]}
-  output_sha256 binds the judgment to the exact output file graded; a judgment whose
-  hash doesn't match the current output is stale and counts as missing.
+  "grader": TEXT, "grader_is_author": BOOL, "output_sha256": HEX, "criterion_sha256": HEX}]}
+  output_sha256 binds the judgment to the exact output file graded, and criterion_sha256
+  (sha256 of the judge: text, as UTF-8) to the exact criterion; a judgment whose hashes
+  don't match the current output and criterion is stale and counts as missing.
 
 Error codes (typed, so a caller can branch on them)
   SPEC_INVALID      spec frontmatter fails the schema
@@ -411,7 +412,8 @@ def build_handoff(src: Spec, tgt: Spec, md: str, registry) -> tuple[Report, dict
 # ---------------------------------------------------------------------------
 # Evals
 # ---------------------------------------------------------------------------
-JUDGMENT_KEYS = {"case", "kind", "check", "verdict", "reason", "grader", "grader_is_author", "output_sha256"}
+JUDGMENT_KEYS = {"case", "kind", "check", "verdict", "reason", "grader", "grader_is_author",
+                 "output_sha256", "criterion_sha256"}
 
 
 def load_judgments(path: Path | None) -> dict[tuple[str, str, int], dict]:
@@ -442,8 +444,9 @@ def load_judgments(path: Path | None) -> dict[tuple[str, str, int], dict]:
         for k in ("case", "reason", "grader"):
             if not isinstance(j[k], str) or not j[k].strip():
                 raise ConfigError(f"{where}: {k} must be a non-empty string")
-        if not isinstance(j["output_sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", j["output_sha256"]):
-            raise ConfigError(f"{where}: output_sha256 must be 64 lowercase hex digits")
+        for k in ("output_sha256", "criterion_sha256"):
+            if not isinstance(j[k], str) or not re.fullmatch(r"[0-9a-f]{64}", j[k]):
+                raise ConfigError(f"{where}: {k} must be 64 lowercase hex digits")
         key = (j["case"], j["kind"], j["check"])
         if key in out:
             raise ConfigError(f"{where}: duplicate judgment for {key[0]} {key[1]}#{key[2]}")
@@ -518,6 +521,11 @@ def run_eval(eval_path: Path, out_dir: Path, registry, judgments_path: Path | No
                 judge.append((label, text, None))
                 r.gap("EVAL_INCOMPLETE", f"{label}: judgment is for a different output "
                       f"(sha256 {j['output_sha256'][:12]}, file is {digest[:12]}); regrade it")
+            elif j["criterion_sha256"] != hashlib.sha256(str(text).encode("utf-8")).hexdigest():
+                ungraded += 1
+                judge.append((label, text, None))
+                r.gap("EVAL_INCOMPLETE", f"{label}: judgment is for a different criterion "
+                      f"(the judge: text changed or the checks were reordered); regrade it")
             else:
                 own = " (grader is the output's author)" if j["grader_is_author"] else ""
                 judge.append((label, text, f"{j['verdict']} by {j['grader']}{own}: {j['reason']}"))
@@ -543,7 +551,8 @@ def run_eval(eval_path: Path, out_dir: Path, registry, judgments_path: Path | No
         print("\nNeeds model judgment (record PASS/FAIL with a one-line reason in a judgments file;"
               " until then the run is incomplete):")
         for label, text in pending:
-            print(f"  [{label}] {text}")
+            crit = hashlib.sha256(str(text).encode("utf-8")).hexdigest()
+            print(f"  [{label}] (criterion_sha256 {crit}) {text}")
     print()
     return r
 

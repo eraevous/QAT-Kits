@@ -237,7 +237,8 @@ class EvalExitTest(unittest.TestCase):
 
     def judgment(self, sha, **over):
         j = {"case": "a", "kind": "must_include", "check": 1, "verdict": "PASS", "reason": "polite",
-             "grader": "test", "grader_is_author": False, "output_sha256": sha}
+             "grader": "test", "grader_is_author": False, "output_sha256": sha,
+             "criterion_sha256": hashlib.sha256("it is polite".encode()).hexdigest()}
         j.update(over)
         return j
 
@@ -286,10 +287,21 @@ class EvalExitTest(unittest.TestCase):
         self.assertEqual(r.code, 3)
         self.assertIn("different output", r.incomplete[0][1])
 
+    def test_judgment_for_changed_criterion_is_stale(self):
+        # Codex review on #24: a judgment must not carry over when the judge text changes or checks reorder
+        sha = self.output("a"); self.output("b")
+        cfg = json.loads(json.dumps(self.EVAL))
+        cfg["cases"][0]["must_include"][1] = {"judge": "it says goodbye"}
+        self.write_eval(cfg)
+        r = self.run_eval([self.judgment(sha)])
+        self.assertEqual(r.code, 3)
+        self.assertIn("different criterion", r.incomplete[0][1])
+
     def test_malformed_judgments_are_config_errors(self):
         sha = self.output("a"); self.output("b")
         bad = [[self.judgment(sha, verdict="ok")],          # not PASS/FAIL
                [self.judgment(sha, reason="")],             # empty reason
+               [self.judgment(sha, criterion_sha256="x")],  # bad criterion hash
                [{"case": "a", "verdict": "PASS"}],          # missing keys
                [self.judgment(sha), self.judgment(sha)],    # duplicate
                [self.judgment(sha, check=2)]]               # no such judged check
