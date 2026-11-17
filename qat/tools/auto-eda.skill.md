@@ -1,6 +1,6 @@
 ---
 name: auto-eda
-version: 1.0.0
+version: 1.1.0
 description: Generate a rule-driven EDA companion report (HTML with embedded charts + JSON summary) for any tabular data — a CSV, Excel, JSON or parquet file, a query result, a connector export, or a table Claude just produced. Use whenever Zach shares or receives a dataset and wants a look at it, asks for EDA, profiling, "what's in this data", distributions, or category breakdowns, or says "run auto-eda" — even if he doesn't ask for charts explicitly.
 ---
 
@@ -25,7 +25,7 @@ Produces a repeatable EDA file for a dataset by running `scripts/auto_eda.py`. T
 
 ## Workflow
 
-1. **Get the data into a file.** If the data came back from a tool or connector rather than as a file, write it out first (CSV for flat rows, JSON/JSONL for nested records — the script flattens nested JSON with `json_normalize`, and unwraps `{"data": [...]}`-style payloads).
+1. **Get the data into a file.** If the data came back from a tool or connector rather than as a file, write it out first (CSV for flat rows, JSON/JSONL for nested records — the script flattens nested JSON and JSONL with `json_normalize`, and turns list values into text, and unwraps `{"data": [...]}`-style payloads).
 2. **Copy the skill's scripts** into the working directory so plugins resolve, then run:
    ```bash
    cp -r <skill_dir>/scripts ./auto_eda_scripts
@@ -33,7 +33,7 @@ Produces a repeatable EDA file for a dataset by running `scripts/auto_eda.py`. T
    ```
    The script prints a JSON line with the output paths, row/column counts, and how many columns fell into each kind.
 3. **Deliver** `eda_out/<stem>_eda.html` with SendUserFile (display: render). Keep `<stem>_eda.json` for your own follow-up reasoning; send it only if asked.
-4. **Reply briefly**: the 2–4 most notable things the report shows (a dominant category, heavy missingness, a skewed numeric, a strong correlation) — read them from the JSON summary, not by guessing. Don't describe every chart.
+4. **Reply briefly**: the 2–4 most notable things the report shows (a dominant category, heavy missingness, a skewed numeric, a strong correlation) — read them from the JSON summary, not by guessing. Each profile there carries `stats` (numeric: count, mean, std, min, p25, median, p75, max, skew; categorical: `top` values with count and % of all rows, missing included, as in the charts; datetime: min and max), and `correlations` lists Pearson r for numeric pairs, strongest first. Don't describe every chart.
 
 Respect a threshold the user states ("use 12 categories") via `--max-cats`.
 

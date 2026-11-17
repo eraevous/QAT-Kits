@@ -271,7 +271,9 @@ def load(path: Path) -> pd.DataFrame:
     if ext == ".parquet":
         return pd.read_parquet(path)
     if ext == ".jsonl":
-        return pd.read_json(path, lines=True)
+        # Same flattening as .json: nested objects become dotted columns ("b.c"), not dict cells.
+        records = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+        return pd.json_normalize(records)
     if ext == ".json":
         raw = json.loads(path.read_text())
         if isinstance(raw, dict):  # {"data": [...]} or {"rows": [...]} style payloads
@@ -281,6 +283,74 @@ def load(path: Path) -> pd.DataFrame:
                     break
         return pd.json_normalize(raw)
     raise SystemExit(f"Unsupported file type: {ext}")
+
+
+def make_hashable(df: pd.DataFrame) -> pd.DataFrame:
+    """Turn list or dict cells (left by json_normalize, e.g. arrays) into JSON text.
+
+    Profiling counts distinct values, which fails on unhashable cells; as text they are
+    profiled like any other string column.
+    """
+    for col in df.columns:
+        if df[col].dtype == object and df[col].map(lambda v: isinstance(v, (list, dict))).any():
+            df[col] = df[col].map(lambda v: json.dumps(v, sort_keys=True, default=str)
+                                  if isinstance(v, (list, dict)) else v)
+    return df
+
+
+def _num(v):
+    """Round a statistic for the JSON summary (4 significant figures).
+
+    NaN and infinities become None: strict JSON has no token for them, and rounding can itself
+    overflow (1.7976931348623157e308 rounds to inf).
+    """
+    if v is None or pd.isna(v):
+        return None
+    rounded = float(f"{float(v):.4g}")
+    return rounded if -float("inf") < rounded < float("inf") else None
+
+
+def column_stats(s: pd.Series, p: Profile) -> dict:
+    """The measurements behind each chart, so findings can be read from the JSON summary."""
+    if p.kind == "numeric":
+        x = pd.to_numeric(s, errors="coerce").dropna()
+        return {"count": int(len(x)), "mean": _num(x.mean()), "std": _num(x.std()),
+                "min": _num(x.min()), "p25": _num(x.quantile(.25)), "median": _num(x.median()),
+                "p75": _num(x.quantile(.75)), "max": _num(x.max()), "skew": _num(x.skew())}
+    if p.kind in ("low_cat", "boolean", "high_cat"):
+        # Same basis as the charts: pct is of all rows, missing included. Low-cardinality and
+        # boolean charts show a "(missing)" bar, so it is listed here as a value too.
+        total = len(s)
+        if p.kind == "high_cat":
+            counts = s.astype("string").value_counts()
+            k = CFG["top_n"]
+        else:
+            counts = s.astype("string").fillna("(missing)").value_counts()
+            k = len(counts)
+        top = [{"value": str(v), "count": int(c), "pct": round(100 * c / total, 1)}
+               for v, c in counts.head(k).items()]
+        out = {"pct_of": "all rows", "top": top}
+        if len(counts) > k:
+            out["other_count"] = int(counts.iloc[k:].sum())
+        if p.kind == "high_cat" and p.n_null:
+            out["missing_count"] = p.n_null
+        return out
+    if p.kind == "datetime":
+        t = pd.to_datetime(s, errors="coerce").dropna()
+        return {"min": str(t.min()), "max": str(t.max())} if len(t) else {}
+    return {}
+
+
+def correlation_pairs(df: pd.DataFrame, profiles: list[Profile], limit: int = 50) -> list[dict]:
+    """Pearson r for each pair of numeric columns, strongest first (the heatmap's numbers)."""
+    cols = [p.name for p in profiles if p.kind == "numeric"]
+    if len(cols) < 2:
+        return []
+    c = df[cols].apply(pd.to_numeric, errors="coerce").corr()
+    pairs = [{"a": a, "b": b, "r": _num(c.loc[a, b])}
+             for i, a in enumerate(cols) for b in cols[i + 1:] if pd.notna(c.loc[a, b])]
+    pairs.sort(key=lambda d: -abs(d["r"]))
+    return pairs[:limit]
 
 
 def fig_to_b64(fig) -> str:
@@ -293,12 +363,13 @@ def fig_to_b64(fig) -> str:
 
 def run(path: Path, out: Path, title: str | None):
     plugins = load_plugins()
-    df = load(path)
-    profiles, charts = [], []
+    df = make_hashable(load(path))
+    profiles, charts, stats = [], [], {}
 
     for col in df.columns:
         p, s = profile_column(df[col])
         profiles.append(p)
+        stats[p.name] = column_stats(s, p)
         for name, when, fn in RULES:
             if when(p):
                 try:
@@ -326,8 +397,10 @@ def run(path: Path, out: Path, title: str | None):
         "max_cats": CFG["max_cats"], "plugins": plugins,
         "kinds": {k: [p.name for p in profiles if p.kind == k]
                   for k in sorted({p.kind for p in profiles})},
-        "profiles": [{**{k: v for k, v in p.__dict__.items()}, "null_pct": round(p.null_pct, 1)}
+        "profiles": [{**{k: v for k, v in p.__dict__.items()}, "null_pct": round(p.null_pct, 1),
+                      "stats": stats[p.name]}
                      for p in profiles],
+        "correlations": correlation_pairs(df, profiles),
         "charts": [{"column": c["column"], "rule": c["rule"]} for c in charts]
                   + [{"column": None, "rule": c["rule"]} for c in frame_charts],
     }
