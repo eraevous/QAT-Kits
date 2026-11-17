@@ -14,7 +14,7 @@ The earlier tool roadmap (relay-kit-private, `handoffs/outputs/HO-QAT-20261105-7
 
 1. Runner: `eval` exits non-success ("incomplete", proposed `3`) when any case is SKIP; regression test; lossy-coercion warnings stay visible.
 2. ThreadSeed: upstream the two `verify()` fixes with three regression cases (nonexistent T2 in a T1/T3 capture; wrong quote; T1a text cited as T1a2).
-3. MTG Deck Lab: state that the skill bundles no executable simulator (keep the "design reference" limit), unless Zach prefers a tested implementation.
+3. MTG Deck Lab: relabel the §2.7 `sim()` skeleton as a non-executable design reference, unless Zach prefers pointing at a tested implementation.
 4. AutoEDA: move Claude-only delivery into a runtime section; restrict `plugins/` to reviewed code; add a Parquet case once an engine is available.
 5. Contract steps 3-5 (generator support for `.tool.md`, ChatGPT and paste emitters, tool-by-tool conversion), after Zach's call on the contract.
 
