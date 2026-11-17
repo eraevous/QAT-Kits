@@ -1,6 +1,6 @@
 # Contributing to QAT-Kits
 
-QAT-Kits holds conversational tools for chat and thread work. It is not a home for general development tooling. The one script for Claude skills (`qat/scripts/skills.py`) exists to generate, check and package those tools, and stays standard-library only.
+QAT-Kits holds lightweight tools that can be invoked as or by chat threads, kept provider-neutral (Claude and ChatGPT at a minimum; remit set by Zach 2026-11-16, see README.md). It is not a home for general development tooling or standalone Python packages; where that line falls is open (docs/remit/FOR_ZACH.md item 2). The one script for Claude skills (`qat/scripts/skills.py`) exists to generate, check and package those tools, and stays standard-library only.
 
 ## Changing a tool's spec (eval-gated, DEC-193)
 
