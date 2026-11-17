@@ -1,6 +1,6 @@
 ---
 name: "thread-seed"
-version: 1.0.0
+version: 1.0.1
 description: "Turn a mature conversation (capture, transcript, ThreadMap or extract) into a paste-ready opening message for a successor thread, selected for what that thread must do next. Use when Zach invokes ThreadSeed or wants to migrate or hand off a long chat."
 ---
 
@@ -146,7 +146,9 @@ ends abruptly).
 Verify: every quoted span followed within ~60 characters by a turn ref, e.g.
   "make it consistent by increasing the number of possible solutions" [T6a2]
 must appear in that turn (whitespace, quotes and markdown emphasis normalised; a bare T6
-searches both sides of exchange 6). Every T-ref must exist. Quotes with no ref are listed as
+searches both sides of exchange 6; T6a2 searches only the second reply, and T6a or T6a1 only
+the first). Every T-ref must exist: a bare T6 fails when the capture has no exchange 6, even
+if later exchanges exist. Quotes with no ref are listed as
 UNREFERENCED (warnings). Reports pass/fail counts; exit code 1 on any failure.
 '''
 import argparse, json, re, sys
@@ -235,26 +237,31 @@ def index(msgs):
         rows.append(f"| {mid(m)} | {speaker(m)} | {m['ts']} | {len(m['text'].split())} | {topic(m)} | {', '.join(fl)} |")
     return '\n'.join(rows)
 
+def matches(m, k):
+    '''Does message m answer the ref suffix k? None: either side; u: the user message;
+    a or a1: the first reply; aN: exactly the Nth reply.'''
+    if not k: return True
+    if k == 'u': return m['role'] == 'user'
+    return m['role'] != 'user' and mid(m) == f"T{m['n']}" + ('a' if k == 'a1' else k)
+
 def verify(msgs, files):
     by = {}
     for m in msgs:
         by.setdefault(m['n'], []).append(m)
-    maxn = max(by) if by else 0
     ids = {mid(m) for m in msgs}
     ok = bad = 0
     for f in files:
         txt = open(f, encoding='utf-8').read()
         for r in TREF.finditer(txt):
             n, k = int(r.group(1)), r.group(2)
-            if n > maxn or n < 1 or (k and r.group(0) not in ids and not (k == 'a1' and f'T{n}a' in ids)):
+            if n not in by or (k and r.group(0) not in ids and not (k == 'a1' and f'T{n}a' in ids)):
                 print(f'FAIL ref {r.group(0)} in {f}: no such turn'); bad += 1
         for q in QUOTE.finditer(txt):
             span, refs = norm(q.group(1)), q.group(3)
             hay = ''
             for rr in TREF.finditer(refs):
                 n, k = int(rr.group(1)), rr.group(2)
-                hay += ' '.join(norm(m['text']) for m in by.get(n, [])
-                                if not k or (k == 'u' and m['role'] == 'user') or (k.startswith('a') and m['role'] != 'user'))
+                hay += ' '.join(norm(m['text']) for m in by.get(n, []) if matches(m, k))
             if span in hay: ok += 1
             else:
                 print(f'FAIL quote in {f}: "{q.group(1)[:70]}..." not found in {refs.strip()}'); bad += 1
