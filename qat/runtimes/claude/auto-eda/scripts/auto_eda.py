@@ -23,7 +23,6 @@ import html
 import importlib.util
 import io
 import json
-import math
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -307,8 +306,8 @@ def _num(v):
     """
     if v is None or pd.isna(v):
         return None
-    r = float(f"{float(v):.4g}")
-    return r if math.isfinite(r) else None
+    rounded = float(f"{float(v):.4g}")
+    return rounded if -float("inf") < rounded < float("inf") else None
 
 
 def column_stats(s: pd.Series, p: Profile) -> dict:
