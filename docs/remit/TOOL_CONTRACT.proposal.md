@@ -2,7 +2,7 @@
 
 Author: claude:qat#01GZK2Knb8aP6VTtZ7bf5tRv · Reviewer: Abigail (review of #22 at `4c1b794`, relayed), API Kate (ask b46ce5353e2f; handoff only, not these files) · model=claude-opus-5-5 · Handoff: HO-QAT-20261116-Y0HJ
 Status: **proposed**. Nothing here is adopted. It changes no spec, runner or generator yet. The remit it serves is authorized (Zach, 2026-11-16); this contract is one proposed way to implement it.
-Revised 2026-11-17 after Abigail's review of #22 at `4c1b794` (relayed) and API Kate's reply (ask b46ce5353e2f): contract authority (§1), judged checks (§2), the ChatGPT skill target and four evidence tiers (§3).
+Revised 2026-11-17 after Abigail's review of #22 at `4c1b794` (relayed) and API Kate's reply (ask b46ce5353e2f): contract authority (§1), judged checks (§2), the ChatGPT skill target and four evidence tiers (§3). Clarified again after API Kate's reply 5f71f098c5b4: contract field ownership and refusals (§1), placement versus identity, and receipt binding (§3).
 
 ## Problem
 
@@ -40,7 +40,11 @@ Body rules:
 
 **Which file is authoritative for what (one owner per field, no duplicates).**
 - `*.qat.md` is the **only** authority for a tool's machine-checkable contract: typed inputs, outputs, handoffs, and the eval cases that point at it. It stays as it is.
-- `*.tool.md` is the authority for the instruction text, the runtime adapter blocks, `kind`, `requires` and `runtimes`. When a tool has a contract, its `.tool.md` names it (`contract: <name>.qat.md`) and **omits** `inputs:`/`outputs:`; the generator reads them from the contract. A `.tool.md` declares `inputs:`/`outputs:` only when no contract exists. `skills.py check` would refuse a `.tool.md` that both names a contract and declares fields.
+- `*.tool.md` is the authority for the instruction text, the runtime adapter blocks, `kind`, `requires` and `runtimes`. When a tool has a contract, its `.tool.md` names it, pinned (`contract: <name>.qat.md@<version>`), and the generator reads the contract fields from there. A `.tool.md` declares contract fields only when no contract exists.
+- **Exactly which fields a `.tool.md` omits when it names a contract** (the fields of the runner's `SPEC_SCHEMA` in `qat/scripts/qat.py`): `inputs`, `outputs`, `handoffs`, `reflexes`, `modules` and `description`. It keeps `name`, which must equal the contract's, and its own `version`, which versions the text and adapters only.
+- **Refusals** (`skills.py check`, proposed): a `.tool.md` that names a contract and also declares any omitted field (a conflicting duplicate), even when the values agree; a `contract:` reference that doesn't resolve to a file at that exact version; a `name` that differs from the contract's.
+- **Adapters describe transport, never the contract.** An adapter block may say how a runtime receives inputs or delivers outputs (a file upload, a paste, a download link). It may not add, drop, rename or retype an input or output, or change an eval. A runtime that can't meet the contract records the gap as an unsupported capability (§3), not as a local variant.
+- (Clarified after API Kate's reply 5f71f098c5b4 (c): pinned, resolvable references; an exact omitted-field list; conflicts rejected; adapters can't redefine I/O or evals.)
 - Stress-test and truth-weight keep their open two-text question (AGENTS.md "Open"); this rule doesn't settle it, it only stops a third copy forming.
 
 ## 2. Inputs, outputs and evals
@@ -57,7 +61,7 @@ Body rules:
 
 | Tier | Means | Doesn't mean |
 |---|---|---|
-| **installed / discoverable** | the runtime lists the artifact, and its identity is checked against `skills.lock.json` by **hash** (file bytes, or the source hash in the generated header read from the installed file) | that it runs. A version or name the model reports about itself is **not** hash verification |
+| **installed / discoverable** | two facts, recorded separately: **placement** (the runtime lists or exposes the artifact where a thread can find it) and **identity** (the installed file's bytes, or the source hash in its generated header, match `skills.lock.json`). Each is `reported`, `observed` or `verified` on its own | that it runs. A hash match proves identity, not placement; placement proves discoverability, not identity. A version or name the model reports about itself is **not** hash verification |
 | **invoked** | in a fresh thread, the runtime actually loaded and used the installed artifact (its trigger fired, or it was called by name) | that the output was right |
 | **smoke-tested** | one named case ran on the installed artifact and its stated behaviour was observed | model quality or full correctness |
 | **evaluated** | the tool's eval cases ran on that runtime and the run is recorded under `eval-runs/` (deterministic and judged parts reported separately, §2) | that other runtimes or versions behave the same |
@@ -67,7 +71,7 @@ Body rules:
 | Runtime | Artifact the generator emits | How it is installed | Checks per tier |
 |---|---|---|---|
 | `claude-skill` | `<name>/SKILL.md` (+ files), per-skill zip and the `qat-kit-<v>.zip` plugin; already built by `skills.py` | Upload in the Claude app (Skills / plugins); Claude Code: copy into `.claude/skills/` | installed: listed, and the installed file's hash or header source hash matches the lock · invoked: fires in a fresh session · smoke: one case · evaluated: eval run on Claude |
-| `chatgpt-skill` | `<name>.chatgpt/` skill folder (SKILL-style instructions + files) | ChatGPT personal skills. **An installation already exists**: Abigail installed the ported tools as personal skills (relayed with the port findings; this lane hasn't observed it). Record it as `installed` with her evidence; invocation and behaviour are separate rows still to be observed | as for Claude, on ChatGPT |
+| `chatgpt-skill` | `<name>.chatgpt/` skill folder (SKILL-style instructions + files) | ChatGPT personal skills. **An installation already exists**: Abigail installed the ported tools as personal skills (relayed with the port findings; this lane hasn't observed it). Record it as `installation reported; identity unverified`, with her evidence; placement, identity, invocation and behaviour are separate rows still to be observed | as for Claude, on ChatGPT |
 | `chatgpt-gpt` | `<name>.chatgpt/instructions.md` (≤ the GPT instructions limit), `knowledge/` files, and for `prompt+script` tools the scripts to attach for code execution | Create or update a custom GPT (or a Project's instructions + files) by hand | installed: the GPT's files hash-match the lock (not "it states its version") · invoked · smoke: for script tools, the script runs and produces the declared files · evaluated |
 | `paste` (any chat) | `<name>.paste.md`: one block for pasting into any chat, prompt tools only | Paste at the top of a thread | smoke and evaluated only (nothing is installed) |
 | later: `codex`, `gemini-gem`, `mcp-prompt` | added when one is needed | — | same four tiers |
@@ -81,12 +85,16 @@ A tier is claimed only with a line in `qat/installs/<runtime>.jsonl`. These are 
 - tier, test case, expected result, observed result, status (`pass` / `fail` / `blocked`);
 - timestamp, observing actor, evidence pointer (kept private if not public-safe), untested capabilities.
 
+Every receipt is bound to one artifact version, contract version, adapter, runtime and test scope; it says nothing about any other. An evaluation on one runtime doesn't establish installation, or behaviour, on another.
+
+**Weaker evidence is kept, not erased.** A relayed or self-reported installation stays on record as `installation reported; identity unverified` until a stronger receipt is added beside it. A later hash check adds a line; it never rewrites the earlier one. (API Kate's reply 5f71f098c5b4 (b).)
+
 Failed and blocked attempts are recorded too. No credentials or personal data in a receipt. No receipt, no claim: generation, packaging or a passing CLI test doesn't count (the 15 synthetic CLI checks in the ChatGPT port were exactly that: useful, not an installation proof).
 
 ## 4. Migration (proposed order, each its own PR)
 
 1. ~~Add the runner's `incomplete` exit code with a regression test; report ungraded judged checks as incomplete (§2).~~ Done in the runner fix PR (bundle 1.2.1).
-2. Fix ThreadSeed's `verify()` defects upstream with the three regression cases (spec change, eval-gated).
+2. Fix ThreadSeed's `verify()` defects upstream with the three regression cases (spec change, eval-gated). In review: PR #25 (thread-seed 1.0.1, bundle 1.2.2), not merged.
 3. Add `.tool.md` support to `skills.py` beside `.skill.md`, emitting the existing Claude output byte-for-byte for a tool with no adapter blocks (so the bundle doesn't change).
 4. Add the `chatgpt-skill`, `chatgpt-gpt` and `paste` emitters; regenerate `kind-check` and `real-problem` ChatGPT texts from source and retire the hand-adapted copies.
 5. Convert tools one at a time (auto-eda first: it has the clearest provider-specific step), each with its eval run and test receipts per runtime and tier.
