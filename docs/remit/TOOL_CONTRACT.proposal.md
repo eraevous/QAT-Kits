@@ -94,8 +94,8 @@ Failed and blocked attempts are recorded too. No credentials or personal data in
 
 ## 4. Migration (proposed order, each its own PR)
 
-1. ~~Add the runner's `incomplete` exit code with a regression test; report ungraded judged checks as incomplete (§2).~~ Done in the runner fix PR (bundle 1.2.1).
-2. Fix ThreadSeed's `verify()` defects upstream with the three regression cases (spec change, eval-gated). In review: PR #25 (thread-seed 1.0.1, bundle 1.2.2), not merged.
+1. ~~Add the runner's `incomplete` exit code with a regression test; report ungraded judged checks as incomplete (§2).~~ Done in #24 (bundle 1.2.1, merged 2026-11-17).
+2. ~~Fix ThreadSeed's `verify()` defects upstream with the three regression cases (spec change, eval-gated).~~ Done in #25 (thread-seed 1.0.1, bundle 1.2.2, merged 2026-11-18).
 3. Add `.tool.md` support to `skills.py` beside `.skill.md`, emitting the existing Claude output byte-for-byte for a tool with no adapter blocks (so the bundle doesn't change).
 4. Add the `chatgpt-skill`, `chatgpt-gpt` and `paste` emitters; regenerate `kind-check` and `real-problem` ChatGPT texts from source and retire the hand-adapted copies.
 5. Convert tools one at a time (auto-eda first: it has the clearest provider-specific step), each with its eval run and test receipts per runtime and tier.
