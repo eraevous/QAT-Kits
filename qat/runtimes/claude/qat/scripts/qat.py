@@ -18,7 +18,9 @@ Commands
                                          judged checks are graded only from FILE
 
 Exit code 0 = no errors (warnings allowed), 1 = errors, 2 = usage or configuration
-problem (bad arguments, unreadable eval file, malformed judgments file), 3 = incomplete
+problem (bad arguments, unreadable eval file, malformed judgments file, a spec or output
+file that can't be read or a spec whose frontmatter isn't parseable YAML, in the named
+file or anywhere in the tools directory), 3 = incomplete
 eval (no errors, but not everything was checked: no cases, a case SKIPped because its
 output is missing, or a judged check with no valid recorded judgment). A known failure
 wins: a run with an error exits 1 even if it is also incomplete, and says so.
@@ -258,15 +260,42 @@ class Spec:
 
     @property
     def name(self):
-        return self.meta.get("name", self.path.stem)
+        # frontmatter that parses to a list or scalar is a schema error (SPEC_INVALID), not a crash
+        return self.meta.get("name", self.path.stem) if isinstance(self.meta, dict) else self.path.stem
+
+
+def read_text(path: Path, what: str) -> str:
+    """Read a UTF-8 file, raising ConfigError (exit 2) instead of a traceback."""
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as e:
+        raise ConfigError(f"{what} {path}: {e}")
 
 
 def load_spec(path: Path) -> Spec:
-    text = path.read_text()
+    """Parse a spec file. Raises ConfigError if it can't be read or its frontmatter can't be parsed;
+    frontmatter that parses but breaks the schema is left for validate_spec (SPEC_INVALID, exit 1)."""
+    text = read_text(path, "spec")
     m = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.S)
     if not m:
-        raise ValueError(f"{path.name}: no YAML frontmatter")
-    return Spec(path, yaml.safe_load(m.group(1)) or {}, m.group(2))
+        raise ConfigError(f"spec {path}: no YAML frontmatter")
+    try:
+        meta = yaml.safe_load(m.group(1))
+    except yaml.YAMLError as e:
+        raise ConfigError(f"spec {path}: frontmatter is not valid YAML: {' '.join(str(e).split())}")
+    return Spec(path, meta if meta is not None else {}, m.group(2))
+
+
+def usable(spec: Spec) -> bool:
+    """True if the spec's frontmatter passes the schema, so its fields can be read without crashing."""
+    return VALIDATOR.is_valid(spec.meta)
+
+
+def require_usable(spec: Spec) -> Spec:
+    """Raise ConfigError (exit 2) if a spec a command depends on fails the schema."""
+    if not usable(spec):
+        raise ConfigError(f"spec {spec.path}: fails the schema; run `qat.py validate {spec.path}` for details")
+    return spec
 
 
 def load_all(tools_dir: Path) -> dict[str, Spec]:
@@ -310,6 +339,9 @@ def check_handoff(src: Spec, h: dict, registry: dict[str, Spec]) -> Report:
     tgt = registry.get(h["to"])
     if tgt is None:
         r.err("BROKEN_HANDOFF", f"{src.name} -> {h['to']}: target tool not found")
+        return r
+    if not usable(tgt):
+        r.err("BROKEN_HANDOFF", f"{src.name} -> {h['to']}: target spec {tgt.path.name} fails the schema")
         return r
     outs, ins = src.meta["outputs"], tgt.meta["inputs"]
     for in_field, out_field in h["map"].items():
@@ -503,7 +535,7 @@ def run_eval(eval_path: Path, out_dir: Path, registry, judgments_path: Path | No
     validate_eval(cfg, eval_path)
     if cfg["tool"] not in registry:
         raise ConfigError(f"eval file {eval_path}: unknown tool {cfg.get('tool')!r}; known: {', '.join(registry)}")
-    spec = registry[cfg["tool"]]
+    spec = require_usable(registry[cfg["tool"]])
     judgments = load_judgments(judgments_path)
     r = Report()
     judge = []
@@ -616,6 +648,9 @@ def write_index(registry: dict[str, Spec], tools_dir: Path) -> Report:
         r.extend(rep)
         m = s.meta
         status = "ok" if not rep.errors else "INVALID"
+        if not usable(s):
+            lines += [f"## {name} — INVALID", "", f"- **file:** `tools/{s.path.name}` (fails the schema)", ""]
+            continue
         lines += [f"## {name} v{m.get('version', '?')} — {status}", "",
                   m.get("description", ""), "",
                   f"- **file:** `tools/{s.path.name}`",
@@ -642,7 +677,16 @@ def main():
     e = sub.add_parser("eval"); e.add_argument("eval", type=Path); e.add_argument("outputs", type=Path)
     e.add_argument("--judgments", type=Path, help="JSON file of recorded judgments for the judged checks")
     args = ap.parse_args()
+    try:
+        r = run(args)
+    except ConfigError as e:
+        print(f"ERROR   {'CONFIG':<18} {e}", file=sys.stderr)
+        sys.exit(2)
+    r.print()
+    sys.exit(r.code)
 
+
+def run(args) -> Report:
     registry = load_all(args.tools)
     if args.cmd == "index":
         r = write_index(registry, args.tools)
@@ -652,25 +696,21 @@ def main():
     elif args.cmd in ("audit", "handoff"):
         name = args.tool if args.cmd == "audit" else args.src
         if name not in registry or (args.cmd == "handoff" and args.dst not in registry):
-            print(f"unknown tool; known: {', '.join(registry)}", file=sys.stderr)
-            sys.exit(2)
-        md = args.output.read_text()
+            raise ConfigError(f"unknown tool; known: {', '.join(registry)}")
+        src = require_usable(registry[name])
+        dst = require_usable(registry[args.dst]) if args.cmd == "handoff" else None
+        md = read_text(args.output, "output")
         if args.cmd == "audit":
-            r, payload = audit_output(registry[name], md)
+            r, payload = audit_output(src, md)
         else:
-            r, payload = build_handoff(registry[name], registry[args.dst], md, registry)
+            r, payload = build_handoff(src, dst, md, registry)
         if args.json:
             args.json.write_text(json.dumps(payload, indent=2))
         else:
             print(json.dumps(payload, indent=2))
     else:
-        try:
-            r = run_eval(args.eval, args.outputs, registry, args.judgments)
-        except ConfigError as e:
-            print(f"ERROR   {'CONFIG':<18} {e}", file=sys.stderr)
-            sys.exit(2)
-    r.print()
-    sys.exit(r.code)
+        r = run_eval(args.eval, args.outputs, registry, args.judgments)
+    return r
 
 
 if __name__ == "__main__":
