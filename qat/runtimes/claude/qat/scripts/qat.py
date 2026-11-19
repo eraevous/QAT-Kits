@@ -157,9 +157,7 @@ def coerce(value, src: str, dst: str):
         if isinstance(value, dict):
             return [f"[{k}] {v}" for k, vs in value.items() for v in vs]
         return [value]
-    if dst == "claim":
-        return value
-    return value
+    return value                                 # verdict -> claim: the string passes through
 
 # ---------------------------------------------------------------------------
 # Spec schema: the lean core. name, description, inputs, outputs, modules,
@@ -490,6 +488,11 @@ def load_judgments(path: Path | None) -> dict[tuple[str, str, int], dict]:
     return out
 
 
+def criterion_sha256(text) -> str:
+    """The hash a judgment's criterion_sha256 must match: sha256 of the judge: text as UTF-8."""
+    return hashlib.sha256(str(text).encode("utf-8")).hexdigest()
+
+
 def validate_eval(cfg, eval_path: Path) -> None:
     """Check an eval file's shape before any case runs. Raises ConfigError (exit 2) if malformed."""
     where = f"eval file {eval_path}"
@@ -588,20 +591,19 @@ def run_eval(eval_path: Path, out_dir: Path, registry, judgments_path: Path | No
         for kind, i, text in judged_here:
             label = f"{cid} {kind}#{i}"
             j = judgments.get((cid, kind, i))
+            stale = None                         # why this check counts as ungraded, if it does
             if j is None:
-                ungraded += 1
-                judge.append((label, text, None))
-                r.gap("EVAL_INCOMPLETE", f"{label}: judged check has no recorded judgment")
+                stale = "judged check has no recorded judgment"
             elif j["output_sha256"] != digest:
+                stale = (f"judgment is for a different output "
+                         f"(sha256 {j['output_sha256'][:12]}, file is {digest[:12]}); regrade it")
+            elif j["criterion_sha256"] != criterion_sha256(text):
+                stale = ("judgment is for a different criterion "
+                         "(the judge: text changed or the checks were reordered); regrade it")
+            if stale:
                 ungraded += 1
                 judge.append((label, text, None))
-                r.gap("EVAL_INCOMPLETE", f"{label}: judgment is for a different output "
-                      f"(sha256 {j['output_sha256'][:12]}, file is {digest[:12]}); regrade it")
-            elif j["criterion_sha256"] != hashlib.sha256(str(text).encode("utf-8")).hexdigest():
-                ungraded += 1
-                judge.append((label, text, None))
-                r.gap("EVAL_INCOMPLETE", f"{label}: judgment is for a different criterion "
-                      f"(the judge: text changed or the checks were reordered); regrade it")
+                r.gap("EVAL_INCOMPLETE", f"{label}: {stale}")
             else:
                 own = " (grader is the output's author; provisional)" if j["grader_is_author"] else ""
                 judge.append((label, text, f"{j['verdict']} by {j['grader']}{own}: {j['reason']}"))
@@ -631,8 +633,7 @@ def run_eval(eval_path: Path, out_dir: Path, registry, judgments_path: Path | No
         print("\nNeeds model judgment (record PASS/FAIL with a one-line reason in a judgments file;"
               " until then the run is incomplete):")
         for label, text in pending:
-            crit = hashlib.sha256(str(text).encode("utf-8")).hexdigest()
-            print(f"  [{label}] (criterion_sha256 {crit}) {text}")
+            print(f"  [{label}] (criterion_sha256 {criterion_sha256(text)}) {text}")
     print()
     return r
 
