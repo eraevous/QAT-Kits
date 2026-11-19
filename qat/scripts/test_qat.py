@@ -369,5 +369,71 @@ class EvalExitTest(unittest.TestCase):
         self.assertEqual(run().returncode, 2)
 
 
+class UnreadableSpecTest(unittest.TestCase):
+    """A spec or output the runner can't read used to crash with a traceback and exit 1, the same
+    code as "errors found", so a caller couldn't tell a broken file from a failed audit. Each case
+    here crashed on main before this change; now it exits 2 with one CONFIG line and no traceback."""
+
+    GOOD = ("---\nname: tgt\nversion: 1.0.0\ndescription: A test tool used only by test_qat.py fixtures.\n"
+            "inputs:\n  summary: {type: text}\noutputs:\n  out: {type: text, heading: Out}\n---\nBody.\n")
+
+    def setUp(self):
+        self._td = tempfile.TemporaryDirectory()
+        self.tmp = Path(self._td.name)
+        self.tools = self.tmp / "tools"
+        self.tools.mkdir()
+        (self.tools / "tgt.qat.md").write_text(self.GOOD)
+
+    def tearDown(self):
+        self._td.cleanup()
+
+    def cli(self, *args):
+        script = Path(__file__).resolve().parent / "qat.py"
+        return subprocess.run([sys.executable, "-I", str(script), "--tools", str(self.tools), *args],
+                              capture_output=True, text=True)
+
+    def assertConfig(self, p, needle):
+        self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+        self.assertIn("CONFIG", p.stderr)
+        self.assertIn(needle, p.stderr)
+
+    def test_validate_bad_yaml_missing_frontmatter_missing_file_and_bad_bytes(self):
+        bad = self.tmp / "bad.qat.md"
+        bad.write_text("---\nname: x\n  bad: [\n---\nbody\n")
+        self.assertConfig(self.cli("validate", str(bad)), "not valid YAML")
+        bad.write_text("no frontmatter\n")
+        self.assertConfig(self.cli("validate", str(bad)), "no YAML frontmatter")
+        self.assertConfig(self.cli("validate", str(self.tmp / "missing.qat.md")), "missing.qat.md")
+        bad.write_bytes(b"\xff\xfe---\n")
+        self.assertConfig(self.cli("validate", str(bad)), "bad.qat.md")
+
+    def test_bad_yaml_in_tools_dir_is_config_for_every_command(self):
+        (self.tools / "broken.qat.md").write_text("---\nname: broken\n  x: [\n---\n")
+        self.assertConfig(self.cli("index"), "broken.qat.md")
+        self.assertConfig(self.cli("audit", "tgt", str(self.tmp / "o.md")), "broken.qat.md")
+
+    def test_non_mapping_frontmatter_is_spec_invalid_not_a_crash(self):
+        (self.tools / "listy.qat.md").write_text("---\n- a\n- b\n---\nBody.\n")
+        p = self.cli("index")
+        self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+        self.assertIn("SPEC_INVALID", p.stdout)
+        self.assertIn("INVALID", (self.tmp / "INDEX.md").read_text())
+        self.assertConfig(self.cli("audit", "listy.qat", str(self.tmp / "o.md")), "fails the schema")
+
+    def test_handoff_to_schema_invalid_target_is_broken_handoff(self):
+        (self.tools / "bad.qat.md").write_text("---\nname: bad\nversion: 1.0.0\n---\nBody.\n")
+        src = spec("src2", {"idea": {"type": "text"}}, {"out": {"type": "text", "heading": "Out"}},
+                   handoffs=[{"to": "bad", "when": "always", "map": {"summary": "out"}}])
+        registry = {"src2": src, "bad": qat.load_spec(self.tools / "bad.qat.md")}
+        errs, _ = codes(qat.validate_spec(src, registry))
+        self.assertEqual(errs, ["BROKEN_HANDOFF"])
+
+    def test_missing_output_file_is_config(self):
+        self.assertConfig(self.cli("audit", "tgt", str(self.tmp / "nope.md")), "nope.md")
+        self.assertConfig(self.cli("audit", "nosuch", str(self.tmp / "nope.md")), "unknown tool")
+
+
 if __name__ == "__main__":
     unittest.main()
