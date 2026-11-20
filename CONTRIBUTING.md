@@ -23,7 +23,7 @@ CI (`qat-skills`) checks steps 1, 3 and 4: the version bump, a recorded run unde
 
 ## Reviews and merging
 
-Kate reviews first (DEC-038), then a fresh-context execution review. Zach merges. Agents never merge or force-push.
+First an independent review by a different model family: ChatGPT (Kate), Zach's ChatGPT partner thread, or API Kate, the ChatGPT API reviewer (DEC-038). Then a fresh-context execution review. Zach merges. Agents never merge or force-push.
 
 ## Content
 

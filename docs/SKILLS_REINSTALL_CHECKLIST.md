@@ -7,7 +7,7 @@ release.
 
 Who does what:
 - **Zach**: merge, tag, and the upload/remove steps in the Claude app (agents can't upload or remove account skills).
-- **Any lane**: the checks before and after.
+- **Any agent** (a Kairos lane, or any Claude session): the checks before and after.
 
 ---
 
@@ -86,7 +86,7 @@ so never leave both turned on.
 
 Turning the old ones off rather than removing them leaves an instant rollback until step 5 passes.
 
-## 5. Check what's installed (any lane, in a fresh session)
+## 5. Check what's installed (any agent, in a fresh session)
 
 - [ ] List the account's skills. Each of the 14 shows up once, with no duplicates.
 - [ ] Open each installed `SKILL.md`. Its first body line reads

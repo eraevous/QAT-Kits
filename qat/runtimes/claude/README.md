@@ -49,7 +49,7 @@ The installed copies that exist today are separate per-skill uploads with the sa
 
 I haven't tested the exact upload screens and the names of the zip formats they accept. Confirm them on the first install, and correct this section in the same pull request as anything else.
 
-## Pinning elsewhere (lanes, runners, other machines)
+## Pinning elsewhere (agents, runners, other machines)
 
 Pin the release tag. Either download the release zip for `qat-skills-v<version>`, or check out the tag and run `python3 -I qat/scripts/skills.py package dist`. Packaging is deterministic: the same tag gives the same `SHA256SUMS`.
 
