@@ -30,7 +30,7 @@ Two places hold reasons, and they do different jobs:
   implements them (`implemented_by code:qat.scripts.qat...`). A record is provisional until Zach commits it
   (`"epistemic": "committed"`); agents may append provisional records and proposed decisions, never accepted ones.
 - **Ledgers** (the relay-kit-private repository, `governance/decisions.jsonl` and `challenges.jsonl`) hold
-  cross-repo coordination and the owner's decisions. Records cite their ids as text (for example
+  cross-repo coordination and the owner's decisions (Architecture Decision Record style, `DEC-n` ids). Records cite their ids as text (for example
   `QAT-D-canon` cites DEC-048 and DEC-051).
 - **Append only.** Never edit or delete an earlier line in `.aec/records.jsonl`. To change a record, append
   the same `id` with the next `version` and a `supersedes` relation.

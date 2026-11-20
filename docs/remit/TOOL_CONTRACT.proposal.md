@@ -100,7 +100,7 @@ Failed and blocked attempts are recorded too. No credentials or personal data in
 4. Add the `chatgpt-skill`, `chatgpt-gpt` and `paste` emitters; regenerate `kind-check` and `real-problem` ChatGPT texts from source and retire the hand-adapted copies.
 5. Convert tools one at a time (auto-eda first: it has the clearest provider-specific step), each with its eval run and test receipts per runtime and tier.
 
-What does **not** change: DEC-193 optionality, the eval gate, the review order (Kate first, then a fresh-context execution review, then Zach merges), and the stress-test/truth-weight text question (still Zach's call).
+What does **not** change: DEC-193 optionality, the eval gate, the review order (independent cross-family review by Kate first, then a fresh-context execution review, then Zach merges), and the stress-test/truth-weight text question (still Zach's call).
 
 ## Risks (stress-tested by hand)
 

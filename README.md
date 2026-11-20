@@ -2,6 +2,8 @@
 
 Lightweight tools that can be invoked as, or by, chat threads, kept provider-neutral: one source per tool, with installations for Claude and ChatGPT at a minimum, and more platforms as they turn up.
 
+QAT-Kits is one repository of Kairos, Zach Rhodes's umbrella project for Cognitive Augmentation: the tools, the coordination environment and the research. Decisions cited as `DEC-n` are Kairos's decision records (in the style of Architecture Decision Records), kept in a separate records repository; the README quotes what each one says where it matters.
+
 > **Status: remit authorized; wording and implementation provisional.** Zach set this remit on 2026-11-16 (quoted below, relayed verbatim by Abigail), and it replaces the earlier "only for thread and chat tools" rule. That retired rule takes precedence nowhere, including in older handoffs, prompts and roadmaps that still quote it. What stays provisional is the purpose record's wording (`P0@3` in `.aec/records.jsonl`, until Zach commits it) and everything under [docs/remit/](docs/remit/), which is proposals.
 
 Zach's words (Slack #kairos, 2026-11-16 16:17 CT, relayed verbatim by Abigail):
@@ -12,7 +14,7 @@ Zach's words (Slack #kairos, 2026-11-16 16:17 CT, relayed verbatim by Abigail):
 
 - **In:** a tool that a chat thread can run itself (a prompt tool such as StressTest or ThreadMap), or that a thread can call (a small script a thread runs, such as AutoEDA's report generator or ThreadSeed's index helper).
 - **Also in (proposed reading, not yet decided):** a bounded function a thread calls through an explicit, versioned adapter, even when it ships a CLI wrapper, a small local state file or declared, versioned dependencies. Packaging alone doesn't disqualify a tool.
-- **Separate projects that QAT integrates rather than holds:** independently useful applications, maintained libraries and persistent services (eraevous/mtg's `mtgtools`, for example). Those follow Zach's standing rule (Telosmith-instantiated); a QAT adapter may point at them. Where exactly the line falls is Zach's call: see [docs/remit/FOR_ZACH.md](docs/remit/FOR_ZACH.md) item 2.
+- **Separate projects that QAT integrates rather than holds:** independently useful applications, maintained libraries and persistent services (eraevous/mtg's `mtgtools`, for example). Those follow Zach's standing rule (Telosmith-instantiated: set up with Telosmith, Kairos's requirements-traceability tool); a QAT adapter may point at them. Where exactly the line falls is Zach's call: see [docs/remit/FOR_ZACH.md](docs/remit/FOR_ZACH.md) item 2.
 - **Unchanged:** each tool stays optional (DEC-193). Nothing here requires another Kairos repository, and nothing outside requires these tools.
 
 ## Where things are
@@ -31,4 +33,4 @@ Zach's words (Slack #kairos, 2026-11-16 16:17 CT, relayed verbatim by Abigail):
 
 ## Working rules
 
-[AGENTS.md](AGENTS.md) for agents, [CONTRIBUTING.md](CONTRIBUTING.md) for spec changes (eval-gated, DEC-193). Kate reviews first, then a fresh-context execution review; Zach merges.
+[AGENTS.md](AGENTS.md) for agents, [CONTRIBUTING.md](CONTRIBUTING.md) for spec changes (eval-gated, DEC-193). Review order: first an independent review by a different model family (ChatGPT (Kate), Zach's ChatGPT partner thread, or API Kate, the ChatGPT API reviewer), then a fresh-context execution review; Zach merges.
