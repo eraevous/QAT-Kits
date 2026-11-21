@@ -434,6 +434,26 @@ class UnreadableSpecTest(unittest.TestCase):
         self.assertConfig(self.cli("audit", "tgt", str(self.tmp / "nope.md")), "nope.md")
         self.assertConfig(self.cli("audit", "nosuch", str(self.tmp / "nope.md")), "unknown tool")
 
+    # Idle cycle (security), 2026-11-21: three I/O paths #28 missed still crashed with exit 1.
+    def test_eval_file_with_bad_bytes_is_config(self):
+        ev = self.tmp / "bad.eval.yaml"
+        ev.write_bytes(b"tool: tgt\ncases:\n  - id: a\n# \xff\xfe\n")
+        self.assertConfig(self.cli("eval", str(ev), str(self.tmp)), "bad.eval.yaml")
+
+    def test_unreadable_case_output_is_config(self):
+        ev = self.tmp / "d.eval.yaml"
+        ev.write_text("tool: tgt\ncases:\n  - id: d\n")
+        out = self.tmp / "out"
+        (out / "d.md").mkdir(parents=True)             # exists, but can't be read as a file
+        self.assertConfig(self.cli("eval", str(ev), str(out)), "d.md")
+
+    def test_unwritable_json_and_index_are_config(self):
+        o = self.tmp / "o.md"
+        o.write_text("## Out\nhello\n")
+        self.assertConfig(self.cli("audit", "tgt", str(o), "--json", str(self.tmp / "no" / "x.json")), "x.json")
+        (self.tmp / "INDEX.md").mkdir()                # index can't write its INDEX.md
+        self.assertConfig(self.cli("index"), "INDEX.md")
+
 
 if __name__ == "__main__":
     unittest.main()
