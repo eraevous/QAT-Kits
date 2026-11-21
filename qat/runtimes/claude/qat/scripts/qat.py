@@ -20,10 +20,10 @@ Commands
 Exit code 0 = no errors (warnings allowed), 1 = errors, 2 = usage or configuration
 problem (bad arguments, unreadable eval file, malformed judgments file, a spec or output
 file that can't be read or a spec whose frontmatter isn't parseable YAML, in the named
-file or anywhere in the tools directory), 3 = incomplete
-eval (no errors, but not everything was checked: no cases, a case SKIPped because its
-output is missing, or a judged check with no valid recorded judgment). A known failure
-wins: a run with an error exits 1 even if it is also incomplete, and says so.
+file or anywhere in the tools directory, or a --json or INDEX.md file that can't be
+written), 3 = incomplete eval (no errors, but not everything was checked: no cases, a case
+SKIPped because its output is missing, or a judged check with no valid recorded judgment).
+A known failure wins: a run with an error exits 1 even if it is also incomplete, and says so.
 
 Judgments file (JSON): {"judgments": [{"case": ID, "kind": "must_include"|"must_avoid",
   "check": N (1-based, as printed), "verdict": "PASS"|"FAIL", "reason": TEXT,
@@ -267,6 +267,14 @@ def read_text(path: Path, what: str) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as e:
+        raise ConfigError(f"{what} {path}: {e}")
+
+
+def write_text(path: Path, text: str, what: str) -> None:
+    """Write a file, raising ConfigError (exit 2) instead of a traceback."""
+    try:
+        path.write_text(text, encoding="utf-8")
+    except OSError as e:
         raise ConfigError(f"{what} {path}: {e}")
 
 
@@ -532,8 +540,8 @@ def validate_eval(cfg, eval_path: Path) -> None:
 
 def run_eval(eval_path: Path, out_dir: Path, registry, judgments_path: Path | None = None) -> Report:
     try:
-        cfg = yaml.safe_load(eval_path.read_text())
-    except (OSError, yaml.YAMLError) as e:
+        cfg = yaml.safe_load(read_text(eval_path, "eval file"))
+    except yaml.YAMLError as e:
         raise ConfigError(f"eval file {eval_path}: {e}")
     validate_eval(cfg, eval_path)
     if cfg["tool"] not in registry:
@@ -562,7 +570,10 @@ def run_eval(eval_path: Path, out_dir: Path, registry, judgments_path: Path | No
             r.gap("EVAL_INCOMPLETE", f"{cid}: no output file {f.name}; skipped")
             rows.append((cid, "SKIP"))
             continue
-        raw = f.read_bytes()
+        try:
+            raw = f.read_bytes()
+        except OSError as e:
+            raise ConfigError(f"output {f}: {e}")
         digest = hashlib.sha256(raw).hexdigest()
         try:
             # hash the bytes as saved; check the text with universal newlines, as read_text() did
@@ -663,7 +674,7 @@ def write_index(registry: dict[str, Spec], tools_dir: Path) -> Report:
         for h in m.get("handoffs", []):
             lines.append(f"- **hands off to** `{h['to']}` when {h['when']}")
         lines.append("")
-    (tools_dir.parent / "INDEX.md").write_text("\n".join(lines))
+    write_text(tools_dir.parent / "INDEX.md", "\n".join(lines), "index")
     return r
 
 
@@ -706,7 +717,7 @@ def run(args) -> Report:
         else:
             r, payload = build_handoff(src, dst, md, registry)
         if args.json:
-            args.json.write_text(json.dumps(payload, indent=2))
+            write_text(args.json, json.dumps(payload, indent=2), "--json")
         else:
             print(json.dumps(payload, indent=2))
     else:
