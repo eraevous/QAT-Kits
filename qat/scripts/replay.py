@@ -96,13 +96,12 @@ def split_halves(items: list[dict], rng: random.Random) -> tuple[list[str], list
     for stratum in sorted(by_stratum):
         ids = sorted(by_stratum[stratum])
         rng.shuffle(ids)
-        half = len(ids) // 2
-        extra = len(ids) % 2
-        a, b = ids[: half + (extra if not flip else 0)], ids[half + (extra if not flip else 0):]
+        half, extra = divmod(len(ids), 2)
+        cut = half + (0 if flip else extra)
+        h1 += ids[:cut]
+        h2 += ids[cut:]
         if extra:
             flip = not flip
-        h1 += a
-        h2 += b
     return sorted(h1), sorted(h2)
 
 
@@ -136,8 +135,9 @@ def assign(study: Path, seed: int) -> dict:
 
 def packet(study: Path, grader: str, tool: str) -> str:
     asg = _load(study / "assignment.json")["tools"][tool]["graders"][grader]
-    items = {it["id"]: it for it in _load(study / "items" / f"{tool}.items.json")["items"]}
-    shared = _load(study / "items" / f"{tool}.items.json").get("shared_context", "")
+    items_doc = _load(study / "items" / f"{tool}.items.json")
+    items = {it["id"]: it for it in items_doc["items"]}
+    shared = items_doc.get("shared_context", "")
     keys = _load(study / "keys" / f"{tool}.key.json")["keys"]
     lines = [f"# Grading packet: {tool}, grader {grader}", "",
              "Grade every response with the instructions you were given. The response's origin is hidden.", "",
@@ -198,32 +198,33 @@ def tally(study: Path, tool: str, exclude_seen: bool = False) -> dict:
     arms = {a: Counter() for a in ARMS}
     per_item = defaultdict(dict)
     guesses = Counter()
+    # Every grade in `grades` passed _grade_errors, so its required fields are present and typed.
     for oid, g in grades.items():
         grader, item, arm = by_oid[oid]
         if exclude_seen and keys[item].get("seen_in_design"):
             continue
         c = arms[arm]
         c["graded"] += 1
-        c[f"defensible_{g.get('defensible', 'missing')}"] += 1
-        c["corrections"] += int(g.get("corrections", 0))
+        c[f"defensible_{g['defensible']}"] += 1
+        c["corrections"] += g["corrections"]
         for flag in FLAGS:
-            c[flag] += bool(g.get(flag))
+            c[flag] += g[flag]
         w = _words(study / "runs" / tool / "raw" / arm / f"{item}.md")
         if w is not None:
             c["words"] += w
         per_item[item][grader] = g
-        guess = g.get("arm_guess", "unsure")
+        guess = g["arm_guess"]
         truth = "tool" if arm == "B" else "plain"
         guesses["unsure" if guess == "unsure" else ("right" if guess == truth else "wrong")] += 1
     queue = []
     for item, gs in sorted(per_item.items()):
-        verdicts = {gr: g.get("key", "agree") for gr, g in gs.items()}
-        if len(gs) == 2 and len(set(verdicts.values())) == 2:
-            queue.append({"item": item, "why": "graders split on the key",
-                          "notes": {gr: g.get("key_note", "") for gr, g in gs.items()}})
-        elif len(gs) == 2 and set(verdicts.values()) == {"dispute"}:
-            queue.append({"item": item, "why": "both graders dispute the key",
-                          "notes": {gr: g.get("key_note", "") for gr, g in gs.items()}})
+        if len(gs) != 2:
+            continue
+        verdicts = {g["key"] for g in gs.values()}
+        if verdicts == {"agree"}:
+            continue
+        why = "graders split on the key" if len(verdicts) == 2 else "both graders dispute the key"
+        queue.append({"item": item, "why": why, "notes": {gr: g["key_note"] for gr, g in gs.items()}})
     return {"tool": tool, "exclude_seen_in_design": exclude_seen, "arms": {a: dict(c) for a, c in arms.items()},
             "adjudication_queue": queue, "blinding": dict(guesses), "problems": problems}
 
