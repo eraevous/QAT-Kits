@@ -19,7 +19,8 @@ Who does what:
 
 ### The release candidate
 
-- **Commit:** `8828397` on `main` (merge of #32, 2026-11-20). `qat/runtimes/claude/BUNDLE_VERSION` reads `1.2.5`.
+- **Commit:** `8828397bad1283a9eabfcfb998bed041f4a7e98a` on `main` (merge of #32, 2026-11-20).
+  `qat/runtimes/claude/BUNDLE_VERSION` reads `1.2.5`.
 - **No release exists yet.** There are no `qat-skills-v*` tags and no GitHub releases.
 - **#33** (open) changes only `qat/scripts/replay.py`, which is not part of the bundle. If it merges first,
   the newer `main` still builds the same 1.2.5 bundle, and either commit can take the tag.
@@ -27,6 +28,10 @@ Who does what:
   - `python3 -I qat/scripts/skills.py check`: 14 skills, bundle 1.2.5, 0 errors;
   - `python3 -I qat/scripts/skills.py package <empty dir>`: `qat-kit-1.2.5.zip`, 14 per-skill zips,
     `skills.lock.json` and `SHA256SUMS`, and `sha256sum -c SHA256SUMS` passes.
+  - two packaging runs gave the same `qat-kit-1.2.5.zip` sha256:
+    `56b16114bad8483aaa3b3c090a8061766e0fefc64473f85d2ed54ae8ab013888`. Expect the release asset to
+    match. If it doesn't (a different zip library on the runner can do that), the per-skill hashes in
+    `skills.lock.json` are what identify the content.
 
 The 14 skills and their versions in the 1.2.5 lock file:
 
@@ -66,7 +71,7 @@ chat-telemetry, handoff-ledger, relay-governor).
       merge has bumped it, use that version in every step below instead.
 - [ ] Tag the commit and push the tag:
 
-      git tag qat-skills-v1.2.5 8828397
+      git tag qat-skills-v1.2.5 8828397bad1283a9eabfcfb998bed041f4a7e98a
       git push origin qat-skills-v1.2.5
 
 - [ ] Wait for the `qat-skills-release` workflow. It refuses a tag that doesn't match `BUNDLE_VERSION` or
@@ -140,9 +145,10 @@ so never leave both turned on.
 
 ## Rolling back
 
-- **Before step 6:** turn the new copy off and the old upload back on, skill by skill.
-- **After step 6:** upload the per-skill zips or the plugin from an earlier release. Releases are never
-  deleted or re-tagged, so every tagged version stays downloadable.
+- **Before step 6:** turn the new copy off and the old upload back on, skill by skill. Then rerun step 5's
+  first check (each skill listed once) and one tool on a short idea.
+- **After step 6:** upload the per-skill zips or the plugin from an earlier release, then rerun step 5.
+  Releases are never deleted or re-tagged, so every tagged version stays downloadable.
 - **1.2.5 is the first tag.** Until a second release exists, the old uploads are the only rollback, so keep
   them turned off, not removed, until step 5 passes.
 
