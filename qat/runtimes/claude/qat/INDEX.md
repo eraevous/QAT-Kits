@@ -11,6 +11,14 @@ From inside a conversation, give a heuristic menu of what the next answer would 
 - **outputs:** request (claims), menu (scorecard), check (claims), perspective (claims), value (claims), where (claims), levers (claims), lean (verdict), basis (claims)
 - **modules:** request, menu, check-cost
 
+## interview-commander v0.1.0 — ok
+
+Prepare evidence-grounded interview stories and rehearsal, while helping the candidate assess the employer through independent fit questions.
+
+- **file:** `tools/interview-commander.qat.md`
+- **inputs:** target (text), evidence (text, optional), context (text, optional), request (text, optional)
+- **outputs:** scope (claims), stories (claims), rehearsal (claims), employer (claims), gaps (claims), next_steps (claims)
+
 ## job-intel-parser v0.1.0 — ok
 
 Examine a pasted job listing or screener and produce an evidence-linked dossier with requirements, preferences, ambiguity, missing terms and independent fit axes.
@@ -36,6 +44,22 @@ Turn one raised challenge, objection or worry into a disposition: is it a real p
 - **inputs:** challenge (text), context (text, optional), authority (text, optional)
 - **outputs:** failure_mode (claim), observable (claim), cheapest_check (claim), disposition (claim), tripwire (claim), owner (claim), source (claim)
 - **hands off to** `stress-test` when the disposition is investigate now and the user wants the plan behind the challenge probed before checking
+
+## reflective-job-note v0.1.0 — ok
+
+Debrief supplied interview notes and reactions, separate observations from inferences, and propose evidence-linked improvements and search-criteria changes.
+
+- **file:** `tools/reflective-job-note.qat.md`
+- **inputs:** notes (text), reactions (text, optional), context (text, optional), request (text, optional)
+- **outputs:** scope (claims), observations (claims), interpretations (claims), lessons (claims), criteria (claims), feedback (claims), next_steps (claims)
+
+## resume-tailor v0.1.0 — ok
+
+Tailor supplied candidate evidence to a pasted role or question, preserving provenance, surfacing gaps and optionally drafting a grounded cover letter.
+
+- **file:** `tools/resume-tailor.qat.md`
+- **inputs:** evidence (text), target (text, optional), context (text, optional), request (text, optional)
+- **outputs:** scope (claims), alignment (claims), edits (claims), questions (claims), letter (claims), next_steps (claims)
 
 ## stress-test v2.0.0 — ok
 

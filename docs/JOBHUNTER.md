@@ -1,6 +1,6 @@
-# JobHunter: first runnable slice
+# JobHunter: portable chat tools
 
-Status: JobIntelParser **0.1.0 candidate**, bundle **1.3.0**. This is a chat-executed prompt tool, with offline contract acceptance tests. It makes no network or model API calls. Semantic quality has **not** been independently evaluated.
+Status: four **0.1.0 candidate** tools, bundle **1.4.0**. All are independently usable chat-executed prompts with native contracts and offline acceptance tests. They make no network or model API calls. Semantic quality has **not** been independently evaluated. The three companion ports are a separate draft stacked on parser PR #37; the parser source and that PR remain unchanged.
 
 ## Use it now
 
@@ -26,7 +26,7 @@ python3 -I scripts/qat.py validate tools/job-intel-parser.qat.md
 python3 -I scripts/qat.py audit job-intel-parser /path/to/dossier.md --json /path/to/dossier.json
 ```
 
-The JSON is a mapping of the eight declared fields to bullet lists, suitable for explicit future adapters. The audit checks section presence and bullet shape, not whether quotations, facts or reasoning are correct. No automated downstream handoffs are registered because the other three native contracts do not yet exist.
+The JSON is a mapping of the eight declared fields to bullet lists, suitable for explicit future adapters. The audit checks section presence and bullet shape, not whether quotations, facts or reasoning are correct. No automated handoffs are registered. The three companion contracts now exist, but transfers remain explicit and optional.
 
 For a fully offline smoke test on the included fictional fixture:
 
@@ -43,17 +43,38 @@ The historical four tools already exist under `Toolkits/Job Hunter Arsenel/`. Th
 
 Authoritative procedure: `qat/tools/job-intel-parser.qat.md`. The standalone `.skill.md` and ChatGPT paste adaptation currently carry the identical procedure, enforced by `test_job_intel.py`; Claude files are generated using the existing build system. Edit sources and adaptations together, never generated files. New versions follow CONTRIBUTING.md's eval gates. No runner implementation, existing spec, record, dependency, or legacy tool was changed.
 
-## Integration map (not built)
+## Companion tools: use them independently
 
-The workflow is non-linear. Each future tool must work on direct user input without the other tools, while allowing explicit, optional evidence transfers. Reflection can revise search criteria or trigger a fresh listing analysis; tailoring can expose gaps worth rehearsing; interview questions can send the user back to clarify a listing. No tool automatically advances or writes a second ledger.
+Paste the linked block, then supply the inputs shown. These examples are fictional and need no prior JobHunter run. Each has a matching `qat/tools/<name>.qat.md`, `.skill.md`, generated `qat/runtimes/claude/<name>/SKILL.md`, and `qat/cases/<name>.eval.yaml`.
 
-| Tool | Proposed standalone input → output | Required acceptance evidence before shipping |
+| Tool / paste block | Minimal inputs | Output |
 |---|---|---|
-| ResumeTailor | Supplied evidence + target text, optionally a dossier → evidence-linked reframes, unsupported requirements/gaps, optional cover-letter draft | No invented credentials/metrics; preserve level of contribution; distinguish no evidence from no capability; never claim a draft was submitted |
-| InterviewCommander | Supplied stories/experience + target questions or listing → grounded story outlines, rehearsal prompts/feedback, employer questions | Mark missing story details for the candidate; no fabricated outcomes; separate candidate demonstration from authority/resources/sustainability questions |
-| ReflectiveJobNote | Supplied interview recollections and reactions → observation/interpretation split, lessons, proposed search-criteria/story changes | No invented interviewer motives; reactions stay distinct from facts; changes are suggestions, not automatic ledger edits or outreach |
+| [ResumeTailor](../qat/runtimes/chatgpt/resume-tailor.paste.md) | `evidence: E1: Assisted with testing a SQL inventory report.` and `target: L1: SQL required; Python preferred.` | Evidence/gaps, before/after edits with source IDs, facts to confirm; cover letter only when `request` explicitly asks |
+| [InterviewCommander](../qat/runtimes/chatgpt/interview-commander.paste.md) | `target: L1: Explain a debugging example.` and optionally `evidence: E1: I wrote a diagnostic query; the team fixed the import.` | Grounded story frames, hypothetical rehearsal or feedback on a supplied answer, questions to assess the employer on six axes |
+| [ReflectiveJobNote](../qat/runtimes/chatgpt/reflective-job-note.paste.md) | `notes: N1: They mentioned weekend support; frequency unclear.` and optionally `context: P1: I need predictable weekends.` | Reported observations, reactions/hypotheses, practice lessons, proposed criteria changes and optional artifact feedback |
 
-These three have **no new native implementations in this PR**. Their contracts need separate evidence-sensitive cases and cold semantic evaluation; expanding all four while that remains pending would give a misleading impression of a validated suite. Legacy descriptions remain historical, not newly tested deliverables.
+The native audit/eval path is identical for each tool. For example, from `qat/`:
+
+```sh
+python3 -I scripts/qat.py validate tools/resume-tailor.qat.md
+python3 -I scripts/qat.py audit resume-tailor eval-runs/2026-11-23/resume-tailor/cold.md
+python3 -I scripts/qat.py eval cases/resume-tailor.eval.yaml eval-runs/2026-11-23/resume-tailor
+```
+
+Substitute `interview-commander` or `reflective-job-note` for the other tools. These evaluate authored fictional examples, not model executions. Each companion eval returns **3: incomplete** with 10 semantic criteria pending. The [port comparison](JOBHUNTER_PORTS.md) records historical behavior retained versus deliberately excluded; the [verification record](../qat/eval-runs/2026-11-23/JOBHUNTER_COMPANIONS_VERIFICATION.md) records actual checks.
+
+## Explicit, optional interoperability
+
+The workflow is non-linear. No output is automatically fed to another tool, no tool requires another, and nothing writes a second ledger. To transfer material, copy the relevant sections and original evidence/source IDs into the named input; label prior model output as derived. Original facts should travel with a derived claim where available; otherwise retain “source unavailable.”
+
+| From | User-controlled transfer | What stays separate |
+|---|---|---|
+| JobIntelParser | Copy selected dossier sections into a companion's optional `context`; paste original requirements as ResumeTailor `target` or InterviewCommander `target` | Parser analysis never establishes candidate credentials or employer facts beyond its sources |
+| ResumeTailor | Copy a proposed edit plus its original evidence into InterviewCommander `evidence`, labeling the edit as derived | A rewritten bullet is not new corroboration or proof of a result |
+| InterviewCommander | Supply actual recollections/answers to ReflectiveJobNote `notes`; preparation sheet may go in `context` | Hypothetical practice questions are not events that occurred |
+| ReflectiveJobNote | Manually carry a confirmed proposed criterion to JobIntelParser `priorities`, or confirmed story facts to tailoring/preparation | Proposals remain unaccepted until the user decides; no ledger, criteria or source artifact is automatically updated |
+
+A dossier can be revisited after reflection, and rehearsal can expose a fact that needs clarification before tailoring. The user chooses the order or uses only one tool.
 
 Later integration candidates, deliberately outside this slice:
 

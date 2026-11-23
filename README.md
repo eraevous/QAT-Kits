@@ -33,7 +33,7 @@ Zach's words (Slack #kairos, 2026-11-16 16:17 CT, relayed verbatim by Abigail):
 
 ## JobHunter
 
-[JobIntelParser](docs/JOBHUNTER.md) turns a pasted listing or screener into an evidence-linked dossier. The first slice includes a portable chat prompt, native QAT contract, generated Claude skill and fictional offline acceptance cases. Semantic evaluation is pending; the other three recovered tools are mapped for later integration.
+[JobHunter](docs/JOBHUNTER.md) provides four independently usable chat tools: JobIntelParser, ResumeTailor, InterviewCommander and ReflectiveJobNote. Each has a portable prompt, native QAT contract, generated Claude skill and fictional offline acceptance cases. Transfers are optional; semantic evaluation is pending. The companion ports are stacked separately from parser PR #37.
 
 ## Working rules
 
