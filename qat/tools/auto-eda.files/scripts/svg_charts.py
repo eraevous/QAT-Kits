@@ -103,18 +103,26 @@ def bar(title, labels, values, *, annotate=True, xmax=None, xlabel=None, colors=
     lab_w = min(200, max(40, CHAR_W * max((len(clip(x)) for x in labels), default=4) + 8))
     top = 30
     x0, x1 = lab_w, W - (110 if annotate else 20)
-    vmax = xmax if xmax is not None else (max(values, default=0) or 1)
+    # domain always includes 0; bars run from the zero line to their value, either side
+    lo = min(0.0, min(values, default=0))
+    hi = xmax if xmax is not None else max(0.0, max(values, default=0))
+    if hi == lo:
+        hi = lo + 1
+    sx = lambda v: x0 + (x1 - x0) * (v - lo) / (hi - lo)
+    zero = sx(0)
     marks = []
+    if lo < 0:
+        marks.append(f'<line x1="{zero:.1f}" y1="{top}" x2="{zero:.1f}" y2="{top + len(labels) * row}" style="stroke:{MUTED}"/>')
     for i, (lab, v) in enumerate(zip(labels, values)):
         y = top + i * row
-        w = (x1 - x0) * (v / vmax if vmax else 0)
+        start, w = min(zero, sx(v)), abs(sx(v) - zero)
         fill = (colors[i % len(colors)] if colors else PALETTE[0])
         text = value_fmt(v) if value_fmt else f"{fmt(v)} ({100 * v / total:.0f}%)"
         marks.append(f'<text x="{x0 - 6:.1f}" y="{y + 15}" text-anchor="end" style="fill:{FG}">'
                      f"<title>{esc(lab)}</title>{esc(clip(lab))}</text>")
-        marks.append(_rect(x0, y + 3, w, row - 6, fill, f"{lab}: {text}", ' class="bar"'))
+        marks.append(_rect(start, y + 3, w, row - 6, fill, f"{lab}: {text}", ' class="bar"'))
         if annotate:
-            marks.append(f'<text x="{x0 + w + 4:.1f}" y="{y + 15}" style="fill:{MUTED}">{esc(text)}</text>')
+            marks.append(f'<text x="{max(zero, sx(v)) + 4:.1f}" y="{y + 15}" style="fill:{MUTED}">{esc(text)}</text>')
     height = top + len(labels) * row + 6
     if xlabel:
         marks.append(f'<text x="{x0}" y="{height + 12}" style="fill:{MUTED}">{esc(xlabel)}</text>')

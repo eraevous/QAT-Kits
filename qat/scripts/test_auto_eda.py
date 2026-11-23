@@ -184,6 +184,20 @@ class AutoEdaTest(unittest.TestCase):
         self.assertEqual(sc.fmt(0.5, 0.1), "0.5")
         self.assertEqual(sc.fmt(2e-15, 1e-15), "2e-15")   # tiny scales stay scientific
 
+    def test_bar_draws_negative_values_from_zero(self):
+        # Codex 4670146310: negative values were clamped to zero-width bars.
+        import svg_charts as sc
+        for values in ([-2, 3], [-4, -1]):
+            svg = sc.bar("s", ["a", "b"], values, value_fmt=str)
+            vb_w = float(re.search(r'viewBox="0 0 ([\d.]+) ', svg).group(1))
+            bars = [(float(x), float(w)) for x, w in
+                    re.findall(r'<rect x="([\d.-]+)" y="[\d.]+" width="([\d.]+)"[^>]*class="bar"', svg)]
+            self.assertEqual(len(bars), 2)
+            self.assertTrue(all(w > 0 and x >= 0 and x + w <= vb_w for x, w in bars), bars)
+            (xa, wa), (xb, wb) = bars
+            self.assertAlmostEqual(wa / wb, abs(values[0]) / abs(values[1]), places=2)
+            self.assertIn("<line", svg)                       # the zero line
+
     def test_labels_from_data_are_escaped(self):
         svg = self.chart(self.report("e.csv", "g\n" + "\n".join(["<b>&x"] * 3 + ["y"] * 2)), "g — 2 categories")
         self.assertIn("&lt;b&gt;&amp;x", svg)
