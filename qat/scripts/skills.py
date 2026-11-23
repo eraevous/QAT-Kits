@@ -14,6 +14,8 @@ companion folder, `qat/tools/<name>.files/`. Every file in it is copied into the
 at the same relative path (`qat/tools/auto-eda.files/scripts/auto_eda.py` becomes
 `auto-eda/scripts/auto_eda.py`). Companion files are part of the skill's spec: changing
 one needs the same version bump and recorded eval run as changing the skill text.
+Symlinks are refused anywhere in these inputs (sources, companion folders, runner files),
+so `build` and `package` never copy a file from outside the repo into a skill.
 
     python3 -I qat/scripts/skills.py build               # regenerate everything
     python3 -I qat/scripts/skills.py check [--base REF]  # CI: stale files, version and eval gates
@@ -91,10 +93,26 @@ def version_key(v: str):
     return (major, minor, patch, 0, ids)
 
 
+def no_symlink(p: Path) -> Path:
+    """Return p if neither it nor any directory between the repo and it is a symlink. Raises ValueError.
+
+    Everything render() reads ends up in the committed skills and the release zips, so a link to a
+    file outside the repo (a key, a token, a home-directory file) would copy that file's bytes into
+    the bundle when someone runs `build` or `package` on their own machine. Links are refused rather
+    than followed; replace the link with the file itself."""
+    q = p
+    while q != REPO and q != q.parent:
+        if q.is_symlink():
+            raise ValueError(f"{rel(p)}: symlink not allowed in skill inputs ({rel(q)} is a link); "
+                             "commit the file itself")
+        q = q.parent
+    return p
+
+
 def sources(tools: Path = TOOLS):
     """Yield (path, meta, keep, body) for every skill source."""
     for p in sorted(tools.glob("*.skill.md")):
-        meta, keep, body = parse_source(p.read_text(encoding="utf-8"), rel(p))
+        meta, keep, body = parse_source(no_symlink(p).read_text(encoding="utf-8"), rel(p))
         if p.name != f"{meta['name']}.skill.md":
             raise ValueError(f"{rel(p)}: filename must be {meta['name']}.skill.md")
         yield p, meta, keep, body
@@ -106,7 +124,7 @@ def runner_files():
     for p in sorted((QAT / "tools").glob("*.qat.md")):
         out[f"tools/{p.name}"] = p
     for p in sorted((QAT / "cases").rglob("*")):
-        if p.is_file():
+        if no_symlink(p).is_file():
             out[f"cases/{p.relative_to(QAT / 'cases').as_posix()}"] = p
     # Runtime texts the specs point to (effort-cost's lookup tables live in its paste block and card,
     # and the spec forbids recomputing them). Same relative paths as under qat/, so a spec's
@@ -126,7 +144,7 @@ def companion_files(name: str):
         return {}
     out = {}
     for p in sorted(folder.rglob("*")):
-        if p.is_file() and "__pycache__" not in p.parts:
+        if no_symlink(p).is_file() and "__pycache__" not in p.parts:
             inner = p.relative_to(folder).as_posix()
             if inner == "SKILL.md":
                 raise ValueError(f"{rel(p)}: SKILL.md is generated from {name}.skill.md; rename this file")
@@ -141,7 +159,7 @@ def render():
     if not SEMVER.match(bundle):
         raise ValueError(f"{rel(BUNDLE_VERSION)}: {bundle!r} is not semver")
     for p, meta, keep, body in sources():
-        raw = p.read_bytes()
+        raw = no_symlink(p).read_bytes()
         stamp = (f"{MARK} from {rel(p)}. Do not edit: edit the source and run "
                  f"`python3 -I qat/scripts/skills.py build`. version: {meta['version']} · "
                  f"source sha256: {sha(raw)} -->\n")
@@ -151,10 +169,10 @@ def render():
                  "kind": meta.get("kind", "skill"), "files": {}}
         payload = {"SKILL.md": skill_md}
         for inner, src in companion_files(meta["name"]).items():
-            payload[inner] = src.read_bytes()
+            payload[inner] = no_symlink(src).read_bytes()
         if meta.get("kind") == "runner":
             for inner, src in runner_files().items():
-                payload[inner] = src.read_bytes()
+                payload[inner] = no_symlink(src).read_bytes()
         for inner, b in sorted(payload.items()):
             files[rel(d / inner)] = b
             entry["files"][inner] = sha(b)

@@ -10,7 +10,8 @@ so the real repo is never touched. What is tested, and why it matters:
   - the stamp carries the version, the source's sha256 and the source path;
   - a changed spec needs a version bump and a recorded eval run (DEC-193 eval gate);
   - changed skills need a bundle version bump;
-  - packaging is deterministic and carries the plugin manifest.
+  - packaging is deterministic and carries the plugin manifest;
+  - a symlink in any skill input is refused, so no outside file's bytes reach the bundle.
 """
 
 import hashlib
@@ -311,6 +312,53 @@ class SkillsTests(unittest.TestCase):
         code, out = self.run_skills("check")
         self.assertEqual(code, 1)
         self.assertIn("SPEC_INVALID", out)
+
+    def outside_file(self, text="SECRET=not-for-the-bundle\n"):
+        """A file outside the repository, standing in for a key or token on the packaging host."""
+        p = Path(self.tmp.name).parent / f"{Path(self.tmp.name).name}-outside.txt"
+        p.write_text(text)
+        self.addCleanup(p.unlink)
+        return p
+
+    def assert_symlink_refused(self, link):
+        """build, check and package all refuse, and no generated or packaged file holds the target's bytes."""
+        for args in (["build"], ["check"], ["package", str(self.repo / "dist")]):
+            code, out = self.run_skills(*args)
+            self.assertEqual(code, 1, (args, out))
+            self.assertIn("SPEC_INVALID", out)
+            self.assertIn("symlink", out)
+            self.assertIn(link.relative_to(self.repo).as_posix(), out)
+        self.assertFalse((self.repo / "dist").exists())
+        for f in (self.repo / "qat/runtimes/claude").rglob("*"):
+            if f.is_file():
+                self.assertNotIn(b"not-for-the-bundle", f.read_bytes(), f)
+
+    def test_companion_file_symlink_refused(self):
+        link = self.repo / "qat/tools/zz-fixture.files/notes.txt"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(self.outside_file())
+        self.assert_symlink_refused(link)
+
+    def test_companion_dir_symlink_refused(self):
+        target = self.outside_file().parent / f"{Path(self.tmp.name).name}-outside-dir"
+        target.mkdir()
+        self.addCleanup(shutil.rmtree, target)
+        (target / "key.txt").write_text("SECRET=not-for-the-bundle\n")
+        link = self.repo / "qat/tools/zz-fixture.files/ref"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(target, target_is_directory=True)
+        self.assert_symlink_refused(link)
+
+    def test_runner_case_symlink_refused(self):
+        link = self.repo / "qat/cases/zz-linked.eval.yaml"
+        link.symlink_to(self.outside_file())
+        self.assert_symlink_refused(link)
+
+    def test_skill_source_symlink_refused(self):
+        link = self.repo / "qat/tools/zz-linked.skill.md"
+        link.symlink_to(self.outside_file(
+            '---\nname: "zz-linked"\nversion: 1.0.0\ndescription: "x"\n---\n\nSECRET=not-for-the-bundle\n'))
+        self.assert_symlink_refused(link)
 
     def test_package_refuses_stale(self):
         self.edit("qat/tools/zz-fixture.skill.md", "FixtureWord", "FixtureWordX")
