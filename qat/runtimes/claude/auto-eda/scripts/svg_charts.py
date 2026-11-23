@@ -63,7 +63,7 @@ def nice_ticks(lo: float, hi: float, n: int = 5) -> list[float]:
         t = first + i * step
         if not math.isfinite(t) or t - hi > step * 1e-9:
             break
-        out.append(round(t, 12))
+        out.append(t)            # display rounding is fmt()'s job; rounding here zeroed tiny scales
     return out
 
 

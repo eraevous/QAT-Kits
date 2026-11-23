@@ -164,6 +164,14 @@ class AutoEdaTest(unittest.TestCase):
         self.assertLessEqual(right, vb_w)
         self.assertEqual(svg.count("<rect"), k * k)
 
+    def test_ticks_keep_tiny_scales(self):
+        # Codex 4670109298: rounding ticks to 12 places turned 1e-15..9e-15 into zeros.
+        import svg_charts as sc
+        ticks = sc.nice_ticks(1e-15, 9e-15, 6)
+        self.assertEqual(len(set(ticks)), len(ticks))
+        self.assertTrue(all(1e-15 <= t <= 9e-15 for t in ticks), ticks)
+        self.assertEqual([sc.fmt(t) for t in sc.nice_ticks(0, 1, 5)], ["0", "0.2", "0.4", "0.6", "0.8", "1"])
+
     def test_labels_from_data_are_escaped(self):
         svg = self.chart(self.report("e.csv", "g\n" + "\n".join(["<b>&x"] * 3 + ["y"] * 2)), "g — 2 categories")
         self.assertIn("&lt;b&gt;&amp;x", svg)

@@ -27,4 +27,5 @@
 
 - **4670109273, time spacing.** `time_counts` drew only the periods that had rows, one step apart, so Jan 1, Jan 2 and Mar 1 looked evenly spaced. The fix reindexes to every period in the span, with empty periods drawn at 0. A new test pins the Jan 1 / Jan 2 / Mar 1 case: 60 points, and Jan 15 at 0.
 - **4670109284, wide heatmap.** With 50 numeric columns the grid ran past the 640-unit viewBox. The fix widens the viewBox to fit the grid, and the page still scales the chart to the card. A new test checks that every cell lies inside the viewBox.
+- **4670109298, tiny tick values.** `nice_ticks` rounded every tick to 12 decimal places, which turned a 1e-15 scale into zeros. Ticks now keep full precision, and `fmt()` rounds them for display. A test was added.
 - **No rerun needed.** No case reply depends on either chart's geometry. AE-01's dates are hourly over 21 days, so it has no empty days, and no case has more than 3 numeric columns.
