@@ -145,6 +145,25 @@ class AutoEdaTest(unittest.TestCase):
         heat = self.chart(html_text, "Pearson correlation")
         self.assertIn("x × y: r = 1.00", heat)
 
+    def test_time_chart_keeps_empty_periods(self):
+        # Codex 4670109273: Jan 1, Jan 2 and Mar 1 must not be drawn equally spaced.
+        days = ["2026-01-01"] * 3 + ["2026-01-02"] * 2 + ["2026-03-01"] * 4
+        line = self.chart(self.report("t.csv", "when\n" + "\n".join(days)), "when — rows per day")
+        self.assertIn("<title>2026-01-01: 3</title>", line)
+        self.assertIn("<title>2026-01-15: 0</title>", line)       # a gap day, plotted at zero
+        self.assertEqual(line.count("<circle"), 60)               # Jan 1 .. Mar 1, every day
+
+    def test_wide_heatmap_fits_its_viewbox(self):
+        # Codex 4670109284: 50 columns must not run past the right edge.
+        import svg_charts as sc
+        k = 50
+        labels = [f"c{i}" for i in range(k)]
+        svg = sc.heatmap("wide", labels, [[1.0 if i == j else 0.1 for j in range(k)] for i in range(k)])
+        vb_w = float(re.search(r'viewBox="0 0 ([\d.]+) ', svg).group(1))
+        right = max(float(x) + float(w) for x, w in re.findall(r'<rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)"', svg))
+        self.assertLessEqual(right, vb_w)
+        self.assertEqual(svg.count("<rect"), k * k)
+
     def test_labels_from_data_are_escaped(self):
         svg = self.chart(self.report("e.csv", "g\n" + "\n".join(["<b>&x"] * 3 + ["y"] * 2)), "g — 2 categories")
         self.assertIn("&lt;b&gt;&amp;x", svg)

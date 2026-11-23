@@ -22,3 +22,9 @@
 - AE-05: `bar`'s default value label is "count (pct%)", which is wrong for medians. The runner noticed and passed `value_fmt`. A spec that names a value format without a Python lambda (for example `"values_are": "measure"`) would keep specs pure data; that is a candidate for 2.1, not done here.
 - AE-05: the runner generalised the function to every category × numeric pair (capped at 6) rather than the hard-coded region × amount. Reasonable, but more than asked; the skill text could say "port as written unless asked to generalise".
 - AE-03 and AE-04 repeat 1.x's known behaviours (integer counter charted as numeric; list cells counted order-sensitively). Unchanged by 2.0.
+
+## Follow-up: Codex findings on 83e78a6
+
+- **4670109273, time spacing.** `time_counts` drew only the periods that had rows, one step apart, so Jan 1, Jan 2 and Mar 1 looked evenly spaced. The fix reindexes to every period in the span, with empty periods drawn at 0. A new test pins the Jan 1 / Jan 2 / Mar 1 case: 60 points, and Jan 15 at 0.
+- **4670109284, wide heatmap.** With 50 numeric columns the grid ran past the 640-unit viewBox. The fix widens the viewBox to fit the grid, and the page still scales the chart to the card. A new test checks that every cell lies inside the viewBox.
+- **No rerun needed.** No case reply depends on either chart's geometry. AE-01's dates are hourly over 21 days, so it has no empty days, and no case has more than 3 numeric columns.

@@ -67,11 +67,12 @@ def nice_ticks(lo: float, hi: float, n: int = 5) -> list[float]:
     return out
 
 
-def svg_doc(title: str, height: float, body: str, desc: str = "") -> str:
-    """Wrap chart marks in an accessible <svg>. `title` is shown and also read out."""
-    h = math.ceil(height)
+def svg_doc(title: str, height: float, body: str, desc: str = "", width: float = W) -> str:
+    """Wrap chart marks in an accessible <svg>. `title` is shown and also read out.
+    `width` widens the viewBox for a chart that needs more room (the page still scales it to fit)."""
+    h, w = math.ceil(height), math.ceil(max(width, W))
     d = f"<desc>{esc(desc)}</desc>" if desc else ""
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {h}" role="img" '
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" role="img" '
             f'aria-label="{esc(title)}" font-size="{FONT}" style="font-family:inherit">'
             f"<title>{esc(title)}</title>{d}"
             f'<text x="0" y="16" font-size="14" font-weight="600" style="fill:{FG}">{esc(title)}</text>'
@@ -162,7 +163,8 @@ def histogram(title, counts, edges, *, box=None, desc="") -> str:
 
 
 def line(title, labels, values, *, desc="") -> str:
-    """A count per period: `labels` are the periods in order (shown first, middle, last)."""
+    """A count per period: `labels` are consecutive, evenly spaced periods (shown first, middle,
+    last), so x position is elapsed time. Fill empty periods with 0 rather than leaving them out."""
     x0, x1, y0, y1 = 50, W - 14, 34, 230
     n = len(values)
     vmax = max(values, default=0) or 1
@@ -188,6 +190,7 @@ def heatmap(title, labels, matrix, *, show_values=None, desc="") -> str:
     show_values = k <= 12 if show_values is None else show_values
     lab_w = min(160, max(40, CHAR_W * max((len(clip(x, 20)) for x in map(str, labels)), default=4) + 8))
     cell = max(14, min(44, (W - lab_w - 20) / max(k, 1)))
+    width = lab_w + k * cell + 20   # past ~35 columns the viewBox widens rather than clip the grid
     top = 30 + lab_w * 0.72   # room for the slanted column labels
     marks = []
     for j, lab in enumerate(labels):
@@ -214,7 +217,7 @@ def heatmap(title, labels, matrix, *, show_values=None, desc="") -> str:
     height = top + k * cell + 22
     marks.append(f'<text x="{lab_w}" y="{height - 6:.1f}" style="fill:{MUTED}">'
                  f"red: positive · blue: negative · stronger colour: stronger correlation</text>")
-    return svg_doc(title, height, "".join(marks), desc)
+    return svg_doc(title, height, "".join(marks), desc, width=width)
 
 
 # The chart kinds a rule or plugin may name in a chart spec, instead of writing SVG itself.

@@ -6,9 +6,9 @@
     "auto-eda": {
       "files": {
         "SKILL.md": "e6d8af078c2f289c2be8ee45b296b763c60f33f70af2f45d79dec72a78808fbf",
-        "scripts/auto_eda.py": "8322838b7fd330a1b50fb859a28896d01d0da8a5f427934d00c3f4efb05190b4",
+        "scripts/auto_eda.py": "2c319ec08753b199f308266cf25467c6215abd99f1d93169dd3823da7dcf6a1b",
         "scripts/plugins/example_donut.py": "86d7ccd582e058ae6049f5fbafc2b62dd01c686b0f10f959c8bafc08255a10c2",
-        "scripts/svg_charts.py": "e6b28693c08b321870d4f1ef93b61c746ec12964ab41b01a4d1b1e74181419ec"
+        "scripts/svg_charts.py": "c969f2b379c2145d785f74735019c1171a0923179eeda0196f8a8448fc05944f"
       },
       "kind": "skill",
       "source": "qat/tools/auto-eda.skill.md",

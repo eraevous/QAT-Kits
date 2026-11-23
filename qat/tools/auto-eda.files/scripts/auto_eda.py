@@ -183,7 +183,9 @@ def time_counts(s, p):
     t = pd.to_datetime(s, errors="coerce").dropna()
     span = (t.max() - t.min()).days
     freq = "D" if span <= 90 else "W" if span <= 730 else "M"
-    series = t.dt.to_period(freq).value_counts().sort_index()
+    counts = t.dt.to_period(freq).value_counts()
+    # every period in the span, empty ones as 0, so x position is elapsed time (Codex 4670109273)
+    series = counts.reindex(pd.period_range(counts.index.min(), counts.index.max(), freq=freq), fill_value=0)
     unit = {"D": "day", "W": "week", "M": "month"}[freq]
     labels = [str(per.start_time.date()) if freq != "M" else per.strftime("%Y-%m") for per in series.index]
     return sc.line(f"{p.name} — rows per {unit} ({t.min():%Y-%m-%d} → {t.max():%Y-%m-%d})",
