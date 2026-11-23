@@ -172,6 +172,18 @@ class AutoEdaTest(unittest.TestCase):
         self.assertTrue(all(1e-15 <= t <= 9e-15 for t in ticks), ticks)
         self.assertEqual([sc.fmt(t) for t in sc.nice_ticks(0, 1, 5)], ["0", "0.2", "0.4", "0.6", "0.8", "1"])
 
+    def test_narrow_range_labels_stay_distinct(self):
+        # Codex 4670146296: 1000.1..1000.9 printed every tick and bin edge as "1e+03".
+        import svg_charts as sc
+        ticks = sc.nice_ticks(1000.1, 1000.9, 6)
+        labels = [sc.fmt(t, ticks[1] - ticks[0]) for t in ticks]
+        self.assertEqual(len(set(labels)), len(labels), labels)
+        self.assertIn("1,000.2", labels)
+        svg = sc.histogram("h", [1, 2], [1000.1, 1000.5, 1000.9])
+        self.assertIn("1,000.1 to 1,000.5: 1 rows", svg)
+        self.assertEqual(sc.fmt(0.5, 0.1), "0.5")
+        self.assertEqual(sc.fmt(2e-15, 1e-15), "2e-15")   # tiny scales stay scientific
+
     def test_labels_from_data_are_escaped(self):
         svg = self.chart(self.report("e.csv", "g\n" + "\n".join(["<b>&x"] * 3 + ["y"] * 2)), "g — 2 categories")
         self.assertIn("&lt;b&gt;&amp;x", svg)

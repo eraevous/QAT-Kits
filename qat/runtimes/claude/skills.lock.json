@@ -8,7 +8,7 @@
         "SKILL.md": "e6d8af078c2f289c2be8ee45b296b763c60f33f70af2f45d79dec72a78808fbf",
         "scripts/auto_eda.py": "2c319ec08753b199f308266cf25467c6215abd99f1d93169dd3823da7dcf6a1b",
         "scripts/plugins/example_donut.py": "86d7ccd582e058ae6049f5fbafc2b62dd01c686b0f10f959c8bafc08255a10c2",
-        "scripts/svg_charts.py": "d4a1e8cacf49584ba842309620a49252964d09a3275809eb17cc6bc250c1e9d6"
+        "scripts/svg_charts.py": "c9d840a0802bf5b3adbb64607a6d6810ced5d66212450e269a8dc2e778025c11"
       },
       "kind": "skill",
       "source": "qat/tools/auto-eda.skill.md",

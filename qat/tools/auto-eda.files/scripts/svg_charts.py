@@ -32,13 +32,22 @@ def esc(s) -> str:
     return html.escape(str(s), quote=True)
 
 
-def fmt(v) -> str:
-    """Compact number for axes and labels: 1,234 / 0.123 / 1.2e+06."""
+def fmt(v, step=None) -> str:
+    """Compact number for axes and labels: 1,234 / 0.123 / 1.2e+06.
+
+    `step` is the spacing between neighbouring values on the same scale (tick or bin width);
+    when given, enough decimals are kept to tell neighbours apart (1,000.2 / 1,000.4), however
+    narrow the range is relative to its size."""
     if v is None or (isinstance(v, float) and not math.isfinite(v)):
         return "—"
-    if float(v).is_integer() and abs(v) < 1e7:
+    v = float(v)
+    if step and math.isfinite(step) and step > 0 and 1e-6 <= abs(v) < 1e12 or (step and v == 0):
+        decimals = max(0, 1 - math.floor(math.log10(step)))   # one digit finer than the step
+        s = f"{v:,.{decimals}f}"
+        return s.rstrip("0").rstrip(".") if "." in s else s
+    if v.is_integer() and abs(v) < 1e7:
         return f"{int(v):,}"
-    return f"{v:,.3g}"
+    return f"{v:,.4g}"
 
 
 def clip(label, n=26) -> str:
@@ -114,10 +123,11 @@ def bar(title, labels, values, *, annotate=True, xmax=None, xlabel=None, colors=
 
 
 def _axis_x(x0, x1, y, lo, hi, ticks):
+    step = ticks[1] - ticks[0] if len(ticks) > 1 else None
     out = [f'<line x1="{x0}" y1="{y}" x2="{x1}" y2="{y}" style="stroke:{LINE}"/>']
     for t in ticks:
         x = x0 + (x1 - x0) * ((t - lo) / (hi - lo) if hi > lo else 0.5)
-        out.append(f'<text x="{x:.1f}" y="{y + 15}" text-anchor="middle" style="fill:{MUTED}">{esc(fmt(t))}</text>')
+        out.append(f'<text x="{x:.1f}" y="{y + 15}" text-anchor="middle" style="fill:{MUTED}">{esc(fmt(t, step))}</text>')
     return "".join(out)
 
 
@@ -157,7 +167,7 @@ def histogram(title, counts, edges, *, box=None, desc="") -> str:
     for c, a, b in zip(counts, edges[:-1], edges[1:]):
         h = (y1 - y0) * c / cmax
         marks.append(_rect(sx(a) + 0.5, y1 - h, sx(b) - sx(a) - 1, h, PALETTE[0],
-                           f"{fmt(a)} to {fmt(b)}: {fmt(c)} rows", ' class="bar"'))
+                           f"{fmt(a, b - a)} to {fmt(b, b - a)}: {fmt(c)} rows", ' class="bar"'))
     marks.append(_axis_x(x0, x1, y1, lo, hi, nice_ticks(lo, hi, 6)))
     return svg_doc(title, y1 + 24, "".join(marks), desc)
 
