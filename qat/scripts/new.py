@@ -70,6 +70,8 @@ from pathlib import Path
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 DESC_MIN, DESC_MAX = 20, 400  # qat.py SPEC_SCHEMA description bounds
 RUNTIMES = ("chatgpt", "skill")
+# The runner this module calls: always its sibling, never one under --root.
+RUNNER = Path(__file__).resolve().parent / "qat.py"
 
 # Default contract for a new tool: one input, two outputs. Deliberately small
 # (ToolSmith reflex "smallest-first"); grow it only when an eval case needs it.
@@ -280,11 +282,10 @@ def write_scaffold(files: dict[Path, str]) -> None:
     created_dirs: list[Path] = []
 
     def mkdir(path: Path) -> None:
-        if path.is_dir():
-            return
-        mkdir(path.parent)
-        path.mkdir()
-        created_dirs.append(path)
+        for directory in reversed((path, *path.parents)):
+            if not directory.is_dir():
+                directory.mkdir()
+                created_dirs.append(directory)
 
     try:
         for path, text in files.items():
@@ -313,10 +314,9 @@ def write_scaffold(files: dict[Path, str]) -> None:
 
 def run_validate(root: Path, spec: Path) -> dict:
     """Validate with the unchanged runner. The runner resolves handoffs against its
-    own tools/ directory, so it is run from `root`, with this file's sibling qat.py."""
-    runner = Path(__file__).resolve().parent / "qat.py"
+    own tools/ directory, so it is run from `root`."""
     proc = subprocess.run(
-        [sys.executable, "-I", str(runner), "validate", str(spec)],
+        [sys.executable, "-I", str(RUNNER), "validate", str(spec)],
         cwd=root, capture_output=True, text=True,
     )
     out = (proc.stdout + proc.stderr).strip()
@@ -403,8 +403,8 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, RuntimeError) as error:
         result["error"] = f"cannot resolve --root: {error}"
         return finish(2)
-    if not (root / "scripts" / "qat.py").exists() and not (Path(__file__).resolve().parent / "qat.py").exists():
-        result["error"] = "cannot find scripts/qat.py; run from the qat/ directory or pass --root"
+    if not RUNNER.is_file():
+        result["error"] = f"cannot find the runner beside this script: {RUNNER}"
         return finish(2)
 
     files = plan(root, args.name, description, args.runtime, args.design)

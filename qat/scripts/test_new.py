@@ -15,6 +15,7 @@ touched. What is tested, and why it matters:
 
 import io
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -178,6 +179,24 @@ class ScaffoldTests(unittest.TestCase):
         self.assertEqual(code, 2, out)
         self.assertEqual(json.loads(out)["created"], [])
         self.assertEqual(root.read_text(), "mine")
+
+    def test_missing_runner_refused_before_any_writes(self):
+        # new.py always validates with its sibling qat.py, whatever --root holds.
+        alone = self.root / "alone"
+        alone.mkdir()
+        shutil.copy(Path(new.__file__), alone / "new.py")
+        target = self.root / "target"
+        (target / "scripts").mkdir(parents=True)
+        (target / "scripts" / "qat.py").write_text("# not the runner new.py calls\n")
+        proc = subprocess.run(
+            [sys.executable, "-I", str(alone / "new.py"), "demo-tool", "--root", str(target), "--json"],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+        res = json.loads(proc.stdout)
+        self.assertEqual(res["created"], [])
+        self.assertIn("cannot find the runner", res["error"])
+        self.assertEqual([p.name for p in target.rglob("*")], ["scripts", "qat.py"])
 
     def test_write_failure_rolls_back_files_and_new_directories(self):
         original_open = Path.open
