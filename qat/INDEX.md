@@ -11,6 +11,14 @@ From inside a conversation, give a heuristic menu of what the next answer would 
 - **outputs:** request (claims), menu (scorecard), check (claims), perspective (claims), value (claims), where (claims), levers (claims), lean (verdict), basis (claims)
 - **modules:** request, menu, check-cost
 
+## job-intel-parser v0.1.0 — ok
+
+Examine a pasted job listing or screener and produce an evidence-linked dossier with requirements, preferences, ambiguity, missing terms and independent fit axes.
+
+- **file:** `tools/job-intel-parser.qat.md`
+- **inputs:** listing (text), candidate_evidence (text, optional), priorities (text, optional)
+- **outputs:** scope (claims), requirements (claims), preferences (claims), ambiguities (claims), missing_terms (claims), fit (claims), questions (claims), next_steps (claims)
+
 ## kind-check v0.1.0 — ok
 
 Classify one governance object (decision, challenge, handoff, idea, note) by type, purpose, status and destination, and name the smallest next action, or no action.

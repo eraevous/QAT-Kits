@@ -19,6 +19,10 @@ jobs:
         with: { python-version: "3.12" }
       - name: Generator tests (stdlib only)
         run: python3 -I qat/scripts/test_skills.py -v
+      - name: JobIntelParser offline acceptance checks
+        run: |
+          python3 -m pip install pyyaml jsonschema
+          python3 -I qat/scripts/test_job_intel.py -v
       - name: Staleness check
         if: github.event_name == 'push'
         run: python3 -I qat/scripts/skills.py check
