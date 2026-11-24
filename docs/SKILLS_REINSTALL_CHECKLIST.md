@@ -15,15 +15,20 @@ Who does what:
 
 ---
 
-## Where things stand (checked 2026-11-22)
+## Where things stand (checked 2026-11-22; rechecked 2026-11-24)
 
 ### The release candidate
 
 - **Commit:** `8828397bad1283a9eabfcfb998bed041f4a7e98a` on `main` (merge of #32, 2026-11-20).
   `qat/runtimes/claude/BUNDLE_VERSION` reads `1.2.5`.
 - **No release exists yet.** There are no `qat-skills-v*` tags and no GitHub releases.
-- **#33** (open) changes only `qat/scripts/replay.py`, which is not part of the bundle. If it merges first,
-  the newer `main` still builds the same 1.2.5 bundle, and either commit can take the tag.
+- **Later merges don't change the bundle.** #33, #35 and #36 merged since (scripts and tests only:
+  `replay.py`, `skills.py`, `new.py`). Rechecked 2026-11-24 at `main` `47b16ab`: same check result and the
+  same `qat-kit-1.2.5.zip` sha256 as below. Either commit can take the tag; the commands below keep
+  `8828397`.
+- **#39 (open, ready) would change it.** It makes auto-eda 2.0.0 and bumps the bundle to `1.3.0`. If #39
+  merges before you tag, tag the newer `main` as `qat-skills-v1.3.0`, use 1.3.0 everywhere below, and
+  expect a different zip hash; rerun the two local checks first.
 - **Checked locally at `8828397`:**
   - `python3 -I qat/scripts/skills.py check`: 14 skills, bundle 1.2.5, 0 errors;
   - `python3 -I qat/scripts/skills.py package <empty dir>`: `qat-kit-1.2.5.zip`, 14 per-skill zips,
