@@ -151,7 +151,8 @@ def _axis_y(x, y0, y1, hi, ticks):
 
 def histogram(title, counts, edges, *, box=None, desc="") -> str:
     """Bars over bin `edges` (len(counts)+1), with an optional box strip
-    box = {"min","q1","median","q3","max"} (whisker ends) drawn above."""
+    box = {"min","q1","median","q3","max"} (whisker ends) drawn above, plus optional
+    "outliers" (values beyond the whiskers): one dot per occupied pixel, so size stays bounded."""
     x0, x1 = 50, W - 10
     lo, hi = float(edges[0]), float(edges[-1])
     span = (hi - lo) or 1
@@ -168,6 +169,15 @@ def histogram(title, counts, edges, *, box=None, desc="") -> str:
                      f'style="fill:none;stroke:{PALETTE[0]};stroke-width:1.5"><title>{esc(tip)}</title></rect>')
         mx = sx(box["median"])
         marks.append(f'<line x1="{mx:.1f}" y1="{yb}" x2="{mx:.1f}" y2="{yb + hb}" style="stroke:{PALETTE[1]};stroke-width:2"/>')
+        dots = {}
+        for v in box.get("outliers") or ():
+            dots.setdefault(round(sx(v)), []).append(float(v))
+        for px, vs in sorted(dots.items()):
+            a, b = fmt(min(vs)), fmt(max(vs))
+            tip = (f"outlier {a}" if len(vs) == 1 else
+                   f"{len(vs)} outliers at {a}" if a == b else f"{len(vs)} outliers, {a} to {b}")
+            marks.append(f'<circle class="outlier" cx="{px}" cy="{cy}" r="2.5" '
+                         f'style="fill:none;stroke:{PALETTE[0]}"><title>{esc(tip)}</title></circle>')
         top = yb + hb + 8
     y0, y1 = top + 4, top + 200
     cmax = max(counts, default=0) or 1

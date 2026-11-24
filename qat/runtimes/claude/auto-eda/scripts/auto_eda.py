@@ -173,7 +173,8 @@ def hist_numeric(s, p):
     q1, med, q3 = x.quantile(.25), x.median(), x.quantile(.75)
     iqr = q3 - q1
     box = {"q1": q1, "median": med, "q3": q3,  # whiskers: furthest points within 1.5 IQR
-           "min": x[x >= q1 - 1.5 * iqr].min(), "max": x[x <= q3 + 1.5 * iqr].max()}
+           "min": x[x >= q1 - 1.5 * iqr].min(), "max": x[x <= q3 + 1.5 * iqr].max(),
+           "outliers": x[(x < q1 - 1.5 * iqr) | (x > q3 + 1.5 * iqr)].tolist()}
     return sc.histogram(f"{p.name} — median {med:,.3g}, IQR {q1:,.3g}–{q3:,.3g}",
                         counts.tolist(), edges.tolist(), box=box)
 

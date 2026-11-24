@@ -184,6 +184,23 @@ class AutoEdaTest(unittest.TestCase):
         self.assertEqual(sc.fmt(0.5, 0.1), "0.5")
         self.assertEqual(sc.fmt(2e-15, 1e-15), "2e-15")   # tiny scales stay scientific
 
+    def test_box_strip_shows_outliers(self):
+        # Kate (API, RBQ9 round 1): dropping outlier dots hid values beyond the whiskers.
+        import svg_charts as sc
+        box = {"min": 1, "q1": 2, "median": 3, "q3": 4, "max": 5, "outliers": [-20, 40, 40, 40.0001]}
+        svg = sc.histogram("h", [1, 1], [-20, 10, 40], box=box)
+        ET.fromstring(svg)
+        dots = re.findall(r'<circle class="outlier"[^>]*><title>([^<]*)</title>', svg)
+        self.assertEqual(len(dots), 2, dots)            # same pixel: one dot, its title counts them
+        self.assertIn("outlier -20", dots[0])
+        self.assertIn("3 outliers at 40", dots[1])
+        many = dict(box, outliers=[40 + i * 1e-9 for i in range(5000)])
+        self.assertLess(sc.histogram("h", [1, 1], [-20, 10, 40], box=many).count("<circle"), 5)
+        df = self.ae.pd.DataFrame({"v": list(range(1, 21)) + [500]})
+        hist = self.ae.to_svg(self.ae.hist_numeric(df["v"], type("Profile", (), {"name": "v"})()))
+        self.assertIn('class="outlier"', hist)
+        self.assertIn("outlier 500", hist)
+
     def test_bar_draws_negative_values_from_zero(self):
         # Codex 4670146310: negative values were clamped to zero-width bars.
         import svg_charts as sc

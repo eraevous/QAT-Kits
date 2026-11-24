@@ -47,6 +47,8 @@ Each rule is a function `(series, profile) -> chart | None` plus a condition on 
 - **SVG text**, a single `<svg>` element, for a chart the kinds don't cover. Build it with `svg_doc(title, height, body)` from `svg_charts` so it gets the title, `aria-label` and sizing the others have, escape data text with `esc()`, and colour with `PALETTE` (CSS variables with fallbacks) so it follows the theme. `scripts/plugins/example_donut.py` is a worked example;
 - `None`, to skip.
 
+Plugins are executable Python code; install only reviewed, trusted plugins. Their returned SVG is embedded without sanitisation. Built-in chart rendering escapes data text; plugins returning raw SVG must handle escaping themselves. The generated HTML/SVG report is provider-neutral. Plugins and callable spec fields require Python; raw SVG itself does not.
+
 A matplotlib Figure (the pre-2.0 contract) is refused with an error naming this contract: in the column's Notes for a column rule, as a stderr warning for a dataset rule. To add a rule, put a `.py` file in `scripts/plugins/`:
 
 ```python

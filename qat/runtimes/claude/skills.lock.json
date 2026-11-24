@@ -5,14 +5,14 @@
   "skills": {
     "auto-eda": {
       "files": {
-        "SKILL.md": "e6d8af078c2f289c2be8ee45b296b763c60f33f70af2f45d79dec72a78808fbf",
-        "scripts/auto_eda.py": "2c319ec08753b199f308266cf25467c6215abd99f1d93169dd3823da7dcf6a1b",
+        "SKILL.md": "7b62cb873d36a0cb6cdaa280f278f8900db57999e153fa81f5ae65601b614514",
+        "scripts/auto_eda.py": "7b5238f4a086b92e98408152b317c2bc3b0f8287823a3533ca87aedc84a7451e",
         "scripts/plugins/example_donut.py": "86d7ccd582e058ae6049f5fbafc2b62dd01c686b0f10f959c8bafc08255a10c2",
-        "scripts/svg_charts.py": "aa4bd877a4942cfb463c3c90c59b0ba31fad078b2edfc3640be44ed24431ffee"
+        "scripts/svg_charts.py": "15a557a2cbb5e79b15e56e1917089f314ebda323cfc97c2c464158b2e75b76aa"
       },
       "kind": "skill",
       "source": "qat/tools/auto-eda.skill.md",
-      "source_sha256": "22fc31a8e33761b775a6157687c57da4e7e248e0c31c66a212097785b5bbbfcd",
+      "source_sha256": "c22997d54016ef86397f805e51e0669314c110dc04da27e882fd68a3cc293f9f",
       "version": "2.0.0"
     },
     "braided-explanations": {
