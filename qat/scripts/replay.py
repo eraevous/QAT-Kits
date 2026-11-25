@@ -80,10 +80,17 @@ def _grade_errors(g) -> list[str]:
     return errors
 
 
+def _read(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as e:
+        sys.exit(f"replay: cannot read {path}: {e}")
+
+
 def _load(path: Path):
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as e:
+        return json.loads(_read(path))
+    except json.JSONDecodeError as e:
         sys.exit(f"replay: cannot read {path}: {e}")
 
 
@@ -154,14 +161,14 @@ def packet(study: Path, grader: str, tool: str) -> str:
         lines += [f"## {row['oid']}", "", "**Item:**", "```json", json.dumps(body, indent=1, ensure_ascii=False), "```",
                   "", "**Reference key (a claim; you may dispute it):**", "```json",
                   json.dumps(key, indent=1, ensure_ascii=False), "```", "", "**Response card:**", "",
-                  card.read_text(encoding="utf-8").strip(), "", "---", ""]
+                  _read(card).strip(), "", "---", ""]
     if missing:
         sys.exit("replay: missing normalized cards:\n  " + "\n  ".join(missing))
     return "\n".join(lines)
 
 
 def _words(path: Path) -> int | None:
-    return len(path.read_text(encoding="utf-8").split()) if path.exists() else None
+    return len(_read(path).split()) if path.exists() else None
 
 
 def tally(study: Path, tool: str, exclude_seen: bool = False) -> dict:
@@ -169,12 +176,18 @@ def tally(study: Path, tool: str, exclude_seen: bool = False) -> dict:
     keys = _load(study / "keys" / f"{tool}.key.json")["keys"]
     by_oid = {row["oid"]: (g, row["item"], row["arm"]) for g, rows in asg.items() for row in rows}
     grades, problems = {}, []
+    first_line, duplicated = {}, set()          # oid -> "file:line" of its first grade; oids graded twice
     for grader in GRADERS:
         f = study / "grades" / f"{grader}.{tool}.jsonl"
         if not f.exists():
             problems.append(f"no grades file {f.name}")
             continue
-        for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+        try:
+            text = f.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as e:
+            problems.append(f"cannot read {f.name}: {e}")
+            continue
+        for n, line in enumerate(text.splitlines(), 1):
             if not line.strip():
                 continue
             try:
@@ -190,7 +203,16 @@ def tally(study: Path, tool: str, exclude_seen: bool = False) -> dict:
             if oid not in by_oid or by_oid[oid][0] != grader:
                 problems.append(f"{f.name}:{n} unknown oid {oid} for {grader}")
                 continue
+            if oid in first_line:
+                # A second grade for one opaque id would silently replace the first and flip a
+                # tally after the fact; count neither, so the owner sees it and resolves it.
+                problems.append(f"{f.name}:{n} duplicate grade for {oid} (first at {first_line[oid]}); counted neither")
+                duplicated.add(oid)
+                continue
+            first_line[oid] = f"{f.name}:{n}"
             grades[oid] = g
+    for oid in duplicated:
+        grades.pop(oid, None)
     for oid in sorted(set(by_oid) - set(grades)):
         grader, item, arm = by_oid[oid]
         if not (exclude_seen and keys[item].get("seen_in_design")):
