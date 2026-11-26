@@ -215,6 +215,59 @@ class AutoEdaTest(unittest.TestCase):
             self.assertAlmostEqual(wa / wb, abs(values[0]) / abs(values[1]), places=2)
             self.assertIn("<line", svg)                       # the zero line
 
+    # --- Copilot review of 1882192 ----------------------------------------------------------
+
+    def numbers(self, svg):
+        attrs = re.findall(r'\b(?:x|y|x1|x2|y1|y2|cx|cy|width|height)="([^"]*)"', svg)
+        attrs += [n for pts in re.findall(r'points="([^"]*)"', svg) for n in re.split(r"[ ,]", pts) if n]
+        return [float(a) for a in attrs]
+
+    def test_huge_finite_values_give_finite_geometry(self):
+        # Copilot 4702316524: [0, 1e307, 2e307] gave inf/nan coordinates, and an outlier there raised.
+        import math
+        import svg_charts as sc
+        hist = sc.histogram("h", [3, 1], [0, 1e307, 2e307],
+                            box={"q1": 1, "median": 2, "q3": 3, "min": 0, "max": 4, "outliers": [2e307]})
+        bars = sc.bar("b", ["a", "b"], [1e307, 2e307], value_fmt=str)
+        both = sc.bar("w", ["lo", "hi"], [-1.7e308, 1.7e308], value_fmt=str)
+        for svg in (hist, bars, both):
+            nums = self.numbers(svg)
+            self.assertTrue(nums and all(math.isfinite(n) for n in nums), svg[:200])
+        self.assertIn('class="outlier"', hist)
+
+    def test_charts_carry_a_data_text_alternative(self):
+        # Copilot 4702316484: role="img" hides per-mark titles, so the values go in a linked <desc>.
+        rows = ["g,x,y,when"] + [f"{'AB'[i % 2]},{i},{i * 0.5 + i % 3},2026-03-{1 + i % 5:02d}" for i in range(40)]
+        html_text = self.report("a.csv", "\n".join(rows))
+        for svg in self.svgs(html_text):
+            did = re.search(r'aria-describedby="([^"]+)"', svg)
+            self.assertIsNotNone(did, svg[:120])
+            self.assertRegex(svg, r'<desc id="' + re.escape(did.group(1)) + r'">[^<]+</desc>')
+        self.assertIn("A: 20 (50%); B: 20 (50%)", self.chart(html_text, "g — 2 categories"))
+        self.assertIn("x × y: r = ", self.chart(html_text, "Pearson correlation"))
+        self.assertRegex(self.chart(html_text, "x — median"), r"<desc[^>]*>median [^<]*rows")
+        import svg_charts as sc
+        long = sc.data_text((str(i), i) for i in range(100))
+        self.assertTrue(long.endswith("and 60 more"))
+
+    def test_slanted_heatmap_labels_fit_the_viewbox(self):
+        # Copilot 4702316556: the last 20-character column label ran past the right edge.
+        import svg_charts as sc
+        k = 50
+        labels = [f"column_name_{i:03d}_xxxxx" for i in range(k)]
+        svg = sc.heatmap("w", labels, [[1.0 if i == j else 0.0 for j in range(k)] for i in range(k)])
+        vb_w = float(re.search(r'viewBox="0 0 ([\d.]+) ', svg).group(1))
+        last_x = max(float(x) for x in re.findall(r'translate\(([\d.]+),', svg))
+        self.assertLessEqual(last_x + 0.71 * sc.CHAR_W * len(sc.clip(labels[-1], 20)), vb_w)
+
+    def test_donut_legend_clips_long_names(self):
+        # Copilot 4702316420: long names ran into the counts column.
+        name = "an extremely long category name"
+        donut = self.chart(self.report("dl.csv", "g\n" + "\n".join([name] * 2 + ["b"])), "g — share")
+        self.assertIn(f"<title>{name}</title>", donut)
+        self.assertIn(f"</title>{name[:14]}…</text>", donut)   # the visible text is shortened
+        self.assertIn(f"{name}: 2 (67%)", donut)          # and the full name stays in the text alternative
+
     def test_labels_from_data_are_escaped(self):
         svg = self.chart(self.report("e.csv", "g\n" + "\n".join(["<b>&x"] * 3 + ["y"] * 2)), "g — 2 categories")
         self.assertIn("&lt;b&gt;&amp;x", svg)

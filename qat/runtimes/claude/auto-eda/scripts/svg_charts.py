@@ -50,6 +50,13 @@ def fmt(v, step=None) -> str:
     return f"{v:,.4g}"
 
 
+def frac(v, lo, hi) -> float:
+    """Where v sits in [lo, hi], as 0..1, without overflow near the float limit: the halves are
+    subtracted, so neither the span nor (v - lo) can reach inf for finite inputs."""
+    span = hi / 2 - lo / 2
+    return (v / 2 - lo / 2) / span if span > 0 else 0.5
+
+
 def clip(label, n=26) -> str:
     label = str(label)
     return label if len(label) <= n else label[: n - 1] + "…"
@@ -76,13 +83,28 @@ def nice_ticks(lo: float, hi: float, n: int = 5) -> list[float]:
     return out
 
 
+_ids = iter(range(1, 1 << 62))
+DESC_ITEMS = 40   # how many values a chart's text alternative lists before "and N more"
+
+
+def data_text(pairs, unit="") -> str:
+    """'a: 6; b: 3; … and 12 more' — the text alternative a screen reader gets for a chart."""
+    pairs = list(pairs)
+    shown = "; ".join(f"{a}: {b}{unit}" for a, b in pairs[:DESC_ITEMS])
+    more = len(pairs) - DESC_ITEMS
+    return shown + (f"; and {more} more" if more > 0 else "")
+
+
 def svg_doc(title: str, height: float, body: str, desc: str = "", width: float = W) -> str:
-    """Wrap chart marks in an accessible <svg>. `title` is shown and also read out.
-    `width` widens the viewBox for a chart that needs more room (the page still scales it to fit)."""
+    """Wrap chart marks in an accessible <svg>. `title` is the accessible name; `desc` is its
+    text alternative (the data, in words), linked by aria-describedby because role="img" hides
+    the marks' own <title>s from screen readers. `width` widens the viewBox when a chart needs it."""
     h, w = math.ceil(height), math.ceil(max(width, W))
-    d = f"<desc>{esc(desc)}</desc>" if desc else ""
+    did = f"auto-eda-desc-{next(_ids)}"
+    d = f'<desc id="{did}">{esc(desc)}</desc>' if desc else ""
+    described = f' aria-describedby="{did}"' if desc else ""
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" role="img" '
-            f'aria-label="{esc(title)}" font-size="{FONT}" style="font-family:inherit">'
+            f'aria-label="{esc(title)}"{described} font-size="{FONT}" style="font-family:inherit">'
             f"<title>{esc(title)}</title>{d}"
             f'<text x="0" y="16" font-size="14" font-weight="600" style="fill:{FG}">{esc(title)}</text>'
             f"{body}</svg>")
@@ -104,11 +126,14 @@ def bar(title, labels, values, *, annotate=True, xmax=None, xlabel=None, colors=
     top = 30
     x0, x1 = lab_w, W - (110 if annotate else 20)
     # domain always includes 0; bars run from the zero line to their value, either side
+    if not desc:
+        desc = data_text((lab, value_fmt(v) if value_fmt else f"{fmt(v)} ({100 * v / total:.0f}%)")
+                         for lab, v in zip(labels, values))
     lo = min(0.0, min(values, default=0))
     hi = xmax if xmax is not None else max(0.0, max(values, default=0))
     if hi == lo:
         hi = lo + 1
-    sx = lambda v: x0 + (x1 - x0) * (v - lo) / (hi - lo)
+    sx = lambda v: x0 + (x1 - x0) * frac(v, lo, hi)
     zero = sx(0)
     marks = []
     if lo < 0:
@@ -134,7 +159,7 @@ def _axis_x(x0, x1, y, lo, hi, ticks):
     step = ticks[1] - ticks[0] if len(ticks) > 1 else None
     out = [f'<line x1="{x0}" y1="{y}" x2="{x1}" y2="{y}" style="stroke:{LINE}"/>']
     for t in ticks:
-        x = x0 + (x1 - x0) * ((t - lo) / (hi - lo) if hi > lo else 0.5)
+        x = x0 + (x1 - x0) * frac(t, lo, hi)
         out.append(f'<text x="{x:.1f}" y="{y + 15}" text-anchor="middle" style="fill:{MUTED}">{esc(fmt(t, step))}</text>')
     return "".join(out)
 
@@ -154,9 +179,15 @@ def histogram(title, counts, edges, *, box=None, desc="") -> str:
     box = {"min","q1","median","q3","max"} (whisker ends) drawn above, plus optional
     "outliers" (values beyond the whiskers): one dot per occupied pixel, so size stays bounded."""
     x0, x1 = 50, W - 10
+    if not desc:
+        desc = data_text((f"{fmt(a, b - a)} to {fmt(b, b - a)}", f"{fmt(c)} rows")
+                         for c, a, b in zip(counts, edges[:-1], edges[1:]))
+        if box:
+            desc = (f"median {fmt(box['median'])}, IQR {fmt(box['q1'])} to {fmt(box['q3'])}"
+                    f"{', ' + str(len(box.get('outliers') or ())) + ' outliers' if box.get('outliers') else ''}. "
+                    + desc)
     lo, hi = float(edges[0]), float(edges[-1])
-    span = (hi - lo) or 1
-    sx = lambda v: x0 + (x1 - x0) * (float(v) - lo) / span
+    sx = lambda v: x0 + (x1 - x0) * frac(float(v), lo, hi)
     marks = []
     top = 30
     if box:
@@ -195,6 +226,8 @@ def line(title, labels, values, *, desc="") -> str:
     last), so x position is elapsed time. Fill empty periods with 0 rather than leaving them out."""
     x0, x1, y0, y1 = 50, W - 14, 34, 230
     n = len(values)
+    if not desc:
+        desc = data_text((lab, fmt(v)) for lab, v in zip(labels, values))
     vmax = max(values, default=0) or 1
     sx = lambda i: x0 + (x1 - x0) * (i / (n - 1) if n > 1 else 0.5)
     sy = lambda v: y1 - (y1 - y0) * v / vmax
@@ -216,9 +249,16 @@ def heatmap(title, labels, matrix, *, show_values=None, desc="") -> str:
     """Square grid of values in [-1, 1]: red for positive, blue for negative, opacity = |value|."""
     k = len(labels)
     show_values = k <= 12 if show_values is None else show_values
+    if not desc:   # strongest pairs first, each pair once
+        pairs = sorted(((labels[i], labels[j], matrix[i][j]) for i in range(k) for j in range(i + 1, k)
+                        if matrix[i][j] is not None and math.isfinite(matrix[i][j])), key=lambda p: -abs(p[2]))
+        desc = data_text((f"{a} × {b}", f"r = {r:.2f}") for a, b, r in pairs)
     lab_w = min(160, max(40, CHAR_W * max((len(clip(x, 20)) for x in map(str, labels)), default=4) + 8))
     cell = max(14, min(44, (W - lab_w - 20) / max(k, 1)))
-    width = lab_w + k * cell + 20   # past ~35 columns the viewBox widens rather than clip the grid
+    # the viewBox widens rather than clip: the grid, plus how far each slanted (-45°) column
+    # label reaches right of its cell (cos 45° × its rendered length)
+    width = max([lab_w + k * cell + 20] + [lab_w + (j + 0.5) * cell + 0.71 * CHAR_W * len(clip(lab, 20)) + 10
+                                          for j, lab in enumerate(map(str, labels))])
     top = 30 + lab_w * 0.72   # room for the slanted column labels
     marks = []
     for j, lab in enumerate(labels):

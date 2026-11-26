@@ -19,7 +19,7 @@ kind is one of: low_cat, high_cat, numeric, datetime, boolean, id, text, constan
 import math
 
 from auto_eda import rule, PALETTE
-from svg_charts import FG, MUTED, esc, svg_doc
+from svg_charts import FG, MUTED, clip, data_text, esc, svg_doc
 
 
 @rule("donut: share of total", lambda p: p.kind == "low_cat" and p.n_unique <= 5)
@@ -45,8 +45,9 @@ def donut(s, p):
                      f"<title>{esc(label)}: {n:,} ({pct:.0f}%)</title></path>")
         y = 70 + i * 24                       # legend
         marks.append(f'<rect x="250" y="{y - 11}" width="12" height="12" style="fill:{color}"/>'
-                     f'<text x="268" y="{y}" style="fill:{FG}">{esc(label)}</text>'
+                     f'<text x="268" y="{y}" style="fill:{FG}"><title>{esc(label)}</title>{esc(clip(label, 15))}</text>'
                      f'<text x="380" y="{y}" style="fill:{MUTED}">{n:,} ({pct:.0f}%)</text>')
         start = end
     marks.append(f'<text x="{cx}" y="{cy + 5}" text-anchor="middle" font-size="14" style="fill:{FG}">{total:,}</text>')
-    return svg_doc(f"{p.name} — share", 250, "".join(marks))
+    desc = data_text((label, f"{n:,} ({100 * n / total:.0f}%)") for label, n in counts.items())
+    return svg_doc(f"{p.name} — share", 250, "".join(marks), desc)

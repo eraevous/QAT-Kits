@@ -31,3 +31,17 @@
 - **4670146296, narrow numeric ranges.** `fmt()` used 3 significant figures, so a range from 1000.1 to 1000.9 printed every tick and bin edge as `1e+03`. Axis ticks and bin tooltips now take their decimal places from the tick or bin spacing, and plain values keep 4 significant figures. A test was added.
 - **4670146310, negative bar values.** `bar()` clamped negative widths to zero. The domain now includes 0, bars run from a zero line to their value on either side, and the PR adds a test. Built-in rules only pass counts and percentages, so this matters for plugin specs (for example AE-05's medians).
 - **No rerun needed.** No case reply depends on either chart's geometry. AE-01's dates are hourly over 21 days, so it has no empty days, and no case has more than 3 numeric columns.
+
+## Follow-up: Copilot review of 1882192 (2026-11-25)
+
+- **4702316524, overflow.** Positions were computed as `width × (v − lo) / span`, so finite values near 1e307 produced inf coordinates, and an outlier there raised OverflowError. `frac()` now computes the position on halved values and only then multiplies by the width. It is used in `bar`, `histogram` and the x axis. Test added.
+- **4702316484, accessibility.** `role="img"` hides the per-mark `<title>`s from screen readers. Every built-in chart and the donut now carry a `<desc>` with the data in words, linked by `aria-describedby`:
+  - bar: label and value;
+  - histogram: median, IQR, outlier count, then each bin;
+  - line: each period;
+  - heatmap: pairs, strongest first.
+
+  Each list is capped at 40 items, followed by "and N more". Test added.
+- **4702316556, heatmap labels.** The viewBox now also covers how far each slanted column label reaches to the right. Test added, with 50 columns of 20-character names.
+- **4702316420, donut legend.** Names are shortened to 15 characters; the full name is kept in a `<title>` and in the text alternative. Test added.
+- **No rerun needed.** No case reply depends on chart geometry or on the `<desc>` text.
