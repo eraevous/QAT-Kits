@@ -31,6 +31,10 @@ Zach's words (Slack #kairos, 2026-11-16 16:17 CT, relayed verbatim by Abigail):
 | Roadmap | [docs/remit/ROADMAP.md](docs/remit/ROADMAP.md) |
 | History (do not edit to reconcile) | `Toolkits/`, `QAT-Kit_Architecture/`, `docs/DRIFT_INVENTORY_2026-11-04.md` |
 
+## JobHunter
+
+[JobIntelParser](docs/JOBHUNTER.md) turns a pasted listing or screener into an evidence-linked dossier. The first slice includes a portable chat prompt, native QAT contract, generated Claude skill and fictional offline acceptance cases. Semantic evaluation is pending; the other three recovered tools are mapped for later integration.
+
 ## Working rules
 
 [AGENTS.md](AGENTS.md) for agents, [CONTRIBUTING.md](CONTRIBUTING.md) for spec changes (eval-gated, DEC-193). Review order: first an independent review by a different model family (ChatGPT (Kate), Zach's ChatGPT partner thread, or API Kate, the ChatGPT API reviewer), then a fresh-context execution review; Zach merges.

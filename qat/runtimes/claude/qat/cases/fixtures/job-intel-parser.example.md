@@ -1,0 +1,2 @@
+L1 (fictional listing): Paper Kite Labs seeks an Operations Analyst. Required: 2 years using SQL OR equivalent project experience. A degree is not required. Preferred: Python. Responsibilities: investigate unusual order patterns and present recommendations. Salary: USD 80,000–95,000 per year. Hybrid: 2 days per week onsite. You will wear many hats. Reports to the Operations Director.
+S1 (fictional screener): Do you hold a degree? Are you able to work 2 days per week onsite?
