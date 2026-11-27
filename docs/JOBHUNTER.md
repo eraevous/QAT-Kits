@@ -1,6 +1,6 @@
 # JobHunter: first runnable slice
 
-Status: JobIntelParser **0.1.0 candidate**, bundle **1.3.0**. This is a chat-executed prompt tool, with offline contract acceptance tests. It makes no network or model API calls. Semantic quality has **not** been independently evaluated.
+Status: JobIntelParser **0.1.0 candidate**, bundle **1.4.0**. This is a chat-executed prompt tool, with offline contract acceptance tests. It makes no network or model API calls. Semantic quality has **not** been independently evaluated.
 
 ## Use it now
 
