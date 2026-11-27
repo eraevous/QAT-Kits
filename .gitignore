@@ -1,0 +1,3 @@
+# Python bytecode caches: rebuilt on every run, so tracking them puts a binary diff in unrelated PRs
+__pycache__/
+*.py[cod]

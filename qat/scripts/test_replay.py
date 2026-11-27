@@ -131,6 +131,53 @@ class ReplayTest(unittest.TestCase):
         self.assertTrue(any("incorrect_commitment must be a boolean" in problem for problem in res["problems"]))
         self.assertTrue(any("defensible must be one of yes, partly, no" in problem for problem in res["problems"]))
 
+    def _write_grades(self, tool, extra=None):
+        (self.tmp / "grades").mkdir(exist_ok=True)
+        for grader, rows in self.out["tools"][tool]["graders"].items():
+            lines = [json.dumps({"oid": r["oid"], "defensible": "yes", "corrections": 0,
+                                 "incorrect_commitment": False, "unnecessary_action": False,
+                                 "missed_abstention": False, "invented_detail": False,
+                                 "key": "agree", "key_note": "", "arm_guess": "unsure"}) for r in rows]
+            lines += (extra or {}).get(grader, [])
+            (self.tmp / "grades" / f"{grader}.{tool}.jsonl").write_text("\n".join(lines) + "\n")
+
+    def test_tally_duplicate_grade_counts_neither(self):
+        # A second line for the same opaque id used to replace the first silently,
+        # so an appended grade could flip the tally with no problem reported.
+        tool = "real-problem"
+        first = self.out["tools"][tool]["graders"]["claude"][0]["oid"]
+        flipped = json.dumps({"oid": first, "defensible": "no", "corrections": 2,
+                              "incorrect_commitment": True, "unnecessary_action": False,
+                              "missed_abstention": False, "invented_detail": False,
+                              "key": "dispute", "key_note": "changed", "arm_guess": "tool"})
+        self._write_grades(tool, {"claude": [flipped]})
+        res = replay.tally(self.tmp, tool)
+        self.assertEqual(res["arms"]["A"]["graded"] + res["arms"]["B"]["graded"], 39)
+        self.assertNotIn("defensible_no", res["arms"]["A"])
+        self.assertNotIn("defensible_no", res["arms"]["B"])
+        self.assertTrue(any(f"duplicate grade for {first}" in p for p in res["problems"]))
+        self.assertTrue(any(f"missing grade {first}" in p for p in res["problems"]))
+
+    def test_non_utf8_inputs_are_reported_not_raised(self):
+        tool = "real-problem"
+        self._write_grades(tool)
+        (self.tmp / "grades" / f"kate.{tool}.jsonl").write_bytes(b"\xff\xfe not text\n")
+        res = replay.tally(self.tmp, tool)
+        self.assertTrue(any(f"cannot read kate.{tool}.jsonl" in p for p in res["problems"]))
+        self.assertEqual(res["arms"]["A"]["graded"] + res["arms"]["B"]["graded"], 20)
+        (self.tmp / "keys" / f"{tool}.key.json").write_bytes(b"\xff")
+        with self.assertRaises(SystemExit) as cm:
+            replay.tally(self.tmp, tool)
+        self.assertIn("cannot read", str(cm.exception.code))
+        for arm in replay.ARMS:
+            d = self.tmp / "runs" / "kind-check" / "cards" / arm
+            d.mkdir(parents=True)
+            for item in self._strata("kind-check"):
+                (d / f"{item}.md").write_bytes(b"\xff")
+        with self.assertRaises(SystemExit) as cm:
+            replay.packet(self.tmp, "claude", "kind-check")
+        self.assertIn("cannot read", str(cm.exception.code))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

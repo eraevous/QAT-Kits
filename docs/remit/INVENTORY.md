@@ -14,7 +14,7 @@ Base: QAT-Kits `3efb46f3d3e2` (main, 2026-11-17); review follow-up on `0695de0`.
 | | |
 |---|---|
 | Lives now | Source of record already here: `qat/tools/auto-eda.skill.md` v1.1.0 + `qat/tools/auto-eda.files/scripts/` (`auto_eda.py`, `plugins/example_donut.py`), ported in #20, review fixes in #21. Generated: `qat/runtimes/claude/auto-eda/`. Installed: account skill `auto-eda` (pre-release upload). Cases: `qat/cases/auto-eda.cases.md`; tests: `qat/scripts/test_auto_eda.py`. |
-| Depends on | Python 3 with pandas, numpy, matplotlib; openpyxl for XLSX; pyarrow or fastparquet for Parquet (optional). Claude-side delivery step (`SendUserFile`). |
+| Depends on | Python 3 with pandas and numpy (charts are inline SVG since 2.0, no plotting library); openpyxl for XLSX; pyarrow or fastparquet for Parquet (optional). Claude-side delivery step (`SendUserFile`). |
 | What would move | Nothing from Claude: it is already here. The ChatGPT port is the missing runtime (see port findings). |
 | Integration boundary | Input: one data file (CSV, JSON/JSONL, XLSX, Parquet). Output: `<stem>_eda.html` + `<stem>_eda.json`, one JSON status line on stdout. The provider-specific parts are only step 3 (delivery) and how the script gets into the sandbox. |
 | ChatGPT port findings (Abigail's port against QAT-Kits `8f3b443e87e7`; relayed, not re-run here) | The port drops Claude-only delivery assumptions, avoids `pip --break-system-packages`, and restricts plugin imports to reviewed code. **Passed:** CSV, nested JSON and XLSX checks; PNG decoding; bundled plugin execution. **Untested:** Parquet (no optional engine present) and browser layout. |

@@ -5,14 +5,15 @@
   "skills": {
     "auto-eda": {
       "files": {
-        "SKILL.md": "8c400b7da25ddf2edbe62ba1efcbe7dd2116a6d43fa90039deca51d4aed90f9e",
-        "scripts/auto_eda.py": "478fd9ceda17f192b78b9a6e063e68ed4e0a81fb90038c4edf61d35bf23f8199",
-        "scripts/plugins/example_donut.py": "be7434a5f582b8504312a6668ee43c0201ac225920af87fe2c4ece442df976c8"
+        "SKILL.md": "7b62cb873d36a0cb6cdaa280f278f8900db57999e153fa81f5ae65601b614514",
+        "scripts/auto_eda.py": "7b5238f4a086b92e98408152b317c2bc3b0f8287823a3533ca87aedc84a7451e",
+        "scripts/plugins/example_donut.py": "ede35ee0b51245e6f3de584f65fd3511bee4a875b9cb83b5ec196e4b61129abd",
+        "scripts/svg_charts.py": "e3bec5fd78574f875a6b70b989c631244c0ab62488b518b90a000bf20f94583a"
       },
       "kind": "skill",
       "source": "qat/tools/auto-eda.skill.md",
-      "source_sha256": "2ce5b99dfba1bf8073b7a99df1dded0d15a199e984d25a74326310a4ca277026",
-      "version": "1.1.0"
+      "source_sha256": "c22997d54016ef86397f805e51e0669314c110dc04da27e882fd68a3cc293f9f",
+      "version": "2.0.0"
     },
     "braided-explanations": {
       "files": {
@@ -81,7 +82,7 @@
       "files": {
         "INDEX.md": "f3409aa63f016e99aed8a881f45f03c775885d7256b5e7fcbb72bd7bc964a348",
         "SKILL.md": "1e0db4460144c25cdb6ffc9955024e76cbfc8b0eac5d59317fdb463e991e2f03",
-        "cases/auto-eda.cases.md": "c48e4ed9ab6993e7aa29b2e342f4626f723ba5b7a6779d8ca134f9abd0b06552",
+        "cases/auto-eda.cases.md": "2ec62743a496525d9e50a99e3cb52b22e332186b3922b99f86d7a9e5cb776858",
         "cases/effort-cost.eval.yaml": "ea9220140180acb60ce9a25fd095bbabaa6dfbd3785e9eb017e51b9af2dfbae1",
         "cases/fixtures/garden-rota.thread.md": "fcf64d260c0dc3cf605b48e625252757fde2297c9d9d84ad4511ff390031fc5a",
         "cases/fixtures/job-intel-parser.example.md": "59bdd016b4207552a8a43d9acdfb15021226cbacb602b56d509ca6bf6e97bed2",

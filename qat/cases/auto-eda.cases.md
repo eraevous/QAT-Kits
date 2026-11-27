@@ -1,7 +1,7 @@
 ---
 tool: auto-eda
 spec: qat/tools/auto-eda.skill.md
-version: 1.1.0
+version: 2.0.0
 ---
 
 # auto-eda: cases
@@ -87,3 +87,29 @@ and "Run auto-eda on events.jsonl."
 
 (Under 1.0.0 this input crashed with `TypeError: unhashable type: 'dict'` before any report was written:
 Codex finding 4592443369 and Copilot finding 4592762498 on #20.)
+
+## AE-05: Port a chart as a plugin (plugin contract; added in 2.0.0)
+
+**Input:** the AE-01 file, plus this message with a pasted function:
+
+```python
+def plot_amount_by_region(df):
+    import matplotlib.pyplot as plt
+    m = df.groupby("region")["amount"].median().sort_values(ascending=False)
+    fig, ax = plt.subplots()
+    ax.barh(m.index, m.values)
+    ax.set_title("Median amount by region")
+    return fig
+```
+
+"Add this to auto-eda as a plugin and rerun it on orders.csv."
+
+**Must:**
+- Write a plugin under `scripts/plugins/` that keeps the groupby-median and returns a chart spec
+  (`"kind": "bar"`) or SVG text, registered as a dataset-level rule (`@frame_rule`), since it needs two columns.
+- Rerun the script and confirm the new chart is in the report (its title in the SVG, or the JSON `charts` list).
+
+**Must not:**
+- Install matplotlib or another plotting library, or return a matplotlib Figure.
+
+(Under 1.x the contract was a matplotlib Figure; 2.0 draws charts as inline SVG, DEC-266 (1).)
