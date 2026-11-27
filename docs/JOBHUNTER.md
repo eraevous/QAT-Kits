@@ -1,6 +1,6 @@
 # JobHunter: portable chat tools
 
-Status: four **0.1.0 candidate** tools, bundle **1.4.0**. All are independently usable chat-executed prompts with native contracts and offline acceptance tests. They make no network or model API calls. Semantic quality has **not** been independently evaluated. The three companion ports are a separate draft stacked on parser PR #37; the parser source and that PR remain unchanged.
+Status: four **0.1.0 candidate** tools, bundle **1.5.0**. All are independently usable chat-executed prompts with native contracts and offline acceptance tests. They make no network or model API calls. Semantic quality has **not** been independently evaluated. The parser shipped in bundle 1.4.0 (#37, merged); the three companion ports are #43 (was #38, stacked on #37) and bump the bundle to 1.5.0. The parser source is unchanged by #43.
 
 ## Use it now
 
