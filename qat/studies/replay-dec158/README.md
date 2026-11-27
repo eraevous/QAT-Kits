@@ -66,7 +66,7 @@ From `qat/`:
 2. Normalizer: same file; save to `runs/<tool>/cards/{A,B}/`; spot-check five.
 3. Packets: `python3 -I scripts/replay.py packet --grader claude --tool real-problem -o <file>` (and for kate, and for kind-check).
 4. Graders: `graders/grader-claude.md` (fresh Claude); `graders/grader-kate.md` (relayed by the coordinator).
-5. `python3 -I scripts/replay.py tally --tool real-problem` (and `--exclude-seen`); the same for kind-check.
+5. `python3 -I scripts/replay.py tally --tool real-problem` (and `--exclude-seen`); the same for kind-check. One line per opaque id: a second line for the same id is listed under `problems` and neither line is counted, so a changed grade is fixed by editing the line, not by appending one.
 6. The owner adjudicates the queue; record adjudications next to the grades.
 
 Graders get only the packet and the rubric, never this folder: `assignment.json` would unblind them.

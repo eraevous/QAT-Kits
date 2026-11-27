@@ -5,14 +5,15 @@
   "skills": {
     "auto-eda": {
       "files": {
-        "SKILL.md": "8c400b7da25ddf2edbe62ba1efcbe7dd2116a6d43fa90039deca51d4aed90f9e",
-        "scripts/auto_eda.py": "478fd9ceda17f192b78b9a6e063e68ed4e0a81fb90038c4edf61d35bf23f8199",
-        "scripts/plugins/example_donut.py": "be7434a5f582b8504312a6668ee43c0201ac225920af87fe2c4ece442df976c8"
+        "SKILL.md": "7b62cb873d36a0cb6cdaa280f278f8900db57999e153fa81f5ae65601b614514",
+        "scripts/auto_eda.py": "7b5238f4a086b92e98408152b317c2bc3b0f8287823a3533ca87aedc84a7451e",
+        "scripts/plugins/example_donut.py": "ede35ee0b51245e6f3de584f65fd3511bee4a875b9cb83b5ec196e4b61129abd",
+        "scripts/svg_charts.py": "e3bec5fd78574f875a6b70b989c631244c0ab62488b518b90a000bf20f94583a"
       },
       "kind": "skill",
       "source": "qat/tools/auto-eda.skill.md",
-      "source_sha256": "2ce5b99dfba1bf8073b7a99df1dded0d15a199e984d25a74326310a4ca277026",
-      "version": "1.1.0"
+      "source_sha256": "c22997d54016ef86397f805e51e0669314c110dc04da27e882fd68a3cc293f9f",
+      "version": "2.0.0"
     },
     "braided-explanations": {
       "files": {
@@ -90,7 +91,7 @@
       "files": {
         "INDEX.md": "f282b3f9dbdaef0abc5beb5f4a17a5ac6b108bb966001c2ee19c28ea98350060",
         "SKILL.md": "1e0db4460144c25cdb6ffc9955024e76cbfc8b0eac5d59317fdb463e991e2f03",
-        "cases/auto-eda.cases.md": "c48e4ed9ab6993e7aa29b2e342f4626f723ba5b7a6779d8ca134f9abd0b06552",
+        "cases/auto-eda.cases.md": "2ec62743a496525d9e50a99e3cb52b22e332186b3922b99f86d7a9e5cb776858",
         "cases/effort-cost.eval.yaml": "ea9220140180acb60ce9a25fd095bbabaa6dfbd3785e9eb017e51b9af2dfbae1",
         "cases/fixtures/garden-rota.thread.md": "fcf64d260c0dc3cf605b48e625252757fde2297c9d9d84ad4511ff390031fc5a",
         "cases/fixtures/job-intel-parser.example.md": "59bdd016b4207552a8a43d9acdfb15021226cbacb602b56d509ca6bf6e97bed2",
@@ -102,7 +103,7 @@
         "cases/interview-commander.cases.md": "962e5adac001b2087cd6cfde2ff1d0adb542c42eb314469e4111fd4a5819f8cb",
         "cases/interview-commander.eval.yaml": "879a7be3ee96bfe6ca5b9c24ec748260199203dc9a01ee9fdc9c53aeeaf47832",
         "cases/job-intel-parser.cases.md": "74a6390b6583d9f6fdc134805ac6501325b925b306d6381902cc3fd551b69b9a",
-        "cases/job-intel-parser.eval.yaml": "9f1f021229bbfa3284c0c8b78f315fec0a4ead1453dd266567e379d6b3ef838e",
+        "cases/job-intel-parser.eval.yaml": "527bbaa855cad55789e627ee9c3c9b5b3f7adb19bf3faaec66356f00c18f9309",
         "cases/kind-check.eval.yaml": "7cff41183cc8046ea8bcab551b0f24f580cc1fc3529715fcffa9621dc93a3b36",
         "cases/mtg-deck-lab.cases.md": "dc741571cc6facf6e0080e73d749ba33312dc91dad40aa1991de1187654f1263",
         "cases/real-problem.eval.yaml": "7ecbcac7b5c84fb4d209a0136f57dd9cf44b3c5f179dd2e8308062e1daa7624f",
